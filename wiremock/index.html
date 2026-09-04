@@ -1,0 +1,1608 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>FitnessTracker — Mockup</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;700&family=Archivo+Black&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1A1A1A;
+    --muted: #6B6B76;
+    --track: #EFEFF2;
+    --hair: #E6E6EC;
+    /* accents are overwritten from the active theme at runtime */
+    --a1: #A81AA8;
+    --a2: #0E7490;
+    --a3: #F59E0B;
+    --a4: #3B82F6;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #F4F4F6; padding: 40px;
+         font-family: 'Archivo', 'Segoe UI', sans-serif; }
+
+  /* ---------- canvas holding the screens ---------- */
+  .canvas { display: flex; gap: 40px; align-items: flex-start; }
+  .column { display: flex; flex-direction: column; gap: 40px; }
+  .frame { display: flex; flex-direction: column; gap: 10px; }
+  .frame .name { font-size: 12px; font-weight: 700; color: var(--muted);
+                 text-transform: uppercase; letter-spacing: 1px; }
+
+  .phone {
+    position: relative;
+    width: 390px; height: 844px; background: #fff; overflow: hidden;
+    border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+    display: flex; flex-direction: column; color: var(--ink);
+  }
+  .display { font-family: 'Archivo Black', 'Arial Black', sans-serif; font-weight: 400; }
+
+  /* ---------- status bar ---------- */
+  .status { height: 40px; flex: 0 0 40px; display: flex; align-items: center;
+            justify-content: space-between; padding: 0 20px; }
+  .status .time { font-weight: 700; font-size: 15px; }
+  .status .icons { display: flex; align-items: center; gap: 5px; }
+
+  /* ---------- screen body ---------- */
+  main { flex: 1 1 auto; display: flex; flex-direction: column;
+         gap: 16px; padding: 20px; min-height: 0; }
+  .title-block { flex: 0 0 auto; }
+  h1 { font-size: 28px; line-height: 31px; letter-spacing: -0.3px; }
+
+  /* ---------- cards ---------- */
+  .card { border: 1.5px solid var(--ink); border-radius: 12px; padding: 16px;
+          display: flex; flex-direction: column; background: #fff; }
+  .card-header { display: flex; align-items: center; justify-content: space-between; }
+  .label { font-size: 12px; letter-spacing: 1px; text-transform: uppercase; }
+  .meta { font-size: 11px; font-weight: 700; color: var(--muted); }
+  .meta.accent { color: var(--a2); }
+
+  /* ---------- dashboard: sizing ---------- */
+  .today-row { flex: 0 0 auto; }
+  .heatmap, .weight { flex: 1 1 0; min-height: 0; }
+
+  /* ---------- dashboard: calories + workouts ---------- */
+  .today-row { display: flex; gap: 16px; align-items: stretch; }
+  .today-row > .card { flex: 1 1 0; padding: 14px; min-width: 0; }
+
+  .calories { align-items: center; gap: 8px; }
+  .calories .card-header { width: 100%; }
+  .ring { position: relative; width: 92px; height: 92px; }
+  .ring .centre { position: absolute; inset: 0; display: flex; flex-direction: column;
+                  align-items: center; justify-content: center; gap: 1px; }
+  .ring .centre .kcal { font-family: 'Archivo Black', 'Arial Black', sans-serif; font-size: 16px; }
+  .ring .centre .of { font-size: 8px; font-weight: 700; color: var(--muted); }
+  .macro-key { width: 100%; display: flex; flex-direction: column; gap: 3px;
+               font-size: 9px; font-weight: 700; }
+  .macro-key .m { display: flex; align-items: center; gap: 5px; }
+  .macro-key .m i { width: 6px; height: 6px; border-radius: 50%; flex: 0 0 6px; display: block; }
+  .macro-key .m .n { color: var(--muted); }
+  .macro-key .m .v { margin-left: auto; color: var(--ink); font-variant-numeric: tabular-nums; }
+
+  .workouts { gap: 10px; }
+  .workouts ul { list-style: none; display: flex; flex-direction: column; gap: 9px; }
+  .workouts li { display: flex; align-items: center; gap: 7px; font-size: 11px; }
+  .workouts li.done { font-weight: 700; color: var(--ink); }
+  .workouts li.todo { color: var(--muted); }
+  .workouts li svg { flex: 0 0 14px; }
+
+  /* ---------- dashboard: activity calendar ---------- */
+  .heatmap { gap: 10px; }
+  .cal { flex: 1 1 auto; display: flex; flex-direction: column; gap: 4px; min-height: 0; }
+  .cal-head { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px;
+              font-size: 8px; font-weight: 700; color: var(--muted); text-align: center; }
+  .cal-grid { flex: 1 1 auto; min-height: 0; display: grid;
+              grid-template-columns: repeat(7, 1fr); grid-auto-rows: 1fr; gap: 4px; }
+  .cal-grid .d { border-radius: 4px; display: flex; align-items: center;
+                 justify-content: center; font-size: 8px; font-weight: 700; }
+  .cal-grid .d.blank { background: transparent; }
+  .cal-grid .d.today { outline: 1.5px solid var(--ink); }
+
+  /* ---------- dashboard: weight ---------- */
+  .weight { gap: 12px; }
+  .input { height: 42px; flex: 0 0 42px; border: 1.5px solid var(--ink); border-radius: 8px;
+           display: flex; align-items: center; justify-content: space-between; padding: 0 12px; }
+  .input .value { font-family: 'Archivo Black', 'Arial Black', sans-serif; font-size: 16px; }
+  .input .unit { font-size: 12px; font-weight: 700; color: var(--muted); }
+  .chart { flex: 1 1 auto; display: flex; flex-direction: column; gap: 4px; min-height: 0; }
+  .chart .plot { flex: 1 1 auto; min-height: 0; }
+  .axis { flex: 0 0 auto; display: flex; justify-content: space-between;
+          font-size: 9px; font-weight: 700; color: var(--muted); }
+
+  .panel { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; gap: 14px; }
+
+  /* ---------- nutrition: day picker ---------- */
+  .days { flex: 0 0 auto; display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+  .day { display: flex; flex-direction: column; align-items: center; gap: 5px;
+         cursor: pointer; }
+  .day .dow { font-size: 8px; font-weight: 700; color: var(--muted);
+              text-transform: uppercase; letter-spacing: 0.5px; }
+  .day .chip { width: 100%; max-width: 36px; aspect-ratio: 1; border-radius: 9px;
+               display: flex; align-items: center; justify-content: center;
+               font-size: 11px; font-weight: 700; }
+  .day .chip.empty { border: 1.5px dashed #C9C9D2; color: #C9C9D2; }
+  .day.on .dow { color: var(--ink); }
+  .day.on .chip { outline: 2px solid var(--ink); outline-offset: 2px; }
+
+  /* The one action on the screen, anchored above the tab bar. Kept black rather
+     than purple so it reads as a control, not as another coloured data element. */
+  .cta { flex: 0 0 auto; display: flex; }
+  .btn { flex: 1 1 auto; padding: 16px; border: 0; border-radius: 0;
+         background: var(--ink); color: #fff; cursor: pointer;
+         font-size: 12px; text-transform: uppercase; letter-spacing: 0.6px; }
+
+  /* ---------- nutrition: the selected day ----------
+     Plain stacked groups, not cards: the Dashboard owns the bordered-widget
+     look and repeating it here made the two screens read as the same thing.
+     Each group hugs its content so the day reads as one tight column. */
+  .group { flex: 0 0 auto; display: flex; flex-direction: column; gap: 9px; }
+
+  .bignum { display: flex; align-items: baseline; gap: 6px; }
+  .bignum .n { font-family: 'Archivo Black', 'Arial Black', sans-serif; font-size: 22px; }
+  .bignum .of { font-size: 10px; font-weight: 700; color: var(--muted); }
+  .bignum .meta { margin-left: auto; }
+
+  /* The goal marker sits at a fixed position, so switching days moves the
+     fill against a scale that never shifts under you. */
+  .goalbar { position: relative; padding-top: 13px; }
+  .goalbar .track { height: 12px; border-radius: 6px; background: var(--track); }
+  .goalbar .fill { height: 100%; border-radius: 6px; }
+  .goalbar .mark { position: absolute; top: 0; bottom: 0; border-left: 2px dashed var(--ink); }
+  .goalbar .mark span { position: absolute; right: 4px; top: -1px;
+                        font-size: 8px; font-weight: 700; white-space: nowrap; }
+
+  .mrow { display: grid; grid-template-columns: 44px 1fr auto; align-items: center; gap: 8px;
+          font-size: 9px; font-weight: 700; }
+  .mrow .mname { color: var(--muted); }
+  .mrow .mtrack { height: 8px; border-radius: 4px; background: var(--track); }
+  .mrow .mfill { height: 100%; border-radius: 4px; }
+  .mrow .mval { color: var(--ink); font-variant-numeric: tabular-nums; }
+
+  /* ---------- nutrition: what was actually eaten ---------- */
+  .foodlist { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
+  .food { display: grid; grid-template-columns: 32px 1fr auto; gap: 10px; align-items: baseline;
+          padding: 8px 0; border-top: 1px solid var(--hair); font-size: 11px; }
+  .food .t { font-size: 9px; font-weight: 700; color: var(--muted); }
+  .food .n { font-weight: 700; min-width: 0; }
+  .food .nm { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  /* Unscoped: a meal header stacks its kcal and macros the same way a food row
+     does, and the two are meant to line up when you move between the screens. */
+  .d { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
+  .m { font-size: 9px; font-weight: 700; color: var(--muted); white-space: nowrap; }
+  /* Remove sits in the same first-column slot it takes inside a meal. */
+  .logged { grid-template-columns: 22px 32px 1fr auto; }
+  .logged .add { align-self: center; }
+  .k { font-size: 10px; font-weight: 700; color: var(--muted);
+       font-variant-numeric: tabular-nums; }
+  .nothing { padding: 12px 0; border-top: 1px solid var(--hair);
+             font-size: 11px; font-weight: 700; color: var(--muted); }
+
+  /* ---------- the log-meal sheet ---------- */
+  .sheet-head { flex: 0 0 auto; display: flex; align-items: flex-start;
+                justify-content: space-between; gap: 12px; }
+  /* A round button reads fine hung off the top of the title, a word does not. */
+  .sheet-head .linkbtn { align-self: center; }
+  .close { width: 32px; height: 32px; flex: 0 0 32px; border: 0; border-radius: 50%;
+           background: var(--track); color: var(--ink); cursor: pointer;
+           display: flex; align-items: center; justify-content: center; }
+
+  .search { flex: 0 0 44px; border: 1.5px solid var(--ink); border-radius: 8px;
+            display: flex; align-items: center; gap: 10px; padding: 0 14px;
+            font-size: 12px; font-weight: 700; color: var(--muted); }
+
+  /* Mid-typing: the query is real text, so it takes the ink colour the
+     placeholder never gets, and a caret sits where the next letter lands. */
+  .search .q { flex: 1 1 auto; display: flex; align-items: center; color: var(--ink); }
+  .caret { width: 1.5px; height: 15px; margin-left: 2px; background: var(--a2); }
+  .clear { width: 18px; height: 18px; flex: 0 0 18px; border: 0; border-radius: 50%;
+           background: var(--track); color: var(--muted); cursor: pointer;
+           display: flex; align-items: center; justify-content: center; }
+
+  /* Where the numbers came from. Results are a mix of the user's own foods,
+     a public reference database and brand labels, and they are not equally
+     trustworthy — so say it once here and tag every row below. */
+  .note { flex: 0 0 auto; display: flex; gap: 9px; padding: 11px 12px;
+          border-radius: 8px; background: var(--track); }
+  .note svg { flex: 0 0 13px; margin-top: 1px; color: var(--muted); }
+  .note p { font-size: 9.5px; line-height: 1.5; font-weight: 700; color: var(--muted); }
+  .note b { color: var(--ink); }
+  .caption { flex: 0 0 auto; font-size: 10px; line-height: 1.5;
+             font-weight: 700; color: var(--muted); }
+
+  /* ---------- choosing how much ---------- */
+  .titlewrap { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+
+  /* The weight is the whole point of the screen, so it gets the largest type
+     on it and the two coarse controls sit out at the thumbs. */
+  .amount { flex: 0 0 auto; display: flex; align-items: center;
+            justify-content: space-between; padding: 4px 0; }
+  .step { width: 44px; height: 44px; flex: 0 0 44px; border: 1.5px solid var(--hair);
+          border-radius: 50%; background: #fff; color: var(--ink); cursor: pointer;
+          display: flex; align-items: center; justify-content: center; }
+  .value { display: flex; align-items: baseline; gap: 6px; }
+  .big { font-size: 46px; letter-spacing: -1.5px; font-variant-numeric: tabular-nums; }
+  .unit { font-size: 15px; font-weight: 700; color: var(--muted); }
+
+  /* Named apart from the day .chip on purpose: these are a different control
+     and a bare .chip here leaks straight into the week strip. */
+  .portions { flex: 0 0 auto; display: flex; gap: 6px; }
+  .portion { flex: 1 1 0; padding: 10px 4px; border: 1.5px solid var(--hair);
+             border-radius: 8px; background: #fff; cursor: pointer; white-space: nowrap;
+             font-size: 10px; font-weight: 700; color: var(--muted); }
+  .portion.on { border-color: var(--ink); color: var(--ink); }
+
+  .readout { flex: 0 0 auto; display: flex; flex-direction: column; gap: 7px;
+             padding: 13px 0; border-top: 1px solid var(--hair);
+             border-bottom: 1px solid var(--hair); }
+  .ro-row { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+  .ro-k { font-size: 22px; font-variant-numeric: tabular-nums; }
+  .ro-m { font-size: 10px; font-weight: 700; color: var(--muted); }
+
+  /* Two fills in one track: solid for what is already logged today, a wash of
+     the same colour for what this portion would add. The track clips them so
+     the pair still reads as one rounded bar. */
+  .mtrack.split { display: flex; overflow: hidden; }
+  .mtrack.split .mfill { flex: 0 0 auto; border-radius: 0; }
+
+  /* ---------- editing saved meals ---------- */
+  .meals-edit { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
+  .meal { display: flex; flex-direction: column; border-top: 1px solid var(--hair); }
+  /* Meals are the unit you scan here, so they get room to breathe.
+     Doubled up on .toggle to outrank its own reset further down the sheet. */
+  .mealrow { display: flex; align-items: center; gap: 10px; }
+  .toggle.mealhead { flex: 1 1 auto; min-width: 0; gap: 10px; padding: 15px 0; }
+  .mealname { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column;
+              align-items: flex-start; gap: 2px; }
+  .mealname .n { font-size: 12px; font-weight: 700; color: var(--ink); }
+  /* Indented by one control width so an item's minus sits inboard of the meal's
+     own, which is the only thing separating "drop this food" from "drop the
+     whole meal". */
+  .mealbody { display: flex; flex-direction: column;
+              padding-left: 32px; padding-bottom: 14px; }
+  .mealbody[hidden] { display: none; }
+  .mealacts { display: flex; padding-top: 13px; }
+  /* Pulling a food out of a meal is undoable, so it stays quiet grey.
+     Deleting the whole meal is not, so that one is the only red on the screen. */
+  .add.minus { background: var(--track); color: var(--ink); }
+
+  .quick { flex: 0 0 auto; display: flex; gap: 8px; }
+  .quick button { flex: 1 1 0; padding: 10px 12px; cursor: pointer; text-align: left;
+                  border: 1.5px solid var(--hair); border-radius: 8px; background: #fff;
+                  display: flex; flex-direction: column; gap: 3px; }
+  .quick b { font-size: 11px; }
+  .quick span { font-size: 9px; font-weight: 700; color: var(--a4); }
+
+  .section { flex: 0 0 auto; display: flex; flex-direction: column; gap: 8px; }
+  .sechead { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .toggle { display: flex; align-items: center; gap: 6px; padding: 0;
+            background: none; border: 0; cursor: pointer; color: var(--muted); }
+  .toggle .chev { flex: 0 0 auto; transition: transform .15s; }
+  .toggle.closed .chev { transform: rotate(-90deg); }
+  .seclabel { font-size: 9px; font-weight: 700; color: var(--muted);
+              text-transform: uppercase; letter-spacing: 0.8px; }
+  .linkbtn { padding: 0; background: none; border: 0; cursor: pointer; color: var(--a2);
+             font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; }
+  .foodlist[hidden] { display: none; }
+
+  /* Same row as the day's log, with an add control where the timestamp was. */
+  .pick { grid-template-columns: 22px 1fr auto; align-items: center; }
+  .add { width: 22px; height: 22px; flex: 0 0 22px; border: 0; border-radius: 50%;
+         background: var(--ink); color: #fff; cursor: pointer;
+         display: flex; align-items: center; justify-content: center; }
+
+  .sheet-foot { flex: 0 0 34px; display: flex; align-items: center; justify-content: center; }
+  .sheet-foot i { width: 120px; height: 5px; border-radius: 100px;
+                  background: var(--ink); display: block; }
+
+  /* ---------- confirming a removal ----------
+     The day stays on screen behind the scrim: you are about to change that
+     total, so you should be able to see the total you are changing. */
+  .scrim { position: absolute; inset: 0; z-index: 5; padding: 28px;
+           background: rgba(26, 26, 26, 0.45);
+           display: flex; align-items: center; justify-content: center; }
+  .dialog { width: 100%; padding: 20px; border-radius: 12px; background: #fff;
+            display: flex; flex-direction: column; gap: 10px;
+            box-shadow: 0 12px 34px rgba(0, 0, 0, 0.28); }
+  .dialog h2 { font-size: 18px; line-height: 22px; letter-spacing: -0.2px; }
+  .dlg-acts { display: flex; gap: 8px; padding-top: 4px; }
+  .dlg-btn { flex: 1 1 0; padding: 12px; border-radius: 8px; cursor: pointer;
+             border: 1.5px solid var(--hair); background: #fff; color: var(--ink);
+             font-size: 11px; font-weight: 700;
+             text-transform: uppercase; letter-spacing: 0.6px; }
+  .dlg-btn.del { border-color: #DC2626; background: #DC2626; color: #fff; }
+
+  /* ---------- tab bar ---------- */
+  .tabbar { flex: 0 0 88px; display: flex; flex-direction: column;
+            border-top: 1px solid var(--hair); }
+  .tabs { flex: 1 1 auto; display: flex; align-items: center; }
+  .tab { flex: 1 1 0; display: flex; flex-direction: column; align-items: center; gap: 5px;
+         color: var(--ink); }
+  .tab span { font-family: 'Archivo Black', 'Arial Black', sans-serif;
+              font-size: 8px; text-transform: uppercase; letter-spacing: 0.3px; }
+  .tab.active { color: var(--a2); }
+  .safe { height: 20px; display: flex; align-items: center; justify-content: center; }
+  .safe i { width: 120px; height: 5px; border-radius: 100px; background: var(--ink); display: block; }
+</style>
+</head>
+<body>
+
+<div class="canvas">
+
+  <!-- ============================================================
+       SCREEN 1 — DASHBOARD
+       ============================================================ -->
+  <div class="column">
+  <div class="frame">
+    <span class="name">Dashboard</span>
+    <div class="phone">
+
+      <div class="status">
+        <div class="time">9:41</div>
+        <div class="icons">
+          <svg width="18" height="12" viewBox="0 0 18 12" fill="none">
+            <rect y="8" width="3" height="4" rx="1" fill="#1A1A1A"/>
+            <rect x="5" y="5.5" width="3" height="6.5" rx="1" fill="#1A1A1A"/>
+            <rect x="10" y="3" width="3" height="9" rx="1" fill="#1A1A1A"/>
+            <rect x="15" width="3" height="12" rx="1" fill="#1A1A1A"/>
+          </svg>
+          <svg width="16" height="12" viewBox="0 0 16 12" fill="none">
+            <path d="M1.2 4.1C3 2.5 5.4 1.5 8 1.5C10.6 1.5 13 2.5 14.8 4.1" stroke="#1A1A1A" stroke-width="2" stroke-linecap="round"/>
+            <path d="M4 7C5.1 6 6.5 5.4 8 5.4C9.5 5.4 10.9 6 12 7" stroke="#1A1A1A" stroke-width="2" stroke-linecap="round"/>
+            <path d="M6.7 9.9C7.1 9.6 7.5 9.4 8 9.4C8.5 9.4 8.9 9.6 9.3 9.9" stroke="#1A1A1A" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          <svg width="25" height="12" viewBox="0 0 25 12" fill="none">
+            <rect x="0.5" y="0.5" width="21" height="11" rx="3" stroke="#1A1A1A" stroke-opacity="0.4"/>
+            <rect x="2" y="2" width="18" height="8" rx="1.5" fill="#1A1A1A"/>
+            <path d="M23 4.4V7.6C23.9 7.3 24.5 6.7 24.5 6C24.5 5.3 23.9 4.7 23 4.4Z" fill="#1A1A1A" fill-opacity="0.4"/>
+          </svg>
+        </div>
+      </div>
+
+      <main>
+        <section class="title-block">
+          <h1 class="display">Consistency is the whole workout.</h1>
+        </section>
+
+        <section class="today-row">
+
+          <div class="card calories">
+            <div class="card-header"><div class="label display">Calories</div></div>
+            <div class="ring">
+              <svg id="ring" width="92" height="92" viewBox="0 0 100 100" fill="none"></svg>
+              <div class="centre">
+                <span class="kcal" id="kcal">0</span>
+                <span class="of" id="target">of 2,400</span>
+              </div>
+            </div>
+            <div class="macro-key" id="macrokey"></div>
+          </div>
+
+          <div class="card workouts">
+            <div class="card-header">
+              <div class="label display">Workouts</div>
+              <div class="meta" id="wcount">0/0</div>
+            </div>
+            <ul id="wlist"></ul>
+          </div>
+
+        </section>
+
+        <section class="card heatmap">
+          <div class="card-header">
+            <div class="label display">Activity</div>
+            <div class="meta" id="month">—</div>
+          </div>
+          <div class="cal">
+            <div class="cal-head">
+              <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span>
+              <span>Fri</span><span>Sat</span><span>Sun</span>
+            </div>
+            <div class="cal-grid" id="grid"></div>
+          </div>
+        </section>
+
+        <section class="card weight">
+          <div class="card-header">
+            <div class="label display">Weight</div>
+            <div class="meta accent">-1.8 kg this month</div>
+          </div>
+          <div class="input">
+            <span class="value" id="latest">82.4</span>
+            <span class="unit">kg</span>
+          </div>
+          <div class="chart">
+            <div class="plot" id="plotwrap"></div>
+            <div class="axis"><span>21 Aug</span><span>26 Aug</span><span>31 Aug</span><span>3 Sep</span></div>
+          </div>
+        </section>
+      </main>
+
+      <div class="tabbar">
+        <div class="tabs">
+          <div class="tab active">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/>
+            </svg>
+            <span>Dashboard</span>
+          </div>
+          <div class="tab">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 20.94c1.5 0 2.75 1.06 4 1.06 3 0 6-8 6-12.22A4.91 4.91 0 0 0 17 5c-2.22 0-4 1.44-5 2-1-.56-2.78-2-5-2a4.9 4.9 0 0 0-5 4.78C2 14 5 22 8 22c1.25 0 2.5-1.06 4-1.06Z"/>
+              <path d="M10 2c1 .5 2 2 2 5"/>
+            </svg>
+            <span>Nutrition</span>
+          </div>
+          <div class="tab">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 8v8"/><path d="M8 5v14"/><path d="M16 5v14"/><path d="M20 8v8"/><path d="M8 12h8"/>
+            </svg>
+            <span>Exercise</span>
+          </div>
+        </div>
+        <div class="safe"><i></i></div>
+      </div>
+
+    </div>
+  </div>
+
+  </div>
+
+  <div class="column">
+
+  <!-- ============================================================
+       SCREEN 2 — NUTRITION
+       ============================================================ -->
+  <div class="frame">
+    <span class="name">Nutrition</span>
+    <div class="phone" id="nutriscreen">
+
+      <div class="status">
+        <div class="time">9:41</div>
+        <div class="icons">
+          <svg width="18" height="12" viewBox="0 0 18 12" fill="none">
+            <rect y="8" width="3" height="4" rx="1" fill="#1A1A1A"/>
+            <rect x="5" y="5.5" width="3" height="6.5" rx="1" fill="#1A1A1A"/>
+            <rect x="10" y="3" width="3" height="9" rx="1" fill="#1A1A1A"/>
+            <rect x="15" width="3" height="12" rx="1" fill="#1A1A1A"/>
+          </svg>
+          <svg width="16" height="12" viewBox="0 0 16 12" fill="none">
+            <path d="M1.2 4.1C3 2.5 5.4 1.5 8 1.5C10.6 1.5 13 2.5 14.8 4.1" stroke="#1A1A1A" stroke-width="2" stroke-linecap="round"/>
+            <path d="M4 7C5.1 6 6.5 5.4 8 5.4C9.5 5.4 10.9 6 12 7" stroke="#1A1A1A" stroke-width="2" stroke-linecap="round"/>
+            <path d="M6.7 9.9C7.1 9.6 7.5 9.4 8 9.4C8.5 9.4 8.9 9.6 9.3 9.9" stroke="#1A1A1A" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          <svg width="25" height="12" viewBox="0 0 25 12" fill="none">
+            <rect x="0.5" y="0.5" width="21" height="11" rx="3" stroke="#1A1A1A" stroke-opacity="0.4"/>
+            <rect x="2" y="2" width="18" height="8" rx="1.5" fill="#1A1A1A"/>
+            <path d="M23 4.4V7.6C23.9 7.3 24.5 6.7 24.5 6C24.5 5.3 23.9 4.7 23 4.4Z" fill="#1A1A1A" fill-opacity="0.4"/>
+          </svg>
+        </div>
+      </div>
+
+      <main>
+        <section class="title-block">
+          <h1 class="display">Progress is built on the plate.</h1>
+        </section>
+
+        <section class="panel">
+
+          <div class="days" id="week"></div>
+
+          <div class="group">
+            <div class="bignum">
+              <span class="n" id="kcalnum">—</span><span class="of">of 2,400 kcal</span>
+              <span class="meta" id="kcaldelta"></span>
+            </div>
+            <div class="goalbar">
+              <div class="mark" id="kcalmark"><span>Goal</span></div>
+              <div class="track"><div class="fill" id="kcalfill"></div></div>
+            </div>
+          </div>
+
+          <div class="group" id="macrobars"></div>
+
+          <div class="foodlist" id="foodlist"></div>
+
+        </section>
+      </main>
+
+      <div class="cta"><button class="btn display">Log meal</button></div>
+
+      <div class="tabbar">
+        <div class="tabs">
+          <div class="tab">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/>
+            </svg>
+            <span>Dashboard</span>
+          </div>
+          <div class="tab active">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 20.94c1.5 0 2.75 1.06 4 1.06 3 0 6-8 6-12.22A4.91 4.91 0 0 0 17 5c-2.22 0-4 1.44-5 2-1-.56-2.78-2-5-2a4.9 4.9 0 0 0-5 4.78C2 14 5 22 8 22c1.25 0 2.5-1.06 4-1.06Z"/>
+              <path d="M10 2c1 .5 2 2 2 5"/>
+            </svg>
+            <span>Nutrition</span>
+          </div>
+          <div class="tab">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 8v8"/><path d="M8 5v14"/><path d="M16 5v14"/><path d="M20 8v8"/><path d="M8 12h8"/>
+            </svg>
+            <span>Exercise</span>
+          </div>
+        </div>
+        <div class="safe"><i></i></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ============================================================
+       SCREEN 2b — CONFIRM REMOVING A LOGGED ENTRY
+       The body is cloned from the Nutrition screen at runtime rather than
+       copied here, so the two can never fall out of step.
+       ============================================================ -->
+  <div class="frame">
+    <span class="name">Nutrition → remove entry</span>
+    <div class="phone" id="confirmscreen"></div>
+  </div>
+
+  <!-- ============================================================
+       SCREEN 3 — LOG MEAL (opens from the Nutrition button)
+       ============================================================ -->
+  <div class="frame">
+    <span class="name">Nutrition → Log meal</span>
+    <div class="phone">
+
+      <div class="status">
+        <div class="time">9:41</div>
+        <div class="icons">
+          <svg width="18" height="12" viewBox="0 0 18 12" fill="none">
+            <rect y="8" width="3" height="4" rx="1" fill="#1A1A1A"/>
+            <rect x="5" y="5.5" width="3" height="6.5" rx="1" fill="#1A1A1A"/>
+            <rect x="10" y="3" width="3" height="9" rx="1" fill="#1A1A1A"/>
+            <rect x="15" width="3" height="12" rx="1" fill="#1A1A1A"/>
+          </svg>
+          <svg width="16" height="12" viewBox="0 0 16 12" fill="none">
+            <path d="M1.2 4.1C3 2.5 5.4 1.5 8 1.5C10.6 1.5 13 2.5 14.8 4.1" stroke="#1A1A1A" stroke-width="2" stroke-linecap="round"/>
+            <path d="M4 7C5.1 6 6.5 5.4 8 5.4C9.5 5.4 10.9 6 12 7" stroke="#1A1A1A" stroke-width="2" stroke-linecap="round"/>
+            <path d="M6.7 9.9C7.1 9.6 7.5 9.4 8 9.4C8.5 9.4 8.9 9.6 9.3 9.9" stroke="#1A1A1A" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          <svg width="25" height="12" viewBox="0 0 25 12" fill="none">
+            <rect x="0.5" y="0.5" width="21" height="11" rx="3" stroke="#1A1A1A" stroke-opacity="0.4"/>
+            <rect x="2" y="2" width="18" height="8" rx="1.5" fill="#1A1A1A"/>
+            <path d="M23 4.4V7.6C23.9 7.3 24.5 6.7 24.5 6C24.5 5.3 23.9 4.7 23 4.4Z" fill="#1A1A1A" fill-opacity="0.4"/>
+          </svg>
+        </div>
+      </div>
+
+      <main>
+        <div class="sheet-head">
+          <h1 class="display">Log meal</h1>
+          <button class="close">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+              <path d="M2 2l10 10M12 2L2 12"/>
+            </svg>
+          </button>
+        </div>
+
+        <div class="search">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#6B6B76" stroke-width="2" stroke-linecap="round">
+            <circle cx="7" cy="7" r="5"/><path d="M11 11l3.5 3.5"/>
+          </svg>
+          Search foods
+        </div>
+
+        <div class="quick">
+          <button><b>Glass of water</b><span>W 250 ml</span></button>
+          <button><b>Water bottle</b><span>W 750 ml</span></button>
+        </div>
+
+        <div class="section">
+          <div class="sechead">
+            <button class="toggle" data-target="recent">
+              <span class="seclabel">Recent</span>
+              <svg class="chev" width="9" height="9" viewBox="0 0 10 10" fill="none"
+                   stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+                   stroke-linejoin="round"><path d="M1 3.5L5 7.5L9 3.5"/></svg>
+            </button>
+          </div>
+          <div class="foodlist" id="recent"></div>
+        </div>
+
+        <div class="section">
+          <div class="sechead">
+            <button class="toggle" data-target="meals">
+              <span class="seclabel">Meals</span>
+              <svg class="chev" width="9" height="9" viewBox="0 0 10 10" fill="none"
+                   stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+                   stroke-linejoin="round"><path d="M1 3.5L5 7.5L9 3.5"/></svg>
+            </button>
+            <button class="linkbtn">Edit meals</button>
+          </div>
+          <div class="foodlist" id="meals"></div>
+        </div>
+      </main>
+
+      <div class="sheet-foot"><i></i></div>
+
+    </div>
+  </div>
+
+  <!-- ============================================================
+       SCREEN 4 — LOG MEAL, MID-SEARCH
+       Recent and Meals give way to matches as soon as a letter is typed.
+       ============================================================ -->
+  <div class="frame">
+    <span class="name">Log meal → searching</span>
+    <div class="phone">
+
+      <div class="status">
+        <div class="time">9:41</div>
+        <div class="icons">
+          <svg width="18" height="12" viewBox="0 0 18 12" fill="none">
+            <rect y="8" width="3" height="4" rx="1" fill="#1A1A1A"/>
+            <rect x="5" y="5.5" width="3" height="6.5" rx="1" fill="#1A1A1A"/>
+            <rect x="10" y="3" width="3" height="9" rx="1" fill="#1A1A1A"/>
+            <rect x="15" width="3" height="12" rx="1" fill="#1A1A1A"/>
+          </svg>
+          <svg width="16" height="12" viewBox="0 0 16 12" fill="none">
+            <path d="M1.2 4.1C3 2.5 5.4 1.5 8 1.5C10.6 1.5 13 2.5 14.8 4.1" stroke="#1A1A1A" stroke-width="2" stroke-linecap="round"/>
+            <path d="M4 7C5.1 6 6.5 5.4 8 5.4C9.5 5.4 10.9 6 12 7" stroke="#1A1A1A" stroke-width="2" stroke-linecap="round"/>
+            <path d="M6.7 9.9C7.1 9.6 7.5 9.4 8 9.4C8.5 9.4 8.9 9.6 9.3 9.9" stroke="#1A1A1A" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          <svg width="25" height="12" viewBox="0 0 25 12" fill="none">
+            <rect x="0.5" y="0.5" width="21" height="11" rx="3" stroke="#1A1A1A" stroke-opacity="0.4"/>
+            <rect x="2" y="2" width="18" height="8" rx="1.5" fill="#1A1A1A"/>
+            <path d="M23 4.4V7.6C23.9 7.3 24.5 6.7 24.5 6C24.5 5.3 23.9 4.7 23 4.4Z" fill="#1A1A1A" fill-opacity="0.4"/>
+          </svg>
+        </div>
+      </div>
+
+      <main>
+        <div class="sheet-head">
+          <h1 class="display">Log meal</h1>
+          <button class="close">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+              <path d="M2 2l10 10M12 2L2 12"/>
+            </svg>
+          </button>
+        </div>
+
+        <div class="search">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#1A1A1A" stroke-width="2" stroke-linecap="round">
+            <circle cx="7" cy="7" r="5"/><path d="M11 11l3.5 3.5"/>
+          </svg>
+          <span class="q" id="query"><i class="caret"></i></span>
+          <button class="clear">
+            <svg width="8" height="8" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+              <path d="M1.5 1.5l7 7M8.5 1.5l-7 7"/>
+            </svg>
+          </button>
+        </div>
+
+        <div class="note">
+          <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="7" cy="7" r="6"/><path d="M7 6.3v4"/><path d="M7 3.9v.1"/>
+          </svg>
+          <p>Every match is tagged with where its figures come from: <b>your own
+             foods</b>, the <b>UK CoFID</b> reference tables, or a <b>brand label</b>.
+             Community entries come from other users and are unchecked.</p>
+        </div>
+
+        <div class="section">
+          <div class="sechead">
+            <span class="seclabel">Results</span>
+            <span class="seclabel" id="rescount"></span>
+          </div>
+          <div class="foodlist" id="results"></div>
+        </div>
+      </main>
+
+      <div class="sheet-foot"><i></i></div>
+
+    </div>
+  </div>
+
+  <!-- ============================================================
+       SCREEN 6 — HOW MUCH (opens from the + on a search result)
+       ============================================================ -->
+  <div class="frame">
+    <span class="name">Searching → how much</span>
+    <div class="phone">
+
+      <div class="status">
+        <div class="time">9:41</div>
+        <div class="icons">
+          <svg width="18" height="12" viewBox="0 0 18 12" fill="none">
+            <rect y="8" width="3" height="4" rx="1" fill="#1A1A1A"/>
+            <rect x="5" y="5.5" width="3" height="6.5" rx="1" fill="#1A1A1A"/>
+            <rect x="10" y="3" width="3" height="9" rx="1" fill="#1A1A1A"/>
+            <rect x="15" width="3" height="12" rx="1" fill="#1A1A1A"/>
+          </svg>
+          <svg width="16" height="12" viewBox="0 0 16 12" fill="none">
+            <path d="M1.2 4.1C3 2.5 5.4 1.5 8 1.5C10.6 1.5 13 2.5 14.8 4.1" stroke="#1A1A1A" stroke-width="2" stroke-linecap="round"/>
+            <path d="M4 7C5.1 6 6.5 5.4 8 5.4C9.5 5.4 10.9 6 12 7" stroke="#1A1A1A" stroke-width="2" stroke-linecap="round"/>
+            <path d="M6.7 9.9C7.1 9.6 7.5 9.4 8 9.4C8.5 9.4 8.9 9.6 9.3 9.9" stroke="#1A1A1A" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          <svg width="25" height="12" viewBox="0 0 25 12" fill="none">
+            <rect x="0.5" y="0.5" width="21" height="11" rx="3" stroke="#1A1A1A" stroke-opacity="0.4"/>
+            <rect x="2" y="2" width="18" height="8" rx="1.5" fill="#1A1A1A"/>
+            <path d="M23 4.4V7.6C23.9 7.3 24.5 6.7 24.5 6C24.5 5.3 23.9 4.7 23 4.4Z" fill="#1A1A1A" fill-opacity="0.4"/>
+          </svg>
+        </div>
+      </div>
+
+      <main>
+        <div class="sheet-head">
+          <div class="titlewrap">
+            <h1 class="display" id="pickname"></h1>
+            <span class="caption" id="picksrc"></span>
+          </div>
+          <button class="close">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+              <path d="M2 2l10 10M12 2L2 12"/>
+            </svg>
+          </button>
+        </div>
+
+        <div class="amount">
+          <button class="step">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 7h10"/></svg>
+          </button>
+          <div class="value"><span class="big display" id="amt"></span><span class="unit">g</span></div>
+          <button class="step">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M7 2v10M2 7h10"/></svg>
+          </button>
+        </div>
+
+        <div class="portions" id="chips"></div>
+
+        <div class="readout">
+          <div class="ro-row">
+            <span class="ro-k display" id="pickkcal"></span>
+            <span class="ro-m" id="pickmacros"></span>
+          </div>
+        </div>
+
+        <div class="section">
+          <span class="seclabel">Where today lands</span>
+          <div class="group" id="proj"></div>
+        </div>
+
+        <div class="note">
+          <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="7" cy="7" r="6"/><path d="M7 6.3v4"/><path d="M7 3.9v.1"/>
+          </svg>
+          <p>Scaled from the reference entry, which is quoted per <b>100 g of
+             cooked weight</b>.</p>
+        </div>
+      </main>
+
+      <div class="cta"><button class="btn display">Add to today</button></div>
+      <div class="sheet-foot"><i></i></div>
+
+    </div>
+  </div>
+
+  <!-- ============================================================
+       SCREEN 5 — EDIT MEALS (opens from the Meals header button)
+       ============================================================ -->
+  <div class="frame">
+    <span class="name">Log meal → edit meals</span>
+    <div class="phone">
+
+      <div class="status">
+        <div class="time">9:41</div>
+        <div class="icons">
+          <svg width="18" height="12" viewBox="0 0 18 12" fill="none">
+            <rect y="8" width="3" height="4" rx="1" fill="#1A1A1A"/>
+            <rect x="5" y="5.5" width="3" height="6.5" rx="1" fill="#1A1A1A"/>
+            <rect x="10" y="3" width="3" height="9" rx="1" fill="#1A1A1A"/>
+            <rect x="15" width="3" height="12" rx="1" fill="#1A1A1A"/>
+          </svg>
+          <svg width="16" height="12" viewBox="0 0 16 12" fill="none">
+            <path d="M1.2 4.1C3 2.5 5.4 1.5 8 1.5C10.6 1.5 13 2.5 14.8 4.1" stroke="#1A1A1A" stroke-width="2" stroke-linecap="round"/>
+            <path d="M4 7C5.1 6 6.5 5.4 8 5.4C9.5 5.4 10.9 6 12 7" stroke="#1A1A1A" stroke-width="2" stroke-linecap="round"/>
+            <path d="M6.7 9.9C7.1 9.6 7.5 9.4 8 9.4C8.5 9.4 8.9 9.6 9.3 9.9" stroke="#1A1A1A" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          <svg width="25" height="12" viewBox="0 0 25 12" fill="none">
+            <rect x="0.5" y="0.5" width="21" height="11" rx="3" stroke="#1A1A1A" stroke-opacity="0.4"/>
+            <rect x="2" y="2" width="18" height="8" rx="1.5" fill="#1A1A1A"/>
+            <path d="M23 4.4V7.6C23.9 7.3 24.5 6.7 24.5 6C24.5 5.3 23.9 4.7 23 4.4Z" fill="#1A1A1A" fill-opacity="0.4"/>
+          </svg>
+        </div>
+      </div>
+
+      <main>
+        <div class="sheet-head">
+          <h1 class="display">Edit meals</h1>
+          <button class="linkbtn">Done</button>
+        </div>
+
+        <p class="caption">A meal logs all of its items in one tap. Changing a meal
+           here does not touch days you have already logged.</p>
+
+        <div class="meals-edit" id="editmeals"></div>
+      </main>
+
+      <div class="cta"><button class="btn display">New meal</button></div>
+      <div class="sheet-foot"><i></i></div>
+
+    </div>
+  </div>
+
+  <!-- ============================================================
+       SCREEN 7 — ADD FOOD TO A MEAL (opens from + Add food)
+       The log sheet minus the Meals section: you cannot nest a meal
+       inside a meal, so that shelf has nothing to offer here.
+       ============================================================ -->
+  <div class="frame">
+    <span class="name">Edit meals → add food</span>
+    <div class="phone">
+
+      <div class="status">
+        <div class="time">9:41</div>
+        <div class="icons">
+          <svg width="18" height="12" viewBox="0 0 18 12" fill="none">
+            <rect y="8" width="3" height="4" rx="1" fill="#1A1A1A"/>
+            <rect x="5" y="5.5" width="3" height="6.5" rx="1" fill="#1A1A1A"/>
+            <rect x="10" y="3" width="3" height="9" rx="1" fill="#1A1A1A"/>
+            <rect x="15" width="3" height="12" rx="1" fill="#1A1A1A"/>
+          </svg>
+          <svg width="16" height="12" viewBox="0 0 16 12" fill="none">
+            <path d="M1.2 4.1C3 2.5 5.4 1.5 8 1.5C10.6 1.5 13 2.5 14.8 4.1" stroke="#1A1A1A" stroke-width="2" stroke-linecap="round"/>
+            <path d="M4 7C5.1 6 6.5 5.4 8 5.4C9.5 5.4 10.9 6 12 7" stroke="#1A1A1A" stroke-width="2" stroke-linecap="round"/>
+            <path d="M6.7 9.9C7.1 9.6 7.5 9.4 8 9.4C8.5 9.4 8.9 9.6 9.3 9.9" stroke="#1A1A1A" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          <svg width="25" height="12" viewBox="0 0 25 12" fill="none">
+            <rect x="0.5" y="0.5" width="21" height="11" rx="3" stroke="#1A1A1A" stroke-opacity="0.4"/>
+            <rect x="2" y="2" width="18" height="8" rx="1.5" fill="#1A1A1A"/>
+            <path d="M23 4.4V7.6C23.9 7.3 24.5 6.7 24.5 6C24.5 5.3 23.9 4.7 23 4.4Z" fill="#1A1A1A" fill-opacity="0.4"/>
+          </svg>
+        </div>
+      </div>
+
+      <main>
+        <div class="sheet-head">
+          <div class="titlewrap">
+            <h1 class="display">Add food</h1>
+            <span class="caption">to Post-gym breakfast</span>
+          </div>
+          <button class="close">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+              <path d="M2 2l10 10M12 2L2 12"/>
+            </svg>
+          </button>
+        </div>
+
+        <div class="search">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#6B6B76" stroke-width="2" stroke-linecap="round">
+            <circle cx="7" cy="7" r="5"/><path d="M11 11l3.5 3.5"/>
+          </svg>
+          Search foods
+        </div>
+
+        <div class="quick">
+          <button><b>Glass of water</b><span>W 250 ml</span></button>
+          <button><b>Water bottle</b><span>W 750 ml</span></button>
+        </div>
+
+        <div class="section">
+          <div class="sechead">
+            <button class="toggle" data-target="recent2">
+              <span class="seclabel">Recent</span>
+              <svg class="chev" width="9" height="9" viewBox="0 0 10 10" fill="none"
+                   stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+                   stroke-linejoin="round"><path d="M1 3.5L5 7.5L9 3.5"/></svg>
+            </button>
+          </div>
+          <div class="foodlist" id="recent2"></div>
+        </div>
+      </main>
+
+      <div class="sheet-foot"><i></i></div>
+
+    </div>
+  </div>
+
+  </div>
+
+  <div class="column">
+
+  <!-- ============================================================
+       SCREEN 8 — EXERCISE
+       Deliberately the Nutrition screen's skeleton: week strip, one headline
+       number against a goal, a run of bars, then the day's entries.
+       ============================================================ -->
+  <div class="frame">
+    <span class="name">Exercise</span>
+    <div class="phone">
+
+      <div class="status">
+        <div class="time">9:41</div>
+        <div class="icons">
+          <svg width="18" height="12" viewBox="0 0 18 12" fill="none">
+            <rect y="8" width="3" height="4" rx="1" fill="#1A1A1A"/>
+            <rect x="5" y="5.5" width="3" height="6.5" rx="1" fill="#1A1A1A"/>
+            <rect x="10" y="3" width="3" height="9" rx="1" fill="#1A1A1A"/>
+            <rect x="15" width="3" height="12" rx="1" fill="#1A1A1A"/>
+          </svg>
+          <svg width="16" height="12" viewBox="0 0 16 12" fill="none">
+            <path d="M1.2 4.1C3 2.5 5.4 1.5 8 1.5C10.6 1.5 13 2.5 14.8 4.1" stroke="#1A1A1A" stroke-width="2" stroke-linecap="round"/>
+            <path d="M4 7C5.1 6 6.5 5.4 8 5.4C9.5 5.4 10.9 6 12 7" stroke="#1A1A1A" stroke-width="2" stroke-linecap="round"/>
+            <path d="M6.7 9.9C7.1 9.6 7.5 9.4 8 9.4C8.5 9.4 8.9 9.6 9.3 9.9" stroke="#1A1A1A" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          <svg width="25" height="12" viewBox="0 0 25 12" fill="none">
+            <rect x="0.5" y="0.5" width="21" height="11" rx="3" stroke="#1A1A1A" stroke-opacity="0.4"/>
+            <rect x="2" y="2" width="18" height="8" rx="1.5" fill="#1A1A1A"/>
+            <path d="M23 4.4V7.6C23.9 7.3 24.5 6.7 24.5 6C24.5 5.3 23.9 4.7 23 4.4Z" fill="#1A1A1A" fill-opacity="0.4"/>
+          </svg>
+        </div>
+      </div>
+
+      <main>
+        <section class="title-block">
+          <h1 class="display">Strength is built on repeat.</h1>
+        </section>
+
+        <section class="panel">
+
+          <div class="days" id="exweek"></div>
+
+          <div class="group">
+            <div class="bignum">
+              <span class="n" id="exnum">—</span><span class="of">of 45 min</span>
+              <span class="meta" id="exdelta"></span>
+            </div>
+            <div class="goalbar">
+              <div class="mark" id="exmark"><span>Goal</span></div>
+              <div class="track"><div class="fill" id="exfill"></div></div>
+            </div>
+          </div>
+
+          <div class="group" id="exbars"></div>
+
+          <div class="foodlist" id="exlist"></div>
+
+        </section>
+      </main>
+
+      <div class="cta"><button class="btn display">Log workout</button></div>
+
+      <div class="tabbar">
+        <div class="tabs">
+          <div class="tab">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/>
+            </svg>
+            <span>Dashboard</span>
+          </div>
+          <div class="tab">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 20.94c1.5 0 2.75 1.06 4 1.06 3 0 6-8 6-12.22A4.91 4.91 0 0 0 17 5c-2.22 0-4 1.44-5 2-1-.56-2.78-2-5-2a4.9 4.9 0 0 0-5 4.78C2 14 5 22 8 22c1.25 0 2.5-1.06 4-1.06Z"/>
+              <path d="M10 2c1 .5 2 2 2 5"/>
+            </svg>
+            <span>Nutrition</span>
+          </div>
+          <div class="tab active">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 8v8"/><path d="M8 5v14"/><path d="M16 5v14"/><path d="M20 8v8"/><path d="M8 12h8"/>
+            </svg>
+            <span>Exercise</span>
+          </div>
+        </div>
+        <div class="safe"><i></i></div>
+      </div>
+
+    </div>
+  </div>
+
+  </div>
+
+</div>
+
+<script>
+/* ================= Palette =================
+   a1 is the brand colour: activity scale, weight line, largest macro, ticks.
+   a2 is the interactive colour: active tab, target line, deltas.
+   a3 is the remaining macro. Swap with ?theme=berry */
+const THEMES = {
+  purple: { a1: '#A81AA8', a2: '#0E7490', a3: '#F59E0B', a4: '#3B82F6' },
+  berry:  { a1: '#B01777', a2: '#0E7490', a3: '#F59E0B', a4: '#3B82F6' }
+};
+const T = THEMES[new URLSearchParams(location.search).get('theme')] || THEMES.purple;
+document.documentElement.style.setProperty('--a1', T.a1);
+document.documentElement.style.setProperty('--a2', T.a2);
+document.documentElement.style.setProperty('--a3', T.a3);
+document.documentElement.style.setProperty('--a4', T.a4);
+
+const rgbOf = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
+
+/* Mix a colour towards white. t = 1 keeps it, t = 0 is white. */
+const tint = (hex, t) => {
+  const m = c => Math.round(255 + (c - 255) * t);
+  return '#' + rgbOf(hex).map(c => m(c).toString(16).padStart(2, '0')).join('');
+};
+
+const luminance = hex => {
+  const [r, g, b] = rgbOf(hex).map(v => {
+    v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+  });
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+};
+
+/* Activity scale: four tints of a1 over white, plus an empty step. */
+const LEVELS = ['#EFEFF2', tint(T.a1, 0.18), tint(T.a1, 0.42), tint(T.a1, 0.70), T.a1];
+
+/* ================= Calories ring =================
+   One ring = the day's calorie budget. Each macro fills the portion of that
+   budget it accounts for, so the gap left in the track is calories remaining.
+   The macro targets are set so they add up to exactly TARGET kcal. */
+const TARGET = 2400;
+const MACROS = [
+  /* Carbs is the largest slice, so it carries the brand colour. */
+  { label: 'Protein', grams: 93,  target: 150, kcalPerG: 4, colour: T.a2 },
+  { label: 'Carbs',   grams: 246, target: 270, kcalPerG: 4, colour: T.a1 },
+  { label: 'Fat',     grams: 54,  target: 80,  kcalPerG: 9, colour: T.a3 }
+];
+
+const R = 44, SW = 10, C = 2 * Math.PI * R, GAP = 2;
+let ringSvg = `<circle cx="50" cy="50" r="${R}" stroke="#EFEFF2" stroke-width="${SW}"/>`;
+let eaten = 0, cursor = 0;
+MACROS.forEach(m => {
+  const kcal = m.grams * m.kcalPerG;
+  eaten += kcal;
+  const len = (kcal / TARGET) * C;
+  ringSvg += `<circle cx="50" cy="50" r="${R}" stroke="${m.colour}" stroke-width="${SW}"`
+           + ` stroke-linecap="butt" stroke-dasharray="${(len - GAP).toFixed(2)} ${(C - len + GAP).toFixed(2)}"`
+           + ` stroke-dashoffset="${(-cursor).toFixed(2)}" transform="rotate(-90 50 50)"/>`;
+  cursor += len;
+});
+document.getElementById('ring').innerHTML = ringSvg;
+document.getElementById('kcal').textContent = eaten.toLocaleString('en-GB');
+document.getElementById('target').textContent = 'of ' + TARGET.toLocaleString('en-GB');
+document.getElementById('macrokey').innerHTML = MACROS.map(m =>
+  `<div class="m"><i style="background:${m.colour}"></i>`
+  + `<span class="n">${m.label}</span>`
+  + `<span class="v">${m.grams} / ${m.target} g</span></div>`).join('');
+
+/* ================= Workout checklist ================= */
+const WORKOUTS = [
+  { name: 'Aerobics Blast', done: true },
+  { name: 'Core Burn',      done: true },
+  { name: 'Sunset Jog',     done: false },
+  { name: 'Cool Down',      done: false }
+];
+const tick = `<svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+  <circle cx="7" cy="7" r="7" fill="${T.a1}"/>
+  <path d="M4 7.2 6.1 9.3 10 5.4" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+const empty = `<svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+  <circle cx="7" cy="7" r="6.25" stroke="#C9C9D2" stroke-width="1.5"/></svg>`;
+document.getElementById('wlist').innerHTML = WORKOUTS
+  .map(w => `<li class="${w.done ? 'done' : 'todo'}">${w.done ? tick : empty}<span>${w.name}</span></li>`).join('');
+document.getElementById('wcount').textContent =
+  WORKOUTS.filter(w => w.done).length + '/' + WORKOUTS.length;
+
+/* ================= Activity calendar =================
+   Seven days across, weeks stacked. Leading and trailing blanks pad the
+   month out so the weekday columns line up. */
+let seed = 7;
+const rand = () => { seed = (seed * 1103515245 + 12345) % 2147483648; return seed / 2147483648; };
+
+const TODAY = new Date(2026, 8, 3);
+const YEAR = TODAY.getFullYear(), MONTH = TODAY.getMonth();
+const offset = (new Date(YEAR, MONTH, 1).getDay() + 6) % 7;   // Monday = 0
+const daysInMonth = new Date(YEAR, MONTH + 1, 0).getDate();
+const rows = Math.ceil((offset + daysInMonth) / 7);
+
+const grid = document.getElementById('grid');
+for (let i = 0; i < rows * 7; i++) {
+  const date = i - offset + 1;
+  const cell = document.createElement('div');
+  cell.className = 'd';
+  if (date < 1 || date > daysInMonth) {
+    cell.classList.add('blank');
+  } else {
+    const lvl = (v => v < 0.30 ? 0 : v < 0.50 ? 1 : v < 0.70 ? 2 : v < 0.88 ? 3 : 4)(rand());
+    cell.style.background = LEVELS[lvl];
+    cell.style.color = lvl === 0 ? '#B4B4BE'
+                     : (luminance(LEVELS[lvl]) < 0.45 ? '#FFFFFF' : '#1A1A1A');
+    cell.textContent = date;
+    if (date === TODAY.getDate()) cell.classList.add('today');
+  }
+  grid.appendChild(cell);
+}
+document.getElementById('month').textContent =
+  TODAY.toLocaleDateString('en-GB', { month: 'long' });
+
+/* ================= Weight ================= */
+const data = [84.2, 84.0, 84.1, 83.7, 83.8, 83.4, 83.5, 83.1, 82.9, 83.0, 82.7, 82.6, 82.5, 82.4];
+document.getElementById('latest').textContent = data[data.length - 1].toFixed(1);
+
+/* The trajectory to follow: a steady, healthy loss from the starting weight. */
+const GOAL_KG_PER_WEEK = 0.6;
+const target = data.map((_, i) => data[0] - (GOAL_KG_PER_WEEK / 7) * i);
+
+function drawChart() {
+  const wrap = document.getElementById('plotwrap');
+  const PW = wrap.clientWidth, PH = wrap.clientHeight, PAD = 5;
+  if (!PW || !PH) return;
+  const lo = Math.min(...data, ...target), hi = Math.max(...data, ...target);
+  const px = i => (i * (PW - 8) / (data.length - 1)) + 4;
+  const py = v => PAD + (1 - (v - lo) / (hi - lo)) * (PH - PAD * 2);
+  const path = series => series
+    .map((v, i) => (i ? ' L ' : 'M ') + px(i).toFixed(1) + ' ' + py(v).toFixed(1)).join('');
+
+  const line = path(data);
+  const goal = path(target);
+  const area = line + ` L ${px(data.length - 1).toFixed(1)} ${PH} L ${px(0).toFixed(1)} ${PH} Z`;
+
+  let rules = '';
+  for (let g = 0; g <= 2; g++) {
+    const y = (PAD + g * (PH - PAD * 2) / 2).toFixed(1);
+    rules += `<line x1="0" y1="${y}" x2="${PW}" y2="${y}" stroke="#E6E6EC" stroke-width="1"/>`;
+  }
+
+  const endY = py(target[target.length - 1]);
+  wrap.innerHTML = `<svg width="${PW}" height="${PH}" viewBox="0 0 ${PW} ${PH}" fill="none">
+    ${rules}
+    <path d="${area}" fill="${T.a1}" fill-opacity="0.10"/>
+    <path d="${goal}" stroke="${T.a2}" stroke-width="2" stroke-dasharray="4 4" stroke-linecap="round"/>
+    <text x="${PW - 4}" y="${(endY - 7).toFixed(1)}" text-anchor="end"
+          font-family="Archivo, sans-serif" font-size="8" font-weight="700" fill="${T.a2}">Target</text>
+    <path d="${line}" stroke="${T.a1}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="${px(data.length - 1).toFixed(1)}" cy="${py(data[data.length - 1]).toFixed(1)}" r="4"
+            fill="${T.a1}" stroke="#FFFFFF" stroke-width="2"/>
+  </svg>`;
+}
+drawChart();
+window.addEventListener('resize', drawChart);
+
+/* ================= Nutrition: Logs =================
+   Seven days ending today. Calories are derived from the macros so the two
+   charts can never disagree, and a null day is one with nothing logged. */
+const KCAL_GOAL = 2400, WATER_GOAL = 2.5, BAND = 0.05;
+
+/* Day status: purple/teal are the app's data and goal colours, so the
+   under/on/over verdict needs its own set. */
+const STATUS = { ok: '#16A34A', under: '#EAB308', over: '#DC2626' };
+/* The same verdicts darkened for use as text: the yellow above is legible as a
+   filled chip but not as 11px type on white. */
+const STATUS_TEXT = { ok: '#15803D', under: '#A16207', over: '#B91C1C' };
+document.documentElement.style.setProperty('--ok', STATUS.ok);
+document.documentElement.style.setProperty('--under', STATUS.under);
+document.documentElement.style.setProperty('--over', STATUS.over);
+
+/* A day is just its entries. Every total on the screen is summed back out of
+   this list, so the breakdown and the bars above it cannot drift apart.
+   An entry carries grams (p/c/f), litres (w), or both — a glass of water is a
+   perfectly good log entry that happens to contain no macros at all. */
+const LOG = [
+  { food: [
+    { t: '08:00', n: 'Bacon & eggs',        p: 32, c: 6,   f: 42 },
+    { t: '09:30', n: 'Water bottle',        w: 0.75 },
+    { t: '13:00', n: 'Burger & fries',      p: 38, c: 96,  f: 52 },
+    { t: '16:30', n: 'Water bottle',        w: 0.75 },
+    { t: '20:00', n: 'Pasta carbonara',     p: 34, c: 110, f: 52 } ] },
+  { food: [
+    { t: '09:15', n: 'Overnight oats',      p: 18, c: 62,  f: 14 },
+    { t: '11:00', n: 'Large water bottle',  w: 1.0 },
+    { t: '13:30', n: 'Tuna poke bowl',      p: 40, c: 78,  f: 18 },
+    { t: '16:00', n: 'Greek yoghurt',       p: 15, c: 18,  f: 8  },
+    { t: '17:00', n: 'Large water bottle',  w: 1.0 },
+    { t: '19:40', n: 'Steak & potatoes',    p: 55, c: 95,  f: 50 } ] },
+  null,
+  { food: [
+    { t: '07:50', n: 'Greek yoghurt & berries', p: 18, c: 34, f: 9  },
+    { t: '10:30', n: 'Glass of water',      w: 0.25 },
+    { t: '12:45', n: 'Chicken caesar salad', p: 42, c: 22, f: 34 },
+    { t: '15:30', n: 'Water bottle',        w: 0.75 },
+    { t: '18:50', n: 'Stir-fry noodles',    p: 28, c: 98,  f: 26 } ] },
+  { food: [
+    { t: '07:30', n: 'Eggs on toast',       p: 24, c: 42,  f: 22 },
+    { t: '11:00', n: 'Large water bottle',  w: 1.0 },
+    { t: '12:20', n: 'Falafel wrap',        p: 22, c: 78,  f: 26 },
+    { t: '16:00', n: 'Apple & peanut butter', p: 8, c: 28, f: 16 },
+    { t: '17:00', n: 'Large water bottle',  w: 1.0 },
+    { t: '19:30', n: 'Chilli & rice',       p: 46, c: 118, f: 38 } ] },
+  { food: [
+    { t: '08:10', n: 'Smoothie bowl',       p: 20, c: 95,  f: 16 },
+    { t: '10:45', n: 'Large water bottle',  w: 1.0 },
+    { t: '13:15', n: 'Turkey sandwich',     p: 34, c: 62,  f: 18 },
+    { t: '15:20', n: 'Sparkling water',     w: 0.5 },
+    { t: '17:40', n: 'Large water bottle',  w: 1.0 },
+    { t: '19:00', n: 'Roast chicken dinner', p: 62, c: 105, f: 52 } ] },
+  { food: [
+    { t: '07:40', n: 'Porridge & banana',   p: 13, c: 69,  f: 10 },
+    { t: '09:00', n: 'Water bottle',        w: 0.75 },
+    { t: '12:30', n: 'Veggie pasta',        p: 20, c: 95,  f: 14 },
+    { t: '15:10', n: 'Apple & granola bar', p: 5,  c: 40,  f: 8  },
+    { t: '16:30', n: 'Water bottle',        w: 0.75 },
+    { t: '19:20', n: 'Chicken & rice bowl', p: 55, c: 42,  f: 22 } ] }
+];
+
+const MACRO_KEY = { Protein: 'p', Carbs: 'c', Fat: 'f' };
+const kcalOfItem = x => (x.p || 0) * 4 + (x.c || 0) * 4 + (x.f || 0) * 9;
+const totalOf = (d, key) => d && d.food.reduce((a, x) => a + (x[key] || 0), 0);
+const kcalOf = d => d && d.food.reduce((a, x) => a + kcalOfItem(x), 0);
+const statusOf = kcal => kcal == null ? null
+  : kcal > KCAL_GOAL * (1 + BAND) ? 'over'
+  : kcal < KCAL_GOAL * (1 - BAND) ? 'under' : 'ok';
+
+const dayDate = i => {
+  const d = new Date(TODAY);
+  d.setDate(TODAY.getDate() - (LOG.length - 1 - i));
+  return d;
+};
+
+/* The calorie bar is drawn against a fixed ceiling rather than the day's own
+   total, so the goal marker stays put as you move between days. */
+const KCAL_SCALE = 3200;
+document.getElementById('kcalmark').style.left = (KCAL_GOAL / KCAL_SCALE * 100) + '%';
+
+/* Shared glyphs. Add and remove appear on the day's log, in the sheet and inside
+   a meal, and they have to be the same mark in all three places. */
+const plus = `<svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor"
+  stroke-width="2" stroke-linecap="round"><path d="M5 1v8M1 5h8"/></svg>`;
+const minus = `<svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor"
+  stroke-width="2" stroke-linecap="round"><path d="M1 5h8"/></svg>`;
+const chev = `<svg class="chev" width="9" height="9" viewBox="0 0 10 10" fill="none"
+  stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+  stroke-linejoin="round"><path d="M1 3.5L5 7.5L9 3.5"/></svg>`;
+
+let selected = LOG.length - 1;
+
+function renderWeek() {
+  document.getElementById('week').innerHTML = LOG.map((d, i) => {
+    const date = dayDate(i);
+    const state = statusOf(kcalOf(d));
+    const fill = state && STATUS[state];
+    const style = fill
+      ? `background:${fill};color:${luminance(fill) < 0.45 ? '#FFFFFF' : '#1A1A1A'}` : '';
+    return `<div class="day${i === selected ? ' on' : ''}" data-i="${i}">`
+         + `<span class="dow">${date.toLocaleDateString('en-GB', { weekday: 'short' })}</span>`
+         + `<div class="chip${fill ? '' : ' empty'}" style="${style}">${date.getDate()}</div></div>`;
+  }).join('');
+}
+
+function renderDay() {
+  const d = LOG[selected];
+  const kcal = kcalOf(d);
+  const state = statusOf(kcal);
+
+  /* ---- calories against the goal ---- */
+  document.getElementById('kcalnum').textContent =
+    kcal == null ? '—' : kcal.toLocaleString('en-GB');
+  const fill = document.getElementById('kcalfill');
+  fill.style.width = kcal == null ? '0%'
+    : Math.min(100, kcal / KCAL_SCALE * 100).toFixed(1) + '%';
+  fill.style.background = state ? STATUS[state] : 'transparent';
+
+  const delta = document.getElementById('kcaldelta');
+  const diff = kcal == null ? null : kcal - KCAL_GOAL;
+  delta.textContent = kcal == null ? 'Not logged'
+    : state === 'ok' ? 'On target'
+    : Math.abs(diff).toLocaleString('en-GB') + (diff > 0 ? ' over' : ' under');
+  delta.style.color = state ? STATUS_TEXT[state] : '';
+
+  /* ---- macros against their targets, in the Dashboard's ring colours,
+         with water as a fourth bar in the same run ---- */
+  const bar = (name, value, target, unit, colour, over) =>
+    `<div class="mrow"><span class="mname">${name}</span>`
+    + `<div class="mtrack"><div class="mfill" style="width:`
+    + `${value == null ? 0 : Math.min(100, value / target * 100).toFixed(1)}%`
+    + `;background:${colour}"></div></div>`
+    + `<span class="mval"${over ? ` style="color:${STATUS_TEXT.over}"` : ''}>`
+    + `${value == null ? '—' : value} / ${target} ${unit}</span></div>`;
+
+  const water = totalOf(d, 'w');
+  document.getElementById('macrobars').innerHTML = MACROS.map(m => {
+    const grams = totalOf(d, MACRO_KEY[m.label]);
+    /* A full bar can mean "met" or "overshot", so the figure carries the warning. */
+    return bar(m.label, grams, m.target, 'g', m.colour, grams != null && grams > m.target);
+  }).join('') + bar('Water', water == null ? null : water.toFixed(1),
+                    WATER_GOAL, 'L', T.a4, false);
+
+  /* ---- the day's entries, water included ---- */
+  document.getElementById('foodlist').innerHTML = d
+    ? [...d.food].sort((a, b) => a.t.localeCompare(b.t)).map(x => {
+        const detail = x.w != null ? `W ${Math.round(x.w * 1000)} ml`
+                                   : `P ${x.p} · C ${x.c} · F ${x.f} g`;
+        return `<div class="food logged">`
+             + `<button class="add minus" title="Remove">${minus}</button>`
+             + `<span class="t">${x.t}</span>`
+             + `<span class="n">${x.n}</span>`
+             + `<span class="d"><span class="k">${kcalOfItem(x).toLocaleString('en-GB')} kcal</span>`
+             + `<span class="m">${detail}</span></span></div>`;
+      }).join('')
+    : '<div class="nothing">Nothing logged this day</div>';
+}
+
+document.getElementById('week').addEventListener('click', e => {
+  const day = e.target.closest('.day');
+  if (!day) return;
+  selected = Number(day.dataset.i);
+  renderWeek();
+  renderDay();
+});
+
+renderWeek();
+renderDay();
+
+/* ================= Log meal sheet =================
+   "Recent" comes out of the log itself — the most recently eaten distinct
+   items, newest first — rather than being a second list to keep in step. */
+const recent = [];
+for (let i = LOG.length - 1; i >= 0 && recent.length < 5; i--) {
+  if (!LOG[i]) continue;
+  [...LOG[i].food].sort((a, b) => b.t.localeCompare(a.t)).forEach(x => {
+    if (x.w != null || recent.length >= 5) return;
+    if (!recent.some(r => r.n === x.n)) recent.push(x);
+  });
+}
+/* One row shape for anything you can add, whether it is a single food or a
+   saved meal. `sub` is the only difference: meals say how many items they hold. */
+/* Water is only spelled out when a caller passes it. A single food is either a
+   drink or it is not, and says so on its own row; a meal can be both at once,
+   so its total always carries the fourth figure even when it is zero. */
+const macroLine = (p, c, f, w) => `P ${p} · C ${c} · F ${f} g`
+  + (w === undefined ? '' : ` · W ${Math.round(w * 1000)} ml`);
+
+const pickRow = (name, sub, p, c, f, w) =>
+  `<div class="food pick"><button class="add">${plus}</button>`
+  + `<span class="nm"><span class="n">${name}</span>`
+  + (sub ? `<span class="m">${sub}</span>` : '') + `</span>`
+  + `<span class="d"><span class="k">${kcalOfItem({ p, c, f }).toLocaleString('en-GB')} kcal</span>`
+  + `<span class="m">${macroLine(p, c, f, w)}</span></span></div>`;
+
+/* The same rows serve the log sheet and the add-to-meal sheet: what you can put
+   in a day is exactly what you can put in a meal. */
+const recentRows = recent.map(x => pickRow(x.n, null, x.p, x.c, x.f)).join('');
+document.getElementById('recent').innerHTML = recentRows;
+document.getElementById('recent2').innerHTML = recentRows;
+
+/* Saved meals: named groups of entries, totalled the same way a day is. */
+const MEALS = [
+  { n: 'Post-gym breakfast', items: [
+    { n: 'Porridge & banana', p: 13, c: 69, f: 10 },
+    { n: 'Greek yoghurt',     p: 15, c: 18, f: 8  } ] },
+  { n: 'Desk lunch', items: [
+    { n: 'Turkey sandwich',      p: 34, c: 62, f: 18 },
+    { n: 'Apple & granola bar',  p: 5,  c: 40, f: 8  } ] },
+  { n: 'Sunday roast', items: [
+    { n: 'Roast chicken dinner', p: 62, c: 105, f: 52 },
+    { n: 'Sparkling water',      w: 0.5 } ] },
+  { n: 'Shake & fruit', items: [
+    { n: 'Whey shake', p: 26, c: 5,  f: 2 },
+    { n: 'Banana',     p: 1,  c: 27, f: 0 } ] },
+  { n: 'Steak night', items: [
+    { n: 'Sirloin steak',  p: 52, c: 0,  f: 24 },
+    { n: 'Chips & salad',  p: 8,  c: 62, f: 26 } ] }
+];
+document.getElementById('meals').innerHTML = MEALS.map(m => {
+  const t = k => m.items.reduce((a, x) => a + (x[k] || 0), 0);
+  return pickRow(m.n, m.items.length + ' items', t('p'), t('c'), t('f'), t('w'));
+}).join('');
+
+/* ================= Log meal sheet, mid-search =================
+   A search hits three pools at once, and the row's sub-line names which one it
+   came from so an unchecked community guess never passes for a lab figure. */
+const QUERY = 'chick';
+const RESULTS = [
+  { n: 'Chicken & rice bowl',     src: 'Your foods · logged 6 times',  p: 55, c: 42,  f: 22 },
+  { n: 'Chicken breast, grilled', src: 'UK CoFID · per 100 g',         p: 32, c: 0,   f: 4  },
+  { n: 'Chicken thigh, roasted',  src: 'UK CoFID · per 100 g',         p: 26, c: 0,   f: 11 },
+  { n: 'Chicken katsu curry',     src: 'Wagamama · brand label',       p: 43, c: 118, f: 46 },
+  { n: 'Chicken caesar wrap',     src: 'Tesco · brand label',          p: 27, c: 44,  f: 21 },
+  { n: 'Chicken tikka masala',    src: 'Community · unchecked',        p: 38, c: 22,  f: 30 }
+];
+document.getElementById('query').insertAdjacentHTML('afterbegin', QUERY);
+document.getElementById('rescount').textContent = RESULTS.length + ' matches';
+document.getElementById('results').innerHTML =
+  RESULTS.map(x => pickRow(x.n, x.src, x.p, x.c, x.f)).join('');
+
+/* ================= Edit meals =================
+   Built from the same MEALS list the sheet offers, so what you edit here is
+   literally what you tap there. The first is left open and the rest closed so
+   both states of the row are visible in one screen. */
+document.getElementById('editmeals').innerHTML = MEALS.map((m, i) => {
+  const t = k => m.items.reduce((a, x) => a + (x[k] || 0), 0);
+  const tot = { p: t('p'), c: t('c'), f: t('f'), w: t('w') };
+  const kcal = kcalOfItem(tot);
+  const open = i === 0;
+
+  const items = m.items.map(x => {
+    const detail = x.w != null ? `W ${Math.round(x.w * 1000)} ml`
+                               : `P ${x.p} · C ${x.c} · F ${x.f} g`;
+    return `<div class="food pick"><button class="add minus">${minus}</button>`
+      + `<span class="n">${x.n}</span>`
+      + `<span class="d"><span class="k">${kcalOfItem(x).toLocaleString('en-GB')} kcal</span>`
+      + `<span class="m">${detail}</span></span></div>`;
+  }).join('');
+
+  /* The minus lives outside the disclosure button: one is a delete, the other
+     opens the meal, and nesting a button in a button is not markup. */
+  return `<div class="meal"><div class="mealrow">`
+    + `<button class="add minus" title="Delete meal">${minus}</button>`
+    + `<button class="toggle mealhead${open ? '' : ' closed'}" data-target="meal${i}">`
+    + `<span class="mealname"><span class="n">${m.n}</span>`
+    + `<span class="m">${m.items.length} items</span></span>`
+    + `<span class="d"><span class="k">${kcal.toLocaleString('en-GB')} kcal</span>`
+    + `<span class="m">${macroLine(tot.p, tot.c, tot.f, tot.w)}</span></span>`
+    + `${chev}</button></div>`
+    + `<div class="mealbody" id="meal${i}"${open ? '' : ' hidden'}>`
+    + items
+    + `<div class="mealacts"><button class="linkbtn">+ Add food</button></div>`
+    + `</div></div>`;
+}).join('');
+
+/* ================= How much =================
+   Tapping + on a search result asks for a weight before it logs anything. The
+   food is that same result scaled from its per-100 g entry, so this screen and
+   the results list can never quote different numbers for the same portion. */
+const PICK = RESULTS[1];              // Chicken breast, grilled
+const PICK_G = 150;
+const PORTIONS = [50, 100, 150, 172];
+const per = k => Math.round((PICK[k] || 0) * PICK_G / 100);
+const picked = { p: per('p'), c: per('c'), f: per('f') };
+const pickKcal = kcalOfItem(picked);
+const todayKcal = kcalOf(LOG[LOG.length - 1]);
+
+document.getElementById('pickname').textContent = PICK.n;
+document.getElementById('picksrc').textContent = PICK.src;
+document.getElementById('amt').textContent = PICK_G;
+document.getElementById('chips').innerHTML = PORTIONS.map(g =>
+  `<button class="portion${g === PICK_G ? ' on' : ''}">`
+  + (g === 172 ? '1 breast' : g + ' g') + `</button>`).join('');
+document.getElementById('pickkcal').textContent =
+  pickKcal.toLocaleString('en-GB') + ' kcal';
+document.getElementById('pickmacros').textContent =
+  `P ${picked.p} · C ${picked.c} · F ${picked.f} g`;
+/* What the day totals once this portion goes in. Read off the same LOG the
+   nutrition screen renders, so the solid part of every bar here is exactly the
+   bar you left behind on that screen. */
+const pickDay = LOG[LOG.length - 1];
+const projKcal = todayKcal + pickKcal;
+const PROJ = [
+  { label: 'Calories', now: todayKcal, add: pickKcal, target: KCAL_GOAL,
+    unit: 'kcal', colour: STATUS[statusOf(projKcal)] },
+  ...MACROS.map(m => ({
+    label: m.label, now: totalOf(pickDay, MACRO_KEY[m.label]),
+    add: picked[MACRO_KEY[m.label]], target: m.target, unit: 'g', colour: m.colour
+  }))
+];
+
+document.getElementById('proj').innerHTML = PROJ.map(r => {
+  const total = r.now + r.add;
+  const nowPct = Math.min(100, r.now / r.target * 100);
+  const addPct = Math.min(100 - nowPct, r.add / r.target * 100);
+  return `<div class="mrow"><span class="mname">${r.label}</span>`
+    + `<div class="mtrack split">`
+    + `<div class="mfill" style="width:${nowPct.toFixed(1)}%;background:${r.colour}"></div>`
+    + `<div class="mfill" style="width:${addPct.toFixed(1)}%;background:${tint(r.colour, 0.35)}"></div>`
+    + `</div>`
+    + `<span class="mval"${total > r.target ? ` style="color:${STATUS_TEXT.over}"` : ''}>`
+    + `${total.toLocaleString('en-GB')} / ${r.target.toLocaleString('en-GB')} ${r.unit}</span></div>`;
+}).join('');
+
+document.querySelectorAll('.toggle').forEach(t => t.addEventListener('click', () => {
+  const list = document.getElementById(t.dataset.target);
+  list.hidden = !list.hidden;
+  t.classList.toggle('closed', list.hidden);
+}));
+
+/* ================= Exercise =================
+   Deliberately the same shape as a day of food: week strip, one headline number
+   against a goal, a run of bars, then what was actually done. The sign is the
+   one thing that flips. Beating a calorie goal is a miss and gets red; beating a
+   minutes goal is the point, so this screen has no red and no "over" state. */
+const MIN_GOAL = 45, MIN_SCALE = 75, STEP_GOAL = 10000;
+const EX = [
+  { steps: 11200, w: [ { t: '06:40', n: 'Tempo run',      k: 'Cardio',   min: 45, kcal: 420 } ] },
+  { steps: 8600,  w: [ { t: '10:15', n: 'Upper body',     k: 'Strength', min: 50, kcal: 340 } ] },
+  null,
+  { steps: 7400,  w: [ { t: '18:30', n: 'Evening walk',   k: 'Cardio',   min: 25, kcal: 130 } ] },
+  { steps: 12500, w: [ { t: '07:00', n: 'Intervals',      k: 'Cardio',   min: 35, kcal: 390 },
+                       { t: '19:00', n: 'Core & stretch', k: 'Mobility', min: 25, kcal: 110 } ] },
+  { steps: 6900,  w: [ { t: '12:30', n: 'Lunch swim',     k: 'Cardio',   min: 30, kcal: 280 } ] },
+  /* Thursday is the Dashboard's plan with two of its four sessions ticked. */
+  { steps: 9300,  w: [ { t: '07:10', n: 'Aerobics Blast', k: 'Cardio',   min: 28, kcal: 240 },
+                       { t: '18:20', n: 'Core Burn',      k: 'Strength', min: 24, kcal: 180 } ] }
+];
+
+const KINDS = [
+  { label: 'Cardio',   target: 25, colour: T.a1 },
+  { label: 'Strength', target: 15, colour: T.a2 },
+  { label: 'Mobility', target: 10, colour: T.a3 }
+];
+
+const minsOf = d => d && d.w.reduce((a, x) => a + x.min, 0);
+const minsOfKind = (d, k) => d && d.w.reduce((a, x) => a + (x.k === k ? x.min : 0), 0);
+/* Two states, not three: you either got there or you did not. */
+const exState = min => min == null ? null : min >= MIN_GOAL ? 'ok' : 'under';
+
+document.getElementById('exmark').style.left = (MIN_GOAL / MIN_SCALE * 100) + '%';
+let exSelected = EX.length - 1;
+
+function renderExWeek() {
+  document.getElementById('exweek').innerHTML = EX.map((d, i) => {
+    const date = dayDate(i);
+    const state = exState(minsOf(d));
+    const fill = state && STATUS[state];
+    const style = fill
+      ? `background:${fill};color:${luminance(fill) < 0.45 ? '#FFFFFF' : '#1A1A1A'}` : '';
+    return `<div class="day${i === exSelected ? ' on' : ''}" data-i="${i}">`
+         + `<span class="dow">${date.toLocaleDateString('en-GB', { weekday: 'short' })}</span>`
+         + `<div class="chip${fill ? '' : ' empty'}" style="${style}">${date.getDate()}</div></div>`;
+  }).join('');
+}
+
+function renderExDay() {
+  const d = EX[exSelected];
+  const min = minsOf(d);
+  const state = exState(min);
+
+  document.getElementById('exnum').textContent = min == null ? '—' : min;
+  const fill = document.getElementById('exfill');
+  fill.style.width = min == null ? '0%'
+    : Math.min(100, min / MIN_SCALE * 100).toFixed(1) + '%';
+  fill.style.background = state ? STATUS[state] : 'transparent';
+
+  const delta = document.getElementById('exdelta');
+  const diff = min == null ? null : min - MIN_GOAL;
+  delta.textContent = min == null ? 'Rest day'
+    : diff === 0 ? 'On target'
+    : diff > 0 ? diff + ' min over' : Math.abs(diff) + ' min to go';
+  delta.style.color = state ? STATUS_TEXT[state] : '';
+
+  const bar = (name, value, target, unit, colour) =>
+    `<div class="mrow"><span class="mname">${name}</span>`
+    + `<div class="mtrack"><div class="mfill" style="width:`
+    + `${value == null ? 0 : Math.min(100, value / target * 100).toFixed(1)}%`
+    + `;background:${colour}"></div></div>`
+    + `<span class="mval">${value == null ? '—' : value.toLocaleString('en-GB')}`
+    + ` / ${target.toLocaleString('en-GB')}${unit ? ' ' + unit : ''}</span></div>`;
+
+  /* Steps close the run the way water closes the macros: the thing you rack up
+     without meaning to, next to the things you set out to do. */
+  document.getElementById('exbars').innerHTML =
+    KINDS.map(k => bar(k.label, minsOfKind(d, k.label), k.target, 'min', k.colour)).join('')
+    + bar('Steps', d && d.steps, STEP_GOAL, '', T.a4);
+
+  document.getElementById('exlist').innerHTML = d
+    ? [...d.w].sort((a, b) => a.t.localeCompare(b.t)).map(x =>
+        `<div class="food logged">`
+        + `<button class="add minus" title="Remove">${minus}</button>`
+        + `<span class="t">${x.t}</span><span class="n">${x.n}</span>`
+        + `<span class="d"><span class="k">${x.min} min</span>`
+        + `<span class="m">${x.k} · ${x.kcal.toLocaleString('en-GB')} kcal</span>`
+        + `</span></div>`).join('')
+    : '<div class="nothing">Rest day</div>';
+}
+
+document.getElementById('exweek').addEventListener('click', e => {
+  const day = e.target.closest('.day');
+  if (!day) return;
+  exSelected = Number(day.dataset.i);
+  renderExWeek();
+  renderExDay();
+});
+
+renderExWeek();
+renderExDay();
+
+/* ================= Confirming a removal =================
+   Copy the finished Nutrition screen rather than writing it twice, stripping
+   the ids so the originals stay unique, then drop the dialog on top. */
+const confirmScreen = document.getElementById('confirmscreen');
+confirmScreen.innerHTML = document.getElementById('nutriscreen').innerHTML;
+confirmScreen.querySelectorAll('[id]').forEach(el => el.removeAttribute('id'));
+
+confirmScreen.insertAdjacentHTML('beforeend',
+  `<div class="scrim"><div class="dialog">`
+  + `<h2 class="display">Remove this entry?</h2>`
+  + `<div class="dlg-acts"><button class="dlg-btn">Keep</button>`
+  + `<button class="dlg-btn del">Remove</button></div></div></div>`);
+</script>
+</body>
+</html>
