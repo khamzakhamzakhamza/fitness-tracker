@@ -1,10 +1,3 @@
-//
-//  fitness_trackerApp.swift
-//  fitness-tracker
-//
-//  Created by Taranova, Kseniia on 04/09/2026.
-//
-
 import SwiftUI
 import SwiftData
 
