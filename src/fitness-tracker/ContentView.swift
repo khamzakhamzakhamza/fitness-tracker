@@ -5,7 +5,7 @@ struct ContentView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            Color.white
+            Color("AppBackground")
 
             Divider()
 
@@ -22,7 +22,7 @@ struct ContentView: View {
                                 .font(.system(size: 8, weight: .black))
                                 .tracking(0.3)
                         }
-                        .foregroundStyle(selectedTab == tab ? Color.accentTeal : Color.primary)
+                        .foregroundStyle(selectedTab == tab ? Color.accentColor : Color.primary)
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                         .contentShape(Rectangle())
                     }
@@ -32,9 +32,9 @@ struct ContentView: View {
                 }
             }
             .frame(height: 68)
-            .background(Color.white)
+            .background(Color("AppBackground"))
         }
-        .background(Color.white)
+        .background(Color("AppBackground"))
     }
 }
 
@@ -137,14 +137,6 @@ private struct AppleShape: Shape {
 
         return path
     }
-}
-
-private extension Color {
-    static let accentTeal = Color(
-        red: 14 / 255,
-        green: 116 / 255,
-        blue: 144 / 255
-    )
 }
 
 #Preview {
