@@ -16,14 +16,30 @@ final class fitness_trackerUITests: XCTestCase {
     }
 
     @MainActor
-    func testExample() throws {
-        // UI tests must launch the application that they test.
+    func testNutritionListLoadsEveryDatabaseBatchWhileScrolling() throws {
         let app = XCUIApplication()
         app.launch()
 
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
-        // XCUIAutomation Documentation
-        // https://developer.apple.com/documentation/xcuiautomation
+        app.buttons["Nutrition"].tap()
+
+        let firstBatchCount = app.staticTexts["500 MATCHES"]
+        XCTAssertTrue(firstBatchCount.waitForExistence(timeout: 5))
+
+        let list = app.scrollViews["food-list-scroll-view"]
+        XCTAssertTrue(list.exists)
+
+        let lastFood = app.staticTexts[
+            "GOOD HEALTH PLANT VARIETIES HIGH IN PROTEIN WAITRO"
+        ]
+        var swipeCount = 0
+
+        while !lastFood.exists && swipeCount < 150 {
+            list.swipeUp(velocity: .fast)
+            swipeCount += 1
+        }
+
+        XCTAssertTrue(lastFood.waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["710 MATCHES"].exists)
     }
 
     @MainActor

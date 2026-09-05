@@ -25,6 +25,9 @@ MeasurementUnits    1 ──── * FoodNutrients
 | `barcode` | `TEXT` | Nullable |
 | `small_image_url` | `TEXT` | Nullable |
 | `image_url` | `TEXT` | Nullable |
+| `total_energy` | `REAL` | Nullable |
+| `total_amount_grams` | `REAL` | Nullable |
+| `serving_size_grams` | `TEXT` | Nullable |
 | `date_added` | `INTEGER` | Not null |
 | `date_updated` | `INTEGER` | Nullable |
 
@@ -72,6 +75,7 @@ CHECK (basis_amount > 0)
 | `id` | `INTEGER` | Primary key |
 | `name` | `TEXT` | Not null, unique |
 | `short_name` | `TEXT` | Not null, unique |
+| `plural_form` | `TEXT` | Nullable |
 | `date_added` | `INTEGER` | Not null |
 
 ## Sources
@@ -98,7 +102,7 @@ CHECK (basis_amount > 0)
 |---|---|---|
 | `id` | `INTEGER` | Primary key, must equal `1` |
 | `schema_version` | `INTEGER` | Not null |
-| `dataset_version` | `TEXT` | Not null |
+| `dataset_version` | `TEXT` | Nullable |
 | `generated_at` | `INTEGER` | Not null |
 | `source_licence` | `TEXT` | Not null |
 | `source_attribution` | `TEXT` | Not null |

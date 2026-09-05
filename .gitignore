@@ -63,3 +63,28 @@ fastlane/test_output/
 
 # Data exports
 *.csv
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+ENV/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.pyre/
+.pytype/
+.tox/
+.nox/
+.coverage
+.coverage.*
+htmlcov/
+dist/
+sdist/
+*.egg-info/
+.eggs/
+pip-wheel-metadata/
+.ipynb_checkpoints/

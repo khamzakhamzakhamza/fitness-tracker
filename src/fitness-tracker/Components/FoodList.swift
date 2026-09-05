@@ -2,7 +2,19 @@ import SwiftUI
 
 struct FoodList: View {
     let items: [FoodListItemModel]
+    let isLoadingMore: Bool
+    let onLoadMore: () async -> Void
     @StateObject private var networkMonitor = NetworkMonitor()
+
+    init(
+        items: [FoodListItemModel],
+        isLoadingMore: Bool = false,
+        onLoadMore: @escaping () async -> Void = {}
+    ) {
+        self.items = items
+        self.isLoadingMore = isLoadingMore
+        self.onLoadMore = onLoadMore
+    }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -10,6 +22,7 @@ struct FoodList: View {
                 Text("RESULTS")
                 Spacer()
                 Text("\(items.count) MATCHES")
+                    .accessibilityIdentifier("food-match-count")
             }
             .font(.system(size: 13, weight: .bold))
             .tracking(0.7)
@@ -25,10 +38,21 @@ struct FoodList: View {
                             item: item,
                             isInternetAvailable: networkMonitor.isConnected
                         )
+                        .task {
+                            if item.id == items.last?.id {
+                                await onLoadMore()
+                            }
+                        }
                         Divider()
+                    }
+
+                    if isLoadingMore && !items.isEmpty {
+                        ProgressView()
+                            .padding(.vertical, 16)
                     }
                 }
             }
+            .accessibilityIdentifier("food-list-scroll-view")
         }
         .background(Color("AppBackground"))
     }
