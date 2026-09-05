@@ -2,24 +2,14 @@ import SwiftUI
 
 struct FoodListItem: View {
     let item: FoodListItemModel
-    var onAdd: () -> Void = {}
+    let isInternetAvailable: Bool
 
     var body: some View {
-        HStack(spacing: 10) {
-            Button(action: onAdd) {
-                ZStack {
-                    Circle()
-                        .fill(Color.primary)
-                        .frame(width: 36, height: 36)
-
-                    Image(systemName: "plus")
-                        .font(.system(size: 19, weight: .bold))
-                        .foregroundStyle(Color("AppBackground"))
-                }
-                .frame(width: 44, height: 44)
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel("Add \(item.title)")
+        HStack(spacing: 15) {
+            FoodItemImage(
+                imageURL: item.imageURL,
+                isInternetAvailable: isInternetAvailable
+            )
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(item.title)
@@ -46,7 +36,8 @@ struct FoodListItem: View {
             }
             .fixedSize(horizontal: true, vertical: false)
         }
-        .padding(.vertical, 8)
+        .padding(.vertical, 12)
+        .padding(.trailing, 12)
         .frame(maxWidth: .infinity)
         .background(Color("AppBackground"))
     }
@@ -58,8 +49,10 @@ struct FoodListItem: View {
             title: "Chicken & rice bowl",
             subtitle: "Your foods · logged 6 times",
             amount: "586 kcal",
-            macrosBreakdown: "P 55 · C 42 · F 22 g"
-        )
+            macrosBreakdown: "P 55 · C 42 · F 22 g",
+            imageURL: URL(string: "https://picsum.photos/seed/chicken-rice/100")
+        ),
+        isInternetAvailable: true
     )
     .padding(.horizontal, 20)
     .background(Color("AppBackground"))

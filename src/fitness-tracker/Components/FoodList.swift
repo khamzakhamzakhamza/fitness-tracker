@@ -2,6 +2,7 @@ import SwiftUI
 
 struct FoodList: View {
     let items: [FoodListItemModel]
+    @StateObject private var networkMonitor = NetworkMonitor()
 
     var body: some View {
         VStack(spacing: 0) {
@@ -20,7 +21,10 @@ struct FoodList: View {
             ScrollView {
                 LazyVStack(spacing: 0) {
                     ForEach(items) { item in
-                        FoodListItem(item: item)
+                        FoodListItem(
+                            item: item,
+                            isInternetAvailable: networkMonitor.isConnected
+                        )
                         Divider()
                     }
                 }

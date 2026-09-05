@@ -1,10 +1,3 @@
-//
-//  fitness_trackerUITests.swift
-//  fitness-trackerUITests
-//
-//  Created by Taranova, Kseniia on 04/09/2026.
-//
-
 import XCTest
 
 final class fitness_trackerUITests: XCTestCase {
