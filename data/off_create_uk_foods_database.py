@@ -87,9 +87,9 @@ CREATE TABLE Foods (
     image_url TEXT,
     quantity REAL,
     measurement_unit_id INTEGER NOT NULL,
-    total_energy REAL,
+    total_energy_cal REAL,
     total_amount_grams REAL,
-    serving_size_grams TEXT,
+    serving_size_grams REAL,
     date_added INTEGER NOT NULL,
     date_updated INTEGER,
     UNIQUE (source_id, country_id, origin_id, version),
@@ -333,7 +333,7 @@ def insert_food(
     energy_per_100g = parse_non_negative_number(
         product.get("energy-kcal_100g")
     )
-    total_energy = (
+    total_energy_cal = (
         energy_per_100g * total_amount_grams / BASIS_AMOUNT
         if energy_per_100g is not None and total_amount_grams is not None
         else None
@@ -356,7 +356,7 @@ def insert_food(
             image_url,
             quantity,
             measurement_unit_id,
-            total_energy,
+            total_energy_cal,
             total_amount_grams,
             serving_size_grams,
             date_added,
@@ -376,9 +376,9 @@ def insert_food(
             photo,
             quantity,
             measurement_unit_id,
-            total_energy,
+            total_energy_cal,
             total_amount_grams,
-            clean_text(product.get("serving_size")),
+            serving_quantity,
             date_added,
             date_updated,
         ),

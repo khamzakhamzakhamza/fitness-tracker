@@ -27,9 +27,9 @@ MeasurementUnits    1 ──── * FoodNutrients
 | `image_url` | `TEXT` | Nullable |
 | `quantity` | `REAL` | Nullable |
 | `measurement_unit_id` | `INTEGER` | Not null |
-| `total_energy` | `REAL` | Nullable |
+| `total_energy_cal` | `REAL` | Nullable |
 | `total_amount_grams` | `REAL` | Nullable |
-| `serving_size_grams` | `TEXT` | Nullable |
+| `serving_size_grams` | `REAL` | Nullable |
 | `date_added` | `INTEGER` | Not null |
 | `date_updated` | `INTEGER` | Nullable |
 

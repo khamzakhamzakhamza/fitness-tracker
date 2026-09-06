@@ -6,7 +6,7 @@ import sqlite3
 import sys
 import time
 
-from create_uk_foods_database import (
+from off_create_uk_foods_database import (
     COUNTRY_ISO_ALPHA2_CODE,
     INPUT_CSV_PATH,
     NUTRIENTS,
@@ -19,10 +19,8 @@ from create_uk_foods_database import (
     parse_timestamp,
 )
 
-
 DATABASE_PATH = OUTPUT_DATABASE_PATH
 ROW_LIMIT: int | None = None
-
 
 def require_reference_id(
     database: sqlite3.Connection,
@@ -89,6 +87,25 @@ def validate_database(database: sqlite3.Connection) -> None:
     if missing_tables:
         missing = ", ".join(sorted(missing_tables))
         raise ValueError(f"Database is missing required tables: {missing}")
+
+    food_columns = {
+        row[1]: row[2].upper()
+        for row in database.execute("PRAGMA table_info(Foods)")
+    }
+    required_food_columns = {
+        "total_energy_cal": "REAL",
+        "serving_size_grams": "REAL",
+    }
+    invalid_food_columns = [
+        f"{name} {column_type}"
+        for name, column_type in required_food_columns.items()
+        if food_columns.get(name) != column_type
+    ]
+    if invalid_food_columns:
+        invalid = ", ".join(invalid_food_columns)
+        raise ValueError(
+            f"Database Foods table is missing updated columns: {invalid}"
+        )
 
 
 def update_database() -> None:
