@@ -43,7 +43,7 @@ struct FoodItemImage: View {
                 placeholder
             }
         }
-        .frame(width: 44, height: 60)
+        .frame(width: 52, height: 60)
         .clipShape(RoundedRectangle(cornerRadius: 8))
         .accessibilityHidden(true)
     }

@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		D4A100000000000000000001 /* uk_foods_first_1000.sqlite in Resources */ = {isa = PBXBuildFile; fileRef = D4A100000000000000000002 /* uk_foods_first_1000.sqlite */; };
+		D4A100000000000000000001 /* uk_foods.sqlite in Resources */ = {isa = PBXBuildFile; fileRef = D4A100000000000000000002 /* uk_foods.sqlite */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -31,7 +31,7 @@
 		7AA33E97304B230600506EDA /* fitness-tracker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "fitness-tracker.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		7AA33EA6304B230800506EDA /* fitness-trackerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "fitness-trackerTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		7AA33EB0304B230800506EDA /* fitness-trackerUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "fitness-trackerUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
-		D4A100000000000000000002 /* uk_foods_first_1000.sqlite */ = {isa = PBXFileReference; lastKnownFileType = file; name = uk_foods_first_1000.sqlite; path = ../data/uk_foods_first_1000.sqlite; sourceTree = SOURCE_ROOT; };
+		D4A100000000000000000002 /* uk_foods.sqlite */ = {isa = PBXFileReference; lastKnownFileType = file; name = uk_foods.sqlite; path = ../data/uk_foods.sqlite; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -80,7 +80,7 @@
 		7AA33E8E304B230600506EDA = {
 			isa = PBXGroup;
 			children = (
-				D4A100000000000000000002 /* uk_foods_first_1000.sqlite */,
+				D4A100000000000000000002 /* uk_foods.sqlite */,
 				7AA33E99304B230600506EDA /* fitness-tracker */,
 				7AA33EA9304B230800506EDA /* fitness-trackerTests */,
 				7AA33EB3304B230800506EDA /* fitness-trackerUITests */,
@@ -218,7 +218,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				D4A100000000000000000001 /* uk_foods_first_1000.sqlite in Resources */,
+				D4A100000000000000000001 /* uk_foods.sqlite in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

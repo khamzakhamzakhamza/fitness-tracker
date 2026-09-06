@@ -44,6 +44,18 @@ struct SearchBox: View {
         .onTapGesture {
             isFocused = true
         }
+        .simultaneousGesture(
+            DragGesture(minimumDistance: 10)
+                .onChanged { value in
+                    let isDownwardSwipe = value.translation.height > 10
+                    let isMostlyVertical = abs(value.translation.height)
+                        > abs(value.translation.width)
+
+                    if isDownwardSwipe && isMostlyVertical {
+                        isFocused = false
+                    }
+                }
+        )
         .overlay {
             RoundedRectangle(cornerRadius: 9)
                 .stroke(Color.primary, lineWidth: 2)

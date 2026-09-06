@@ -2,18 +2,24 @@ import SwiftUI
 
 struct FoodList: View {
     let items: [FoodListItemModel]
+    let totalMatches: Int
     let isLoadingMore: Bool
     let onLoadMore: () async -> Void
+    let onSelect: (FoodListItemModel) -> Void
     @StateObject private var networkMonitor = NetworkMonitor()
 
     init(
         items: [FoodListItemModel],
+        totalMatches: Int? = nil,
         isLoadingMore: Bool = false,
-        onLoadMore: @escaping () async -> Void = {}
+        onLoadMore: @escaping () async -> Void = {},
+        onSelect: @escaping (FoodListItemModel) -> Void = { _ in }
     ) {
         self.items = items
+        self.totalMatches = totalMatches ?? items.count
         self.isLoadingMore = isLoadingMore
         self.onLoadMore = onLoadMore
+        self.onSelect = onSelect
     }
 
     var body: some View {
@@ -21,12 +27,13 @@ struct FoodList: View {
             HStack {
                 Text("RESULTS")
                 Spacer()
-                Text("\(items.count) MATCHES")
+                Text("\(totalMatches) MATCHES")
                     .accessibilityIdentifier("food-match-count")
             }
             .font(.system(size: 13, weight: .bold))
             .tracking(0.7)
             .foregroundStyle(Color("SearchBoxSecondary"))
+            .padding(.horizontal, 20)
             .padding(.bottom, 8)
 
             Divider()
@@ -34,10 +41,16 @@ struct FoodList: View {
             ScrollView {
                 LazyVStack(spacing: 0) {
                     ForEach(items) { item in
-                        FoodListItem(
-                            item: item,
-                            isInternetAvailable: networkMonitor.isConnected
-                        )
+                        Button {
+                            onSelect(item)
+                        } label: {
+                            FoodListItem(
+                                item: item,
+                                isInternetAvailable: networkMonitor.isConnected
+                            )
+                        }
+                        .buttonStyle(.plain)
+                        .padding(.leading, 20)
                         .task {
                             if item.id == items.last?.id {
                                 await onLoadMore()
@@ -52,6 +65,7 @@ struct FoodList: View {
                     }
                 }
             }
+            .scrollDismissesKeyboard(.interactively)
             .accessibilityIdentifier("food-list-scroll-view")
         }
         .background(Color("AppBackground"))
@@ -62,16 +76,14 @@ struct FoodList: View {
     FoodList(
         items: [
             FoodListItemModel(
+                id: 1,
                 title: "Chicken & rice bowl",
-                subtitle: "Your foods · logged 6 times",
-                amount: "586 kcal",
-                macrosBreakdown: "P 55 · C 42 · F 22 g"
+                subtitle: "Your foods · logged 6 times"
             ),
             FoodListItemModel(
+                id: 2,
                 title: "Chicken breast, grilled",
-                subtitle: "UK CoFID · per 100 g",
-                amount: "164 kcal",
-                macrosBreakdown: "P 32 · C 0 · F 4 g"
+                subtitle: "UK CoFID · per 100 g"
             )
         ]
     )

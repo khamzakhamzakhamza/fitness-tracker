@@ -4,13 +4,16 @@ struct FoodListItem: View {
     let item: FoodListItemModel
     let isInternetAvailable: Bool
 
+    init(
+        item: FoodListItemModel,
+        isInternetAvailable: Bool
+    ) {
+        self.item = item
+        self.isInternetAvailable = isInternetAvailable
+    }
+
     var body: some View {
         HStack(spacing: 15) {
-            FoodItemImage(
-                imageURL: item.imageURL,
-                isInternetAvailable: isInternetAvailable
-            )
-
             VStack(alignment: .leading, spacing: 2) {
                 Text(item.title)
                     .font(.system(size: 16, weight: .bold))
@@ -25,16 +28,15 @@ struct FoodListItem: View {
 
             Spacer(minLength: 8)
 
-            VStack(alignment: .trailing, spacing: 2) {
-                Text(item.amount)
-                    .font(.system(size: 15, weight: .bold))
-                    .foregroundStyle(Color("SearchBoxSecondary"))
-
-                Text(item.macrosBreakdown)
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundStyle(Color("SearchBoxSecondary"))
+            if FoodItemImage.shouldLoadImage(
+                imageURL: item.imageURL,
+                isInternetAvailable: isInternetAvailable
+            ) {
+                FoodItemImage(
+                    imageURL: item.imageURL,
+                    isInternetAvailable: isInternetAvailable
+                )
             }
-            .fixedSize(horizontal: true, vertical: false)
         }
         .padding(.vertical, 12)
         .padding(.trailing, 12)
@@ -46,10 +48,9 @@ struct FoodListItem: View {
 #Preview {
     FoodListItem(
         item: FoodListItemModel(
+            id: 1,
             title: "Chicken & rice bowl",
             subtitle: "Your foods · logged 6 times",
-            amount: "586 kcal",
-            macrosBreakdown: "P 55 · C 42 · F 22 g",
             imageURL: URL(string: "https://picsum.photos/seed/chicken-rice/100")
         ),
         isInternetAvailable: true

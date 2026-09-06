@@ -16,30 +16,76 @@ final class fitness_trackerUITests: XCTestCase {
     }
 
     @MainActor
-    func testNutritionListLoadsEveryDatabaseBatchWhileScrolling() throws {
+    func testNutritionListLoadsNextDatabaseBatchWhileScrolling() throws {
         let app = XCUIApplication()
         app.launch()
 
-        app.buttons["Nutrition"].tap()
+        app.buttons["Log meal"].tap()
 
-        let firstBatchCount = app.staticTexts["500 MATCHES"]
-        XCTAssertTrue(firstBatchCount.waitForExistence(timeout: 5))
+        let searchField = app.textFields["Search foods"]
+        XCTAssertTrue(searchField.waitForExistence(timeout: 5))
+        searchField.tap()
+        searchField.typeText("chicken")
+
+        let totalMatchCount = app.staticTexts["7787 MATCHES"]
+        XCTAssertTrue(totalMatchCount.waitForExistence(timeout: 5))
 
         let list = app.scrollViews["food-list-scroll-view"]
         XCTAssertTrue(list.exists)
 
-        let lastFood = app.staticTexts[
-            "GOOD HEALTH PLANT VARIETIES HIGH IN PROTEIN WAITRO"
-        ]
+        let firstFoodInSecondBatch = app.staticTexts["Chicken tikka chunks"]
         var swipeCount = 0
 
-        while !lastFood.exists && swipeCount < 150 {
+        while !firstFoodInSecondBatch.exists && swipeCount < 100 {
             list.swipeUp(velocity: .fast)
             swipeCount += 1
         }
 
-        XCTAssertTrue(lastFood.waitForExistence(timeout: 5))
-        XCTAssertTrue(app.staticTexts["710 MATCHES"].exists)
+        XCTAssertTrue(firstFoodInSecondBatch.waitForExistence(timeout: 5))
+        XCTAssertTrue(totalMatchCount.exists)
+    }
+
+    @MainActor
+    func testNutritionSearchShowsExactMatchCount() throws {
+        let app = XCUIApplication()
+        app.launch()
+
+        app.buttons["Log meal"].tap()
+
+        let searchField = app.textFields["Search foods"]
+        XCTAssertTrue(searchField.waitForExistence(timeout: 5))
+        searchField.tap()
+        searchField.typeText("yorkshire pudding")
+
+        XCTAssertTrue(
+            app.staticTexts["55 MATCHES"].waitForExistence(timeout: 5)
+        )
+        XCTAssertTrue(app.staticTexts["Yorkshire pudding"].exists)
+    }
+
+    @MainActor
+    func testSelectingFoodOpensAddFoodScreen() throws {
+        let app = XCUIApplication()
+        app.launch()
+
+        app.buttons["Log meal"].tap()
+
+        let searchField = app.textFields["Search foods"]
+        XCTAssertTrue(searchField.waitForExistence(timeout: 5))
+        searchField.tap()
+        searchField.typeText("yorkshire pudding")
+
+        let food = app.buttons.matching(
+            NSPredicate(format: "label CONTAINS 'Yorkshire pudding'")
+        ).firstMatch
+        XCTAssertTrue(food.waitForExistence(timeout: 5))
+        food.tap()
+
+        XCTAssertTrue(
+            app.buttons["Add to today"].waitForExistence(timeout: 5)
+        )
+        XCTAssertTrue(app.staticTexts["131 kcal"].exists)
+        XCTAssertTrue(app.staticTexts["4.2 g"].exists)
     }
 
     @MainActor
