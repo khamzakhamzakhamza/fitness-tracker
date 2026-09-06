@@ -9,9 +9,8 @@ import sys
 
 SCRIPT_DIRECTORY = Path(__file__).resolve().parent
 DEFAULT_INPUT = SCRIPT_DIRECTORY / "data"
-DEFAULT_OUTPUT = SCRIPT_DIRECTORY / "uk_products_updated_after_2023.csv"
 MINIMUM_YEAR = 2023
-UK_COUNTRY_NAMES = {
+COUNTRY_NAMES = {
     "uk",
     "gb",
     "unitedkingdom",
@@ -23,6 +22,7 @@ UK_COUNTRY_NAMES = {
     "wales",
     "northernireland",
 }
+DEFAULT_OUTPUT = SCRIPT_DIRECTORY / f"{COUNTRY_NAMES[0]}_products_updated_after_{MINIMUM_YEAR}.csv"
 
 
 def parse_arguments() -> argparse.Namespace:
@@ -37,7 +37,7 @@ def parse_arguments() -> argparse.Namespace:
 def is_uk_country(countries: str) -> bool:
     for country in re.split(r"[,;|]", countries):
         normalized_country = re.sub(r"[^a-z]", "", country.casefold())
-        if normalized_country in UK_COUNTRY_NAMES:
+        if normalized_country in COUNTRY_NAMES:
             return True
     return False
 

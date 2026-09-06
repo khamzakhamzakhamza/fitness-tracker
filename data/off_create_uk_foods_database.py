@@ -7,12 +7,13 @@ from pathlib import Path
 import sqlite3
 import sys
 import time
+import re
 
 
 SCRIPT_DIRECTORY = Path(__file__).resolve().parent
 INPUT_CSV_PATH = SCRIPT_DIRECTORY / "uk_products_updated_after_2023.csv"
-OUTPUT_DATABASE_PATH = SCRIPT_DIRECTORY / "uk_foods_first_1000.sqlite"
-ROW_LIMIT = 1_000
+OUTPUT_DATABASE_PATH = SCRIPT_DIRECTORY / "uk_foods.sqlite"
+ROW_LIMIT = 10_000
 SCHEMA_VERSION = 1
 SOURCE_NAME = "Open Food Facts"
 SOURCE_URL = "https://world.openfoodfacts.org/"
@@ -23,16 +24,16 @@ COUNTRY_ISO_ALPHA2_CODE = "GB"
 BASIS_AMOUNT = 100.0
 BASIS_UNIT_SHORT_NAME = "g"
 MEASUREMENT_UNITS = (
-    ("Gram", "g", None),
-    ("Ounce", "oz", None),
-    ("Kilogram", "kg", None),
-    ("Tablet", "tablet", "tablets"),
-    ("Litre", "l", None),
-    ("Millilitre", "ml", None),
-    ("Capsule", "capsule", "capsules"),
-    ("Item", "item", "items"),
-    ("Cup", "cup", "cups"),
-    ("Kilocalorie", "kcal", None),
+    ("Gram", "g", None, 1.0),
+    ("Ounce", "oz", None, 28.349523125),
+    ("Kilogram", "kg", None, 1_000.0),
+    ("Tablet", "tablet", "tablets", None),
+    ("Litre", "l", None, None),
+    ("Millilitre", "ml", None, None),
+    ("Capsule", "capsule", "capsules", None),
+    ("Item", "item", "items", None),
+    ("Cup", "cup", "cups", None),
+    ("Kilocalorie", "kcal", None, None),
 )
 
 NUTRIENTS = (
@@ -55,6 +56,7 @@ CREATE TABLE MeasurementUnits (
     name TEXT NOT NULL UNIQUE,
     short_name TEXT NOT NULL UNIQUE,
     plural_form TEXT,
+    gram_convertion_value REAL,
     date_added INTEGER NOT NULL
 );
 
@@ -83,6 +85,8 @@ CREATE TABLE Foods (
     barcode TEXT,
     small_image_url TEXT,
     image_url TEXT,
+    quantity REAL,
+    measurement_unit_id INTEGER NOT NULL,
     total_energy REAL,
     total_amount_grams REAL,
     serving_size_grams TEXT,
@@ -163,6 +167,30 @@ def parse_positive_number(value: str | None) -> float | None:
     number = parse_non_negative_number(value)
     return number if number is not None and number > 0 else None
 
+def get_digits(value: str | None) -> float | None:
+    match = re.search(r"[0-9]+(?:[.,][0-9]+)?", value or "")
+    return float(match.group().replace(",", ".")) if match else None
+
+def get_measurment_unit_id(quantity: float, quantity_txt: str) -> int:
+    if 'kg' in quantity_txt:
+        return 3
+    elif 'oz' in quantity_txt:
+        return 2
+    elif 'tablet' in quantity_txt:
+        return 4
+    elif 'capsule' in quantity_txt:
+        return 7
+    elif 'ml' in quantity_txt:
+        return 6
+    elif 'l' in quantity_txt:
+        return 5
+    elif 'cup' in quantity_txt:
+        return 9
+    elif quantity < 5:
+        return 8
+    else:
+        return 1
+    
 def create_reference_data(
     database: sqlite3.Connection,
     generated_at: int,
@@ -195,13 +223,21 @@ def create_reference_data(
             name,
             short_name,
             plural_form,
+            gram_convertion_value,
             date_added
         )
-        VALUES (?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?)
         """,
         (
-            (name, short_name, plural_form, generated_at)
-            for name, short_name, plural_form in MEASUREMENT_UNITS
+            (
+                name,
+                short_name,
+                plural_form,
+                gram_convertion_value,
+                generated_at,
+            )
+            for name, short_name, plural_form, gram_convertion_value
+            in MEASUREMENT_UNITS
         ),
     )
     unit_ids = dict(
@@ -248,6 +284,14 @@ def create_reference_data(
 
     return source_id, country_id, unit_ids, nutrient_ids
 
+def validate_food_has_nutrients(product: dict[str, str]) -> bool:
+    cal = parse_non_negative_number(product.get("energy-kcal_100g"))
+    fat = parse_non_negative_number(product.get("fat_100g"))
+    carbs = parse_non_negative_number(product.get("carbohydrates_100g"))
+    protein = parse_non_negative_number(product.get("proteins_100g"))
+    water = parse_non_negative_number(product.get("water_100g"))
+
+    return (cal and fat and carbs and protein) or water  
 
 def insert_food(
     database: sqlite3.Connection,
@@ -256,17 +300,36 @@ def insert_food(
     country_id: int,
     generated_at: int,
 ) -> int | None:
-    origin_id = clean_text(product.get("code"))
-    name = clean_text(product.get("product_name")) or clean_text(
-        product.get("generic_name")
-    )
-    if origin_id is None or name is None:
+    if not validate_food_has_nutrients(product):
+        return None 
+    
+    name = clean_text(product.get("product_name")) or clean_text(product.get("generic_name")) 
+
+    if not name:
         return None
+
+    name = name.capitalize()
+
+    serving_quantity = parse_non_negative_number(product.get("serving_quantity"))
+
+    total_amount_grams = parse_positive_number(product.get("product_quantity")) or serving_quantity
+    
+    quantity_txt = clean_text(product.get("quantity"))
+    quantity = get_digits(quantity_txt) if quantity_txt else serving_quantity
+
+    if not quantity or not total_amount_grams:
+        return None
+    
+    measurement_unit_id = get_measurment_unit_id(quantity, quantity_txt) if quantity_txt else 1
+
+    if not total_amount_grams:
+        return None
+    
+    origin_id = clean_text(product.get("code"))
 
     date_added = parse_timestamp(product.get("created_t")) or generated_at
     date_updated = parse_timestamp(product.get("last_modified_t"))
     version = date_updated or 1
-    total_amount_grams = parse_positive_number(product.get("product_quantity"))
     energy_per_100g = parse_non_negative_number(
         product.get("energy-kcal_100g")
     )
@@ -275,6 +338,9 @@ def insert_food(
         if energy_per_100g is not None and total_amount_grams is not None
         else None
     )
+
+    photo = clean_text(product.get("image_url")) if 'photos-validated' in product.get("states") else None
+    small_photo = clean_text(product.get("image_small_url")) if 'photos-validated' in product.get("states") else None
 
     cursor = database.execute(
         """
@@ -288,13 +354,15 @@ def insert_food(
             barcode,
             small_image_url,
             image_url,
+            quantity,
+            measurement_unit_id,
             total_energy,
             total_amount_grams,
             serving_size_grams,
             date_added,
             date_updated
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             source_id,
@@ -302,10 +370,12 @@ def insert_food(
             origin_id,
             version,
             name,
-            clean_text(product.get("brands")),
+            clean_text(product.get("brands")).capitalize() if product.get("brands") else None,
             origin_id,
-            clean_text(product.get("image_small_url")),
-            clean_text(product.get("image_url")),
+            small_photo,
+            photo,
+            quantity,
+            measurement_unit_id,
             total_energy,
             total_amount_grams,
             clean_text(product.get("serving_size")),
@@ -317,7 +387,6 @@ def insert_food(
     if cursor.rowcount == 0:
         return None
     return cursor.lastrowid
-
 
 def insert_food_nutrients(
     database: sqlite3.Connection,
@@ -360,7 +429,6 @@ def insert_food_nutrients(
         nutrient_rows,
     )
     return len(nutrient_rows)
-
 
 def build_database() -> None:
     generated_at = int(time.time())

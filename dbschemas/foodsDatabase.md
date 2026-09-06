@@ -25,6 +25,8 @@ MeasurementUnits    1 ──── * FoodNutrients
 | `barcode` | `TEXT` | Nullable |
 | `small_image_url` | `TEXT` | Nullable |
 | `image_url` | `TEXT` | Nullable |
+| `quantity` | `REAL` | Nullable |
+| `measurement_unit_id` | `INTEGER` | Not null |
 | `total_energy` | `REAL` | Nullable |
 | `total_amount_grams` | `REAL` | Nullable |
 | `serving_size_grams` | `TEXT` | Nullable |
@@ -76,6 +78,7 @@ CHECK (basis_amount > 0)
 | `name` | `TEXT` | Not null, unique |
 | `short_name` | `TEXT` | Not null, unique |
 | `plural_form` | `TEXT` | Nullable |
+| `gram_convertion_value` | `REAL` | Nullable |
 | `date_added` | `INTEGER` | Not null |
 
 ## Sources
