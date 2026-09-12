@@ -15,9 +15,9 @@ MeasurementUnits    1 ──── * FoodNutrients
 
 | Column | SQLite type | Rules |
 |---|---|---|
-| `id` | `INTEGER` | Primary key |
-| `source_id` | `INTEGER` | Not null, foreign key to `Sources.id` |
-| `country_id` | `INTEGER` | Not null, foreign key to `Countries.id` |
+| `id` | `TEXT` | Primary key, UUID |
+| `source_id` | `TEXT` | Not null, foreign key to `Sources.id` |
+| `country_id` | `TEXT` | Not null, foreign key to `Countries.id` |
 | `origin_id` | `TEXT` | Not null |
 | `version` | `INTEGER` | Not null |
 | `name` | `TEXT` | Not null |
@@ -26,7 +26,7 @@ MeasurementUnits    1 ──── * FoodNutrients
 | `small_image_url` | `TEXT` | Nullable |
 | `image_url` | `TEXT` | Nullable |
 | `quantity` | `REAL` | Nullable |
-| `measurement_unit_id` | `INTEGER` | Not null |
+| `measurement_unit_id` | `TEXT` | Not null, foreign key to `MeasurementUnits.id` |
 | `total_energy_cal` | `REAL` | Nullable |
 | `total_amount_grams` | `REAL` | Nullable |
 | `serving_size_grams` | `REAL` | Nullable |
@@ -45,21 +45,21 @@ CREATE INDEX foods_country_id_idx ON Foods (country_id);
 
 | Column | SQLite type | Rules |
 |---|---|---|
-| `id` | `INTEGER` | Primary key |
+| `id` | `TEXT` | Primary key, UUID |
 | `name` | `TEXT` | Not null, unique |
 | `short_name` | `TEXT` | Not null, unique |
-| `measurement_unit_id` | `INTEGER` | Not null, foreign key to `MeasurementUnits.id` |
+| `measurement_unit_id` | `TEXT` | Not null, foreign key to `MeasurementUnits.id` |
 | `date_added` | `INTEGER` | Not null |
 
 ## FoodNutrients
 
 | Column | SQLite type | Rules |
 |---|---|---|
-| `food_id` | `INTEGER` | Not null, foreign key to `Foods.id` |
-| `nutrient_id` | `INTEGER` | Not null, foreign key to `Nutrients.id` |
+| `food_id` | `TEXT` | Not null, foreign key to `Foods.id` |
+| `nutrient_id` | `TEXT` | Not null, foreign key to `Nutrients.id` |
 | `amount` | `REAL` | Not null, must be non-negative |
 | `basis_amount` | `REAL` | Not null, must be greater than zero |
-| `basis_unit_id` | `INTEGER` | Not null, foreign key to `MeasurementUnits.id` |
+| `basis_unit_id` | `TEXT` | Not null, foreign key to `MeasurementUnits.id` |
 | `date_added` | `INTEGER` | Not null |
 
 ### Constraints and indexes
@@ -74,7 +74,7 @@ CHECK (basis_amount > 0)
 
 | Column | SQLite type | Rules |
 |---|---|---|
-| `id` | `INTEGER` | Primary key |
+| `id` | `TEXT` | Primary key, UUID |
 | `name` | `TEXT` | Not null, unique |
 | `short_name` | `TEXT` | Not null, unique |
 | `plural_form` | `TEXT` | Nullable |
@@ -85,16 +85,17 @@ CHECK (basis_amount > 0)
 
 | Column | SQLite type | Rules |
 |---|---|---|
-| `id` | `INTEGER` | Primary key |
+| `id` | `TEXT` | Primary key, UUID |
 | `name` | `TEXT` | Not null, unique |
 | `url` | `TEXT` | Nullable |
+| `trusted` | `INTEGER` | Not null, boolean `0` or `1` |
 | `date_added` | `INTEGER` | Not null |
 
 ## Countries
 
 | Column | SQLite type | Rules |
 |---|---|---|
-| `id` | `INTEGER` | Primary key |
+| `id` | `TEXT` | Primary key, UUID |
 | `name` | `TEXT` | Not null, unique |
 | `iso_alpha2_code` | `TEXT` | Not null, unique, exactly two characters |
 | `date_added` | `INTEGER` | Not null |
@@ -103,7 +104,8 @@ CHECK (basis_amount > 0)
 
 | Column | SQLite type | Rules |
 |---|---|---|
-| `id` | `INTEGER` | Primary key, must equal `1` |
+| `id` | `TEXT` | Primary key, UUID |
+| `database_id` | `TEXT` | Not null, unique UUID identifying this database |
 | `schema_version` | `INTEGER` | Not null |
 | `dataset_version` | `TEXT` | Nullable |
 | `generated_at` | `INTEGER` | Not null |
@@ -119,13 +121,16 @@ CREATE VIRTUAL TABLE FoodSearch USING fts5(
     name,
     brand,
     content = Foods,
-    content_rowid = id
+    content_rowid = rowid
 );
 ```
 
 ## Database rules
 
 - Enable SQLite foreign-key enforcement when building and opening the database.
+- Store UUIDs as canonical lowercase text in `8-4-4-4-12` format.
+- Give each generated database its own `DatabaseMetadata.database_id` UUID.
+- Store `Sources.trusted` as `0` for Open Food Facts and `1` for government datasets.
 - Store timestamps consistently as Unix timestamps. SQLite has no dedicated datetime storage class.
 - Use `ON DELETE CASCADE` from `Foods` to `FoodNutrients`.
 - Use restrictive deletion for referenced `Sources`, `Countries`, `Nutrients`, and `MeasurementUnits`.

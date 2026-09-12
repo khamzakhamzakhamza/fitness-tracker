@@ -13,6 +13,7 @@ from off_create_uk_foods_database import (
     OUTPUT_DATABASE_PATH,
     SCHEMA_VERSION,
     SOURCE_NAME,
+    SOURCE_TRUSTED,
     clean_text,
     insert_food,
     insert_food_nutrients,
@@ -27,13 +28,13 @@ def require_reference_id(
     query: str,
     value: str,
     reference_name: str,
-) -> int:
+) -> str:
     row = database.execute(query, (value,)).fetchone()
     if row is None:
         raise ValueError(
             f"{reference_name} '{value}' was not found in {DATABASE_PATH}"
         )
-    return int(row[0])
+    return str(row[0])
 
 
 def validate_csv_columns(reader: csv.DictReader) -> None:
@@ -60,53 +61,18 @@ def validate_csv_columns(reader: csv.DictReader) -> None:
 
 
 def validate_database(database: sqlite3.Connection) -> None:
-    schema_version = database.execute("PRAGMA user_version").fetchone()[0]
+    schema_version_row = database.execute(
+        "SELECT schema_version FROM DatabaseMetadata LIMIT 1"
+    ).fetchone()
+    if schema_version_row is None:
+        raise ValueError("Database metadata row was not found")
+
+    schema_version = schema_version_row[0]
     if schema_version != SCHEMA_VERSION:
         raise ValueError(
             "Database schema version does not match the importer: "
             f"expected {SCHEMA_VERSION}, found {schema_version}"
         )
-
-    required_tables = {
-        "Countries",
-        "DatabaseMetadata",
-        "FoodNutrients",
-        "Foods",
-        "FoodSearch",
-        "MeasurementUnits",
-        "Nutrients",
-        "Sources",
-    }
-    existing_tables = {
-        row[0]
-        for row in database.execute(
-            "SELECT name FROM sqlite_master WHERE type IN ('table', 'view')"
-        )
-    }
-    missing_tables = required_tables.difference(existing_tables)
-    if missing_tables:
-        missing = ", ".join(sorted(missing_tables))
-        raise ValueError(f"Database is missing required tables: {missing}")
-
-    food_columns = {
-        row[1]: row[2].upper()
-        for row in database.execute("PRAGMA table_info(Foods)")
-    }
-    required_food_columns = {
-        "total_energy_cal": "REAL",
-        "serving_size_grams": "REAL",
-    }
-    invalid_food_columns = [
-        f"{name} {column_type}"
-        for name, column_type in required_food_columns.items()
-        if food_columns.get(name) != column_type
-    ]
-    if invalid_food_columns:
-        invalid = ", ".join(invalid_food_columns)
-        raise ValueError(
-            f"Database Foods table is missing updated columns: {invalid}"
-        )
-
 
 def update_database() -> None:
     if not INPUT_CSV_PATH.is_file():
@@ -137,6 +103,10 @@ def update_database() -> None:
                 "SELECT id FROM Sources WHERE name = ?",
                 SOURCE_NAME,
                 "Source",
+            )
+            database.execute(
+                "UPDATE Sources SET trusted = ? WHERE id = ?",
+                (int(SOURCE_TRUSTED), source_id),
             )
             country_id = require_reference_id(
                 database,
@@ -186,6 +156,7 @@ def update_database() -> None:
                     product,
                     source_id,
                     country_id,
+                    unit_ids,
                     generated_at,
                 )
                 if food_id is None:
@@ -210,7 +181,6 @@ def update_database() -> None:
                 """
                 UPDATE DatabaseMetadata
                 SET generated_at = ?
-                WHERE id = 1
                 """,
                 (generated_at,),
             )

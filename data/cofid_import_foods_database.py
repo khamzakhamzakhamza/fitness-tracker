@@ -7,10 +7,13 @@ import sqlite3
 import sys
 import time
 
+from off_create_uk_foods_database import new_uuid
+
 SCRIPT_DIRECTORY = Path(__file__).resolve().parent
 DATABASE_PATH = SCRIPT_DIRECTORY / "uk_foods.sqlite"
 COUNTRY_ISO_ALPHA2_CODE = "GB"
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
+SOURCE_TRUSTED = True
 QUANTITY_GRAMS = 100.0
 SERVING_SIZE_GRAMS = 100.0
 TOTAL_AMOUNT_GRAMS = 100.0
@@ -61,25 +64,31 @@ def require_reference_id(
     query: str,
     value: str,
     reference_name: str,
-) -> int:
+) -> str:
     row = database.execute(query, (value,)).fetchone()
     if row is None:
         raise ValueError(
             f"{reference_name} '{value}' was not found in {DATABASE_PATH}"
         )
-    return int(row[0])
+    return str(row[0])
 
 def get_or_create_source_id(
     database: sqlite3.Connection,
     source_name: str,
     generated_at: int,
-) -> int:
+) -> str:
     database.execute(
         """
-        INSERT OR IGNORE INTO Sources (name, url, date_added)
-        VALUES (?, NULL, ?)
+        INSERT INTO Sources (id, name, url, trusted, date_added)
+        VALUES (?, ?, NULL, ?, ?)
+        ON CONFLICT(name) DO UPDATE SET trusted = excluded.trusted
         """,
-        (source_name, generated_at),
+        (
+            new_uuid(),
+            source_name,
+            int(SOURCE_TRUSTED),
+            generated_at,
+        ),
     )
     return require_reference_id(
         database,
@@ -91,7 +100,7 @@ def get_or_create_source_id(
 
 def validate_database(database: sqlite3.Connection) -> None:
     schema_version_row = database.execute(
-        "SELECT schema_version FROM DatabaseMetadata WHERE id = 1"
+        "SELECT schema_version FROM DatabaseMetadata LIMIT 1"
     ).fetchone()
     if schema_version_row is None:
         raise ValueError("Database metadata row was not found")
@@ -148,18 +157,20 @@ def value_at(row: list[str], index: int) -> str | None:
 
 def insert_food(
     database: sqlite3.Connection,
-    source_id: int,
-    country_id: int,
-    gram_unit_id: int,
+    source_id: str,
+    country_id: str,
+    gram_unit_id: str,
     origin_id: str,
     version: int,
     name: str,
     total_energy_cal: float | None,
     generated_at: int,
-) -> int | None:
+) -> str | None:
+    food_id = new_uuid()
     cursor = database.execute(
         """
         INSERT OR IGNORE INTO Foods (
+            id,
             source_id,
             country_id,
             origin_id,
@@ -177,9 +188,10 @@ def insert_food(
             date_added,
             date_updated
         )
-        VALUES (?, ?, ?, ?, ?, NULL, NULL, NULL, NULL, ?, ?, ?, ?, ?, ?, NULL)
+        VALUES (?, ?, ?, ?, ?, ?, NULL, NULL, NULL, NULL, ?, ?, ?, ?, ?, ?, NULL)
         """,
         (
+            food_id,
             source_id,
             country_id,
             origin_id,
@@ -193,15 +205,15 @@ def insert_food(
             generated_at,
         ),
     )
-    return cursor.lastrowid if cursor.rowcount > 0 else None
+    return food_id if cursor.rowcount > 0 else None
 
 def insert_nutrients(
     database: sqlite3.Connection,
     row: list[str],
     nutrient_column_indexes: dict[str, int],
-    food_id: int,
-    nutrient_ids: dict[str, int],
-    gram_unit_id: int,
+    food_id: str,
+    nutrient_ids: dict[str, str],
+    gram_unit_id: str,
     generated_at: int,
 ) -> int:
     nutrient_rows = []
@@ -243,9 +255,9 @@ def import_dataset(
     csv_path: Path,
     source_name: str,
     version: int,
-    country_id: int,
-    gram_unit_id: int,
-    nutrient_ids: dict[str, int],
+    country_id: str,
+    gram_unit_id: str,
+    nutrient_ids: dict[str, str],
     generated_at: int,
 ) -> tuple[int, int, int, int]:
     source_id = get_or_create_source_id(database, source_name, generated_at)
@@ -364,7 +376,6 @@ def import_foods() -> None:
             """
             UPDATE DatabaseMetadata
             SET generated_at = ?
-            WHERE id = 1
             """,
             (generated_at,),
         )

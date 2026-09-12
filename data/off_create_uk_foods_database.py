@@ -8,15 +8,17 @@ import sqlite3
 import sys
 import time
 import re
+import uuid
 
 
 SCRIPT_DIRECTORY = Path(__file__).resolve().parent
 INPUT_CSV_PATH = SCRIPT_DIRECTORY / "uk_products_updated_after_2023.csv"
 OUTPUT_DATABASE_PATH = SCRIPT_DIRECTORY / "uk_foods.sqlite"
 ROW_LIMIT = 10_000
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 SOURCE_NAME = "Open Food Facts"
 SOURCE_URL = "https://world.openfoodfacts.org/"
+SOURCE_TRUSTED = False
 SOURCE_LICENCE = "Open Database Licence (ODbL) 1.0"
 SOURCE_ATTRIBUTION = "Open Food Facts contributors"
 COUNTRY_NAME = "United Kingdom"
@@ -52,7 +54,7 @@ NUTRIENTS = (
 
 CREATE_SCHEMA_SQL = """
 CREATE TABLE MeasurementUnits (
-    id INTEGER PRIMARY KEY,
+    id TEXT PRIMARY KEY,
     name TEXT NOT NULL UNIQUE,
     short_name TEXT NOT NULL UNIQUE,
     plural_form TEXT,
@@ -61,23 +63,24 @@ CREATE TABLE MeasurementUnits (
 );
 
 CREATE TABLE Sources (
-    id INTEGER PRIMARY KEY,
+    id TEXT PRIMARY KEY,
     name TEXT NOT NULL UNIQUE,
     url TEXT,
+    trusted INTEGER NOT NULL CHECK (trusted IN (0, 1)),
     date_added INTEGER NOT NULL
 );
 
 CREATE TABLE Countries (
-    id INTEGER PRIMARY KEY,
+    id TEXT PRIMARY KEY,
     name TEXT NOT NULL UNIQUE,
     iso_alpha2_code TEXT NOT NULL UNIQUE CHECK (length(iso_alpha2_code) = 2),
     date_added INTEGER NOT NULL
 );
 
 CREATE TABLE Foods (
-    id INTEGER PRIMARY KEY,
-    source_id INTEGER NOT NULL,
-    country_id INTEGER NOT NULL,
+    id TEXT PRIMARY KEY,
+    source_id TEXT NOT NULL,
+    country_id TEXT NOT NULL,
     origin_id TEXT NOT NULL,
     version INTEGER NOT NULL,
     name TEXT NOT NULL,
@@ -86,7 +89,7 @@ CREATE TABLE Foods (
     small_image_url TEXT,
     image_url TEXT,
     quantity REAL,
-    measurement_unit_id INTEGER NOT NULL,
+    measurement_unit_id TEXT NOT NULL,
     total_energy_cal REAL,
     total_amount_grams REAL,
     serving_size_grams REAL,
@@ -94,28 +97,30 @@ CREATE TABLE Foods (
     date_updated INTEGER,
     UNIQUE (source_id, country_id, origin_id, version),
     FOREIGN KEY (source_id) REFERENCES Sources(id) ON DELETE RESTRICT,
-    FOREIGN KEY (country_id) REFERENCES Countries(id) ON DELETE RESTRICT
+    FOREIGN KEY (country_id) REFERENCES Countries(id) ON DELETE RESTRICT,
+    FOREIGN KEY (measurement_unit_id)
+        REFERENCES MeasurementUnits(id) ON DELETE RESTRICT
 );
 
 CREATE INDEX foods_barcode_idx ON Foods (barcode);
 CREATE INDEX foods_country_id_idx ON Foods (country_id);
 
 CREATE TABLE Nutrients (
-    id INTEGER PRIMARY KEY,
+    id TEXT PRIMARY KEY,
     name TEXT NOT NULL UNIQUE,
     short_name TEXT NOT NULL UNIQUE,
-    measurement_unit_id INTEGER NOT NULL,
+    measurement_unit_id TEXT NOT NULL,
     date_added INTEGER NOT NULL,
     FOREIGN KEY (measurement_unit_id)
         REFERENCES MeasurementUnits(id) ON DELETE RESTRICT
 );
 
 CREATE TABLE FoodNutrients (
-    food_id INTEGER NOT NULL,
-    nutrient_id INTEGER NOT NULL,
+    food_id TEXT NOT NULL,
+    nutrient_id TEXT NOT NULL,
     amount REAL NOT NULL CHECK (amount >= 0),
     basis_amount REAL NOT NULL CHECK (basis_amount > 0),
-    basis_unit_id INTEGER NOT NULL,
+    basis_unit_id TEXT NOT NULL,
     date_added INTEGER NOT NULL,
     PRIMARY KEY (food_id, nutrient_id),
     FOREIGN KEY (food_id) REFERENCES Foods(id) ON DELETE CASCADE,
@@ -125,7 +130,8 @@ CREATE TABLE FoodNutrients (
 );
 
 CREATE TABLE DatabaseMetadata (
-    id INTEGER PRIMARY KEY CHECK (id = 1),
+    id TEXT PRIMARY KEY,
+    database_id TEXT NOT NULL UNIQUE,
     schema_version INTEGER NOT NULL,
     dataset_version TEXT,
     generated_at INTEGER NOT NULL,
@@ -137,9 +143,12 @@ CREATE VIRTUAL TABLE FoodSearch USING fts5(
     name,
     brand,
     content = Foods,
-    content_rowid = id
+    content_rowid = rowid
 );
 """
+
+def new_uuid() -> str:
+    return str(uuid.uuid4())
 
 def clean_text(value: str | None) -> str | None:
     if value is None:
@@ -171,65 +180,77 @@ def get_digits(value: str | None) -> float | None:
     match = re.search(r"[0-9]+(?:[.,][0-9]+)?", value or "")
     return float(match.group().replace(",", ".")) if match else None
 
-def get_measurment_unit_id(quantity: float, quantity_txt: str) -> int:
+def get_measurement_unit_short_name(
+    quantity: float,
+    quantity_txt: str,
+) -> str:
     if 'kg' in quantity_txt:
-        return 3
+        return "kg"
     elif 'oz' in quantity_txt:
-        return 2
+        return "oz"
     elif 'tablet' in quantity_txt:
-        return 4
+        return "tablet"
     elif 'capsule' in quantity_txt:
-        return 7
+        return "capsule"
     elif 'ml' in quantity_txt:
-        return 6
+        return "ml"
     elif 'l' in quantity_txt:
-        return 5
+        return "l"
     elif 'cup' in quantity_txt:
-        return 9
+        return "cup"
     elif quantity < 5:
-        return 8
+        return "item"
     else:
-        return 1
+        return "g"
     
 def create_reference_data(
     database: sqlite3.Connection,
     generated_at: int,
-) -> tuple[int, int, dict[str, int], dict[str, int]]:
-    source_cursor = database.execute(
+) -> tuple[str, str, dict[str, str], dict[str, str]]:
+    source_id = new_uuid()
+    database.execute(
         """
-        INSERT INTO Sources (name, url, date_added)
-        VALUES (?, ?, ?)
+        INSERT INTO Sources (id, name, url, trusted, date_added)
+        VALUES (?, ?, ?, ?, ?)
         """,
         (
+            source_id,
             SOURCE_NAME,
             SOURCE_URL,
+            int(SOURCE_TRUSTED),
             generated_at,
         ),
     )
-    source_id = source_cursor.lastrowid
 
-    country_cursor = database.execute(
+    country_id = new_uuid()
+    database.execute(
         """
-        INSERT INTO Countries (name, iso_alpha2_code, date_added)
-        VALUES (?, ?, ?)
+        INSERT INTO Countries (id, name, iso_alpha2_code, date_added)
+        VALUES (?, ?, ?, ?)
         """,
-        (COUNTRY_NAME, COUNTRY_ISO_ALPHA2_CODE, generated_at),
+        (
+            country_id,
+            COUNTRY_NAME,
+            COUNTRY_ISO_ALPHA2_CODE,
+            generated_at,
+        ),
     )
-    country_id = country_cursor.lastrowid
 
     database.executemany(
         """
         INSERT INTO MeasurementUnits (
+            id,
             name,
             short_name,
             plural_form,
             gram_convertion_value,
             date_added
         )
-        VALUES (?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?)
         """,
         (
             (
+                new_uuid(),
                 name,
                 short_name,
                 plural_form,
@@ -247,15 +268,22 @@ def create_reference_data(
     database.executemany(
         """
         INSERT INTO Nutrients (
+            id,
             name,
             short_name,
             measurement_unit_id,
             date_added
         )
-        VALUES (?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?)
         """,
         (
-            (name, short_name, unit_ids[unit], generated_at)
+            (
+                new_uuid(),
+                name,
+                short_name,
+                unit_ids[unit],
+                generated_at,
+            )
             for _, name, short_name, unit in NUTRIENTS
         ),
     )
@@ -265,15 +293,18 @@ def create_reference_data(
         """
         INSERT INTO DatabaseMetadata (
             id,
+            database_id,
             schema_version,
             dataset_version,
             generated_at,
             source_licence,
             source_attribution
         )
-        VALUES (1, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
         """,
         (
+            new_uuid(),
+            new_uuid(),
             SCHEMA_VERSION,
             None,
             generated_at,
@@ -296,10 +327,11 @@ def validate_food_has_nutrients(product: dict[str, str]) -> bool:
 def insert_food(
     database: sqlite3.Connection,
     product: dict[str, str],
-    source_id: int,
-    country_id: int,
+    source_id: str,
+    country_id: str,
+    unit_ids: dict[str, str],
     generated_at: int,
-) -> int | None:
+) -> str | None:
     if not validate_food_has_nutrients(product):
         return None 
     
@@ -320,7 +352,12 @@ def insert_food(
     if not quantity or not total_amount_grams:
         return None
     
-    measurement_unit_id = get_measurment_unit_id(quantity, quantity_txt) if quantity_txt else 1
+    measurement_unit_short_name = (
+        get_measurement_unit_short_name(quantity, quantity_txt)
+        if quantity_txt
+        else BASIS_UNIT_SHORT_NAME
+    )
+    measurement_unit_id = unit_ids[measurement_unit_short_name]
 
     if not total_amount_grams:
         return None
@@ -342,9 +379,11 @@ def insert_food(
     photo = clean_text(product.get("image_url")) if 'photos-validated' in product.get("states") else None
     small_photo = clean_text(product.get("image_small_url")) if 'photos-validated' in product.get("states") else None
 
+    food_id = new_uuid()
     cursor = database.execute(
         """
         INSERT OR IGNORE INTO Foods (
+            id,
             source_id,
             country_id,
             origin_id,
@@ -362,9 +401,10 @@ def insert_food(
             date_added,
             date_updated
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
+            food_id,
             source_id,
             country_id,
             origin_id,
@@ -386,14 +426,14 @@ def insert_food(
 
     if cursor.rowcount == 0:
         return None
-    return cursor.lastrowid
+    return food_id
 
 def insert_food_nutrients(
     database: sqlite3.Connection,
     product: dict[str, str],
-    food_id: int,
-    unit_ids: dict[str, int],
-    nutrient_ids: dict[str, int],
+    food_id: str,
+    unit_ids: dict[str, str],
+    nutrient_ids: dict[str, str],
     generated_at: int,
 ) -> int:
     nutrient_rows = []
@@ -481,6 +521,7 @@ def build_database() -> None:
                         product,
                         source_id,
                         country_id,
+                        unit_ids,
                         generated_at,
                     )
                     if food_id is None:
