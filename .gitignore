@@ -41,6 +41,9 @@ xcuserdata/
 *.xccheckout
 *.moved-aside
 
+# Cursor
+.cursor/
+
 # Xcode playgrounds
 timeline.xctimeline
 playground.xcworkspace
