@@ -8,6 +8,9 @@ User                    1 ──── * UserMeasurements
 MeasurementUnits        1 ──── * UserMeasurements (weight)
 MeasurementUnits        1 ──── * UserMeasurements (height)
 ActivityLevels          1 ──── * UserMeasurements
+PlanTypes               1 ──── * NutritionPlans
+UserMeasurements        1 ──── * NutritionPlans
+NutritionPlans          1 ──── * NutritionPlanSpans
 ```
 
 `NutritionLogs.foodId` is an application-level reference to `Foods.id` in the
@@ -86,6 +89,41 @@ The lookup table contains these five activity levels:
 | `Moderate` | `1.55` | 3–5 sessions a week |
 | `Heavy` | `1.725` | 6–7 sessions a week |
 | `Athlete` | `1.9` | Training twice a day |
+
+## PlanTypes
+
+| Column | SQLite type | Rules |
+|---|---|---|
+| `id` | `TEXT` | Primary key, UUID |
+| `name` | `TEXT` | Not null, unique |
+
+The lookup table contains `Maintenance`, `Progressive gain`, `Progressive loss`, and `Custom`.
+
+## NutritionPlans
+
+| Column | SQLite type | Rules |
+|---|---|---|
+| `id` | `TEXT` | Primary key, UUID |
+| `planTypeId` | `TEXT` | Not null, foreign key to `PlanTypes.id` |
+| `userMeasurementId` | `TEXT` | Not null, foreign key to `UserMeasurements.id` |
+| `targetWeightSI` | `REAL` | Not null |
+
+## NutritionPlanSpans
+
+| Column | SQLite type | Rules |
+|---|---|---|
+| `id` | `TEXT` | Primary key, UUID |
+| `nutritionPlanId` | `TEXT` | Not null, foreign key to `NutritionPlans.id` |
+| `startDate` | `INTEGER` | Not null, Unix timestamp |
+| `endDate` | `INTEGER` | Not null, Unix timestamp |
+| `targetCaloriesSI` | `REAL` | Not null |
+
+### Indexes
+
+```sql
+CREATE INDEX nutrition_plan_spans_plan_id_idx
+    ON NutritionPlanSpans (nutritionPlanId);
+```
 
 ## Database rules
 

@@ -77,6 +77,14 @@ actor LocalDatabaseRepository: LocalDatabaseRepositoryProtocol {
         "66666666-6666-6666-6666-666666666666"
     private static let athleteActivityLevelID =
         "77777777-7777-7777-7777-777777777777"
+    private static let maintenancePlanTypeID =
+        "88888888-8888-8888-8888-888888888888"
+    private static let progressiveGainPlanTypeID =
+        "99999999-9999-9999-9999-999999999999"
+    private static let progressiveLossPlanTypeID =
+        "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
+    private static let customPlanTypeID =
+        "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"
 
     private let customDatabaseURL: URL?
 
@@ -363,6 +371,37 @@ actor LocalDatabaseRepository: LocalDatabaseRepositoryProtocol {
             );
             CREATE INDEX IF NOT EXISTS user_measurements_user_id_idx
                 ON UserMeasurements (userId);
+
+            CREATE TABLE IF NOT EXISTS PlanTypes (
+                id TEXT PRIMARY KEY,
+                name TEXT NOT NULL UNIQUE
+            );
+
+            INSERT OR IGNORE INTO PlanTypes (id, name) VALUES
+                ('\(Self.maintenancePlanTypeID)', 'Maintenance'),
+                ('\(Self.progressiveGainPlanTypeID)', 'Progressive gain'),
+                ('\(Self.progressiveLossPlanTypeID)', 'Progressive loss'),
+                ('\(Self.customPlanTypeID)', 'Custom');
+
+            CREATE TABLE IF NOT EXISTS NutritionPlans (
+                id TEXT PRIMARY KEY,
+                planTypeId TEXT NOT NULL,
+                userMeasurementId TEXT NOT NULL,
+                targetWeightSI REAL NOT NULL,
+                FOREIGN KEY (planTypeId) REFERENCES PlanTypes (id),
+                FOREIGN KEY (userMeasurementId) REFERENCES UserMeasurements (id)
+            );
+
+            CREATE TABLE IF NOT EXISTS NutritionPlanSpans (
+                id TEXT PRIMARY KEY,
+                nutritionPlanId TEXT NOT NULL,
+                startDate INTEGER NOT NULL,
+                endDate INTEGER NOT NULL,
+                targetCaloriesSI REAL NOT NULL,
+                FOREIGN KEY (nutritionPlanId) REFERENCES NutritionPlans (id)
+            );
+            CREATE INDEX IF NOT EXISTS nutrition_plan_spans_plan_id_idx
+                ON NutritionPlanSpans (nutritionPlanId);
             """
 
         guard sqlite3_exec(database, sql, nil, nil, nil) == SQLITE_OK else {
