@@ -8,6 +8,10 @@
 
 /* Begin PBXBuildFile section */
 		D4A100000000000000000001 /* uk_foods.sqlite in Resources */ = {isa = PBXBuildFile; fileRef = D4A100000000000000000002 /* uk_foods.sqlite */; };
+		D4A202000000000000000001 /* FitnessTrackerShared in Frameworks */ = {isa = PBXBuildFile; productRef = D4A201000000000000000001 /* FitnessTrackerShared */; };
+		D4A202000000000000000002 /* FitnessTrackerNutrition in Frameworks */ = {isa = PBXBuildFile; productRef = D4A201000000000000000002 /* FitnessTrackerNutrition */; };
+		D4A202000000000000000003 /* FitnessTrackerPlanning in Frameworks */ = {isa = PBXBuildFile; productRef = D4A201000000000000000003 /* FitnessTrackerPlanning */; };
+		D4A202000000000000000004 /* FitnessTrackerNutrition in Frameworks */ = {isa = PBXBuildFile; productRef = D4A201000000000000000004 /* FitnessTrackerNutrition */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -57,6 +61,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D4A202000000000000000001 /* FitnessTrackerShared in Frameworks */,
+				D4A202000000000000000002 /* FitnessTrackerNutrition in Frameworks */,
+				D4A202000000000000000003 /* FitnessTrackerPlanning in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -64,6 +71,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D4A202000000000000000004 /* FitnessTrackerNutrition in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -118,6 +126,9 @@
 			);
 			name = "fitness-tracker";
 			packageProductDependencies = (
+				D4A201000000000000000001 /* FitnessTrackerShared */,
+				D4A201000000000000000002 /* FitnessTrackerNutrition */,
+				D4A201000000000000000003 /* FitnessTrackerPlanning */,
 			);
 			productName = "fitness-tracker";
 			productReference = 7AA33E97304B230600506EDA /* fitness-tracker.app */;
@@ -141,6 +152,7 @@
 			);
 			name = "fitness-trackerTests";
 			packageProductDependencies = (
+				D4A201000000000000000004 /* FitnessTrackerNutrition */,
 			);
 			productName = "fitness-trackerTests";
 			productReference = 7AA33EA6304B230800506EDA /* fitness-trackerTests.xctest */;
@@ -205,6 +217,11 @@
 			productRefGroup = 7AA33E98304B230600506EDA /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
+			packageReferences = (
+				D4A200000000000000000001 /* XCLocalSwiftPackageReference "FitnessTrackerShared" */,
+				D4A200000000000000000002 /* XCLocalSwiftPackageReference "FitnessTrackerNutrition" */,
+				D4A200000000000000000003 /* XCLocalSwiftPackageReference "FitnessTrackerPlanning" */,
+			);
 			targets = (
 				7AA33E96304B230600506EDA /* fitness-tracker */,
 				7AA33EA5304B230800506EDA /* fitness-trackerTests */,
@@ -237,6 +254,19 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		D4A200000000000000000001 /* XCLocalSwiftPackageReference "FitnessTrackerShared" */ = {isa = XCLocalSwiftPackageReference; relativePath = FitnessTrackerShared; };
+		D4A200000000000000000002 /* XCLocalSwiftPackageReference "FitnessTrackerNutrition" */ = {isa = XCLocalSwiftPackageReference; relativePath = FitnessTrackerNutrition; };
+		D4A200000000000000000003 /* XCLocalSwiftPackageReference "FitnessTrackerPlanning" */ = {isa = XCLocalSwiftPackageReference; relativePath = FitnessTrackerPlanning; };
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		D4A201000000000000000001 /* FitnessTrackerShared */ = {isa = XCSwiftPackageProductDependency; package = D4A200000000000000000001 /* XCLocalSwiftPackageReference "FitnessTrackerShared" */; productName = FitnessTrackerShared; };
+		D4A201000000000000000002 /* FitnessTrackerNutrition */ = {isa = XCSwiftPackageProductDependency; package = D4A200000000000000000002 /* XCLocalSwiftPackageReference "FitnessTrackerNutrition" */; productName = FitnessTrackerNutrition; };
+		D4A201000000000000000003 /* FitnessTrackerPlanning */ = {isa = XCSwiftPackageProductDependency; package = D4A200000000000000000003 /* XCLocalSwiftPackageReference "FitnessTrackerPlanning" */; productName = FitnessTrackerPlanning; };
+		D4A201000000000000000004 /* FitnessTrackerNutrition */ = {isa = XCSwiftPackageProductDependency; package = D4A200000000000000000002 /* XCLocalSwiftPackageReference "FitnessTrackerNutrition" */; productName = FitnessTrackerNutrition; };
+/* End XCSwiftPackageProductDependency section */
 
 /* Begin PBXSourcesBuildPhase section */
 		7AA33E93304B230600506EDA /* Sources */ = {

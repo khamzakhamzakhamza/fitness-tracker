@@ -1,5 +1,6 @@
 import SwiftUI
 import UIKit
+import FitnessTrackerShared
 
 struct AddFoodScreen: View {
     let foodID: String

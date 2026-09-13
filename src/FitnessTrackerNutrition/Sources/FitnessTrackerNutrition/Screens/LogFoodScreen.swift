@@ -1,4 +1,5 @@
 import SwiftUI
+import FitnessTrackerShared
 
 struct LogFoodScreen: View {
     var onLogCreated: () -> Void = {}

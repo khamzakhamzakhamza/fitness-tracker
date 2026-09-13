@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import fitness_tracker
+@testable import FitnessTrackerNutrition
 
 struct FoodDatabaseRepositoryTests {
     @Test func readsFirstPageFromBundledDatabase() async throws {

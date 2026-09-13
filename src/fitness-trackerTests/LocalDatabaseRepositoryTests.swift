@@ -1,7 +1,7 @@
 import Foundation
 import SQLite3
 import Testing
-@testable import fitness_tracker
+@testable import FitnessTrackerNutrition
 
 struct LocalDatabaseRepositoryTests {
     @Test func createsNutritionLogsTableIndexAndInsertsLogs() async throws {

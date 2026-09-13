@@ -1,11 +1,13 @@
 import SwiftUI
 
-struct PrimaryActionButton: View {
-    let title: String
-    var minimumHeight: CGFloat = 56
-    let action: () -> Void
+public struct PrimaryActionButton: View {
+    public let title: String
+    public var minimumHeight: CGFloat = 56
+    public let action: () -> Void
 
-    var body: some View {
+    public init(title: String, minimumHeight: CGFloat = 56, action: @escaping () -> Void) { self.title = title; self.minimumHeight = minimumHeight; self.action = action }
+
+    public var body: some View {
         Button(action: action) {
             Text(title)
                 .font(.system(size: 17, weight: .black))

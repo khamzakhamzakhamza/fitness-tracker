@@ -1,4 +1,5 @@
 import SwiftUI
+import FitnessTrackerNutrition
 
 struct ContentView: View {
     var body: some View {

@@ -1,5 +1,5 @@
 import Testing
-@testable import fitness_tracker
+@testable import FitnessTrackerNutrition
 
 struct NutrientsTests {
     @Test func hidesAmountsThatAreZeroAfterDisplayRounding() {

@@ -1,6 +1,6 @@
 import Testing
 import Foundation
-@testable import fitness_tracker
+@testable import FitnessTrackerNutrition
 
 struct FoodItemImageTests {
 

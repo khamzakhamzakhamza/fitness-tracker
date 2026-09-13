@@ -1,5 +1,5 @@
 import Testing
-@testable import fitness_tracker
+@testable import FitnessTrackerNutrition
 
 struct WeightSelectorTests {
     @Test func usesHalfServingServingAndFullAmount() {

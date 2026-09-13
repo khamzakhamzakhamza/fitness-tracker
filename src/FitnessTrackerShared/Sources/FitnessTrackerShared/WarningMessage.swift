@@ -1,9 +1,11 @@
 import SwiftUI
 
-struct WarningMessage: View {
-    let message: String
+public struct WarningMessage: View {
+    public let message: String
 
-    var body: some View {
+    public init(message: String) { self.message = message }
+
+    public var body: some View {
         HStack(alignment: .top, spacing: 12) {
             Image(systemName: "info.circle")
                 .font(.system(size: 19, weight: .semibold))

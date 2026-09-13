@@ -1,11 +1,13 @@
 import SwiftUI
 
-struct SearchBox: View {
-    @Binding var text: String
-    let placeholder: String
+public struct SearchBox: View {
+    @Binding public var text: String
+    public let placeholder: String
     @FocusState private var isFocused: Bool
 
-    var body: some View {
+    public init(text: Binding<String>, placeholder: String) { _text = text; self.placeholder = placeholder }
+
+    public var body: some View {
         HStack(spacing: 12) {
             Image(systemName: "magnifyingglass")
                 .font(.system(size: 18, weight: .semibold))

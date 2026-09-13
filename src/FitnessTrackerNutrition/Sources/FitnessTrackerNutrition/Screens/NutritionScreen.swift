@@ -1,13 +1,16 @@
 import SwiftUI
+import FitnessTrackerShared
 
-struct NutritionScreen: View {
+public struct NutritionScreen: View {
     @State private var isShowingLogFood = false
     @State private var dailySummary = DailyNutritionSummary.empty
     @State private var loggedFoods: [LoggedFoodListItemModel] = []
     @State private var pendingDeletion: LoggedFoodListItemModel?
     private let nutritionService = NutritionService()
 
-    var body: some View {
+    public init() {}
+
+    public var body: some View {
         VStack(spacing: 0) {
             ScreenTitle("Progress is built on the plate.")
                 .padding(.horizontal, 20)

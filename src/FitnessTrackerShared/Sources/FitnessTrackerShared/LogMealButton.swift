@@ -1,9 +1,11 @@
 import SwiftUI
 
-struct LogMealButton: View {
-    let action: () -> Void
+public struct LogMealButton: View {
+    public let action: () -> Void
 
-    var body: some View {
+    public init(action: @escaping () -> Void) { self.action = action }
+
+    public var body: some View {
         PrimaryActionButton(title: "LOG MEAL", action: action)
     }
 }

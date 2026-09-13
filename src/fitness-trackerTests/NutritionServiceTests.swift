@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import fitness_tracker
+@testable import FitnessTrackerNutrition
 
 private actor StubFoodDatabaseRepository: FoodDatabaseRepositoryProtocol {
     let page: FoodDatabasePage

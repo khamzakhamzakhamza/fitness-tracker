@@ -1,6 +1,7 @@
 import Combine
 import Network
 
+@MainActor
 final class NetworkMonitor: ObservableObject {
     @Published private(set) var isConnected = false
 

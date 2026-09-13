@@ -1,4 +1,5 @@
 import SwiftUI
+import FitnessTrackerShared
 
 struct FoodSearch: View {
     private static let pageSize = 500
