@@ -1,11 +1,11 @@
 import SwiftUI
-import FitnessTrackerNutrition
+// import fitness_tracker_nutrition
 
 struct ContentView: View {
     var body: some View {
         NavigationStack {
-            NutritionScreen()
-            .toolbar(.hidden, for: .navigationBar)
+            // NutritionScreen()
+            // .toolbar(.hidden, for: .navigationBar)
         }
     }
 }
