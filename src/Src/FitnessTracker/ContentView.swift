@@ -1,11 +1,15 @@
 import SwiftUI
-// import fitness_tracker_nutrition
+import FitnessTrackerShared
 
 struct ContentView: View {
+    @State private var searchText = ""
+
     var body: some View {
         NavigationStack {
-            // NutritionScreen()
-            // .toolbar(.hidden, for: .navigationBar)
+            SearchBox(
+                text: $searchText,
+                placeholder: "Search"
+            )
         }
     }
 }

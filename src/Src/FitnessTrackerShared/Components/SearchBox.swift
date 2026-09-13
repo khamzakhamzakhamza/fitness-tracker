@@ -1,11 +1,18 @@
 import SwiftUI
 
 public struct SearchBox: View {
+    public static let clearButtonAccessibilityLabel = "Clear search"
+
     @Binding public var text: String
     public let placeholder: String
     @FocusState private var isFocused: Bool
 
     public init(text: Binding<String>, placeholder: String) { _text = text; self.placeholder = placeholder }
+
+    static func shouldDismissKeyboard(for translation: CGSize) -> Bool {
+        translation.height > 10
+            && abs(translation.height) > abs(translation.width)
+    }
 
     public var body: some View {
         HStack(spacing: 12) {
@@ -22,8 +29,6 @@ public struct SearchBox: View {
                 .font(.system(size: 17, weight: .semibold))
                 .foregroundStyle(.primary)
                 .focused($isFocused)
-                .textInputAutocapitalization(.never)
-                .autocorrectionDisabled()
                 .submitLabel(.search)
 
             if !text.isEmpty {
@@ -36,7 +41,7 @@ public struct SearchBox: View {
                         .frame(width: 44, height: 44)
                 }
                 .buttonStyle(.plain)
-                .accessibilityLabel("Clear search")
+                .accessibilityLabel(Self.clearButtonAccessibilityLabel)
             }
         }
         .padding(.horizontal, 14)
@@ -49,11 +54,7 @@ public struct SearchBox: View {
         .simultaneousGesture(
             DragGesture(minimumDistance: 10)
                 .onChanged { value in
-                    let isDownwardSwipe = value.translation.height > 10
-                    let isMostlyVertical = abs(value.translation.height)
-                        > abs(value.translation.width)
-
-                    if isDownwardSwipe && isMostlyVertical {
+                    if Self.shouldDismissKeyboard(for: value.translation) {
                         isFocused = false
                     }
                 }
@@ -66,7 +67,7 @@ public struct SearchBox: View {
 }
 
 #Preview {
-    @Previewable @State var searchText = "chick"
+    @Previewable @State var searchText = "test"
 
     SearchBox(text: $searchText, placeholder: "Search foods")
         .padding()
