@@ -13,7 +13,6 @@ from off_create_uk_foods_database import (
     OUTPUT_DATABASE_PATH,
     SCHEMA_VERSION,
     SOURCE_NAME,
-    SOURCE_TRUSTED,
     clean_text,
     insert_food,
     insert_food_nutrients,
@@ -21,7 +20,16 @@ from off_create_uk_foods_database import (
 )
 
 DATABASE_PATH = OUTPUT_DATABASE_PATH
+COMMON_BRANDS_INPUT_CSV_PATH = (
+    INPUT_CSV_PATH.parent
+    / "common_brand_products_updated_after_2023.csv"
+)
+INPUT_CSV_PATHS = (
+    INPUT_CSV_PATH,
+    COMMON_BRANDS_INPUT_CSV_PATH,
+)
 ROW_LIMIT: int | None = None
+
 
 def require_reference_id(
     database: sqlite3.Connection,
@@ -74,9 +82,13 @@ def validate_database(database: sqlite3.Connection) -> None:
             f"expected {SCHEMA_VERSION}, found {schema_version}"
         )
 
+
 def update_database() -> None:
-    if not INPUT_CSV_PATH.is_file():
-        raise FileNotFoundError(f"Input CSV was not found: {INPUT_CSV_PATH}")
+    for input_csv_path in INPUT_CSV_PATHS:
+        if not input_csv_path.is_file():
+            raise FileNotFoundError(
+                f"Input CSV was not found: {input_csv_path}"
+            )
     if not DATABASE_PATH.is_file():
         raise FileNotFoundError(f"Database was not found: {DATABASE_PATH}")
 
@@ -88,106 +100,110 @@ def update_database() -> None:
     invalid_rows_skipped = 0
     nutrients_inserted = 0
 
-    with INPUT_CSV_PATH.open("r", encoding="utf-8", newline="") as source:
-        reader = csv.DictReader(source)
-        validate_csv_columns(reader)
+    with sqlite3.connect(DATABASE_PATH) as database:
+        database.execute("PRAGMA foreign_keys = ON")
+        validate_database(database)
 
-        products = reader if ROW_LIMIT is None else islice(reader, ROW_LIMIT)
+        source_id = require_reference_id(
+            database,
+            "SELECT id FROM Sources WHERE name = ?",
+            SOURCE_NAME,
+            "Source",
+        )
+        country_id = require_reference_id(
+            database,
+            "SELECT id FROM Countries WHERE iso_alpha2_code = ?",
+            COUNTRY_ISO_ALPHA2_CODE,
+            "Country",
+        )
+        unit_ids = dict(
+            database.execute("SELECT short_name, id FROM MeasurementUnits")
+        )
+        nutrient_ids = dict(
+            database.execute("SELECT short_name, id FROM Nutrients")
+        )
 
-        with sqlite3.connect(DATABASE_PATH) as database:
-            database.execute("PRAGMA foreign_keys = ON")
-            validate_database(database)
-
-            source_id = require_reference_id(
-                database,
-                "SELECT id FROM Sources WHERE name = ?",
-                SOURCE_NAME,
-                "Source",
-            )
-            database.execute(
-                "UPDATE Sources SET trusted = ? WHERE id = ?",
-                (int(SOURCE_TRUSTED), source_id),
-            )
-            country_id = require_reference_id(
-                database,
-                "SELECT id FROM Countries WHERE iso_alpha2_code = ?",
-                COUNTRY_ISO_ALPHA2_CODE,
-                "Country",
-            )
-            unit_ids = dict(
-                database.execute("SELECT short_name, id FROM MeasurementUnits")
-            )
-            nutrient_ids = dict(
-                database.execute("SELECT short_name, id FROM Nutrients")
-            )
-
-            for product in products:
-                rows_processed += 1
-                origin_id = clean_text(product.get("code"))
-                incoming_version = (
-                    parse_timestamp(product.get("last_modified_t")) or 1
+        for input_csv_path in INPUT_CSV_PATHS:
+            with input_csv_path.open(
+                "r",
+                encoding="utf-8",
+                newline="",
+            ) as source:
+                reader = csv.DictReader(source)
+                validate_csv_columns(reader)
+                products = (
+                    reader
+                    if ROW_LIMIT is None
+                    else islice(reader, ROW_LIMIT)
                 )
 
-                if origin_id is None:
-                    invalid_rows_skipped += 1
-                    continue
+                for product in products:
+                    rows_processed += 1
+                    origin_id = clean_text(product.get("code"))
+                    incoming_version = (
+                        parse_timestamp(product.get("last_modified_t")) or 1
+                    )
 
-                latest_version_row = database.execute(
-                    """
-                    SELECT MAX(version)
-                    FROM Foods
-                    WHERE source_id = ?
-                      AND country_id = ?
-                      AND origin_id = ?
-                    """,
-                    (source_id, country_id, origin_id),
-                ).fetchone()
-                latest_version = latest_version_row[0]
+                    if origin_id is None:
+                        invalid_rows_skipped += 1
+                        continue
 
-                if (
-                    latest_version is not None
-                    and incoming_version <= latest_version
-                ):
-                    unchanged_or_older_skipped += 1
-                    continue
+                    latest_version_row = database.execute(
+                        """
+                        SELECT MAX(version)
+                        FROM Foods
+                        WHERE source_id = ?
+                          AND country_id = ?
+                          AND origin_id = ?
+                        """,
+                        (source_id, country_id, origin_id),
+                    ).fetchone()
+                    latest_version = latest_version_row[0]
 
-                food_id = insert_food(
-                    database,
-                    product,
-                    source_id,
-                    country_id,
-                    unit_ids,
-                    generated_at,
-                )
-                if food_id is None:
-                    invalid_rows_skipped += 1
-                    continue
+                    if (
+                        latest_version is not None
+                        and incoming_version <= latest_version
+                    ):
+                        unchanged_or_older_skipped += 1
+                        continue
 
-                if latest_version is None:
-                    new_foods_inserted += 1
-                else:
-                    new_versions_inserted += 1
+                    food_id = insert_food(
+                        database,
+                        product,
+                        source_id,
+                        country_id,
+                        unit_ids,
+                        generated_at,
+                    )
+                    if food_id is None:
+                        invalid_rows_skipped += 1
+                        continue
 
-                nutrients_inserted += insert_food_nutrients(
-                    database,
-                    product,
-                    food_id,
-                    unit_ids,
-                    nutrient_ids,
-                    generated_at,
-                )
+                    if latest_version is None:
+                        new_foods_inserted += 1
+                    else:
+                        new_versions_inserted += 1
 
-            database.execute(
-                """
-                UPDATE DatabaseMetadata
-                SET generated_at = ?
-                """,
-                (generated_at,),
-            )
-            database.execute(
-                "INSERT INTO FoodSearch(FoodSearch) VALUES ('rebuild')"
-            )
-            database.execute("PRAGMA optimize")
+                    nutrients_inserted += insert_food_nutrients(
+                        database,
+                        product,
+                        food_id,
+                        unit_ids,
+                        nutrient_ids,
+                        generated_at,
+                    )
+
+        database.execute(
+            """
+            UPDATE DatabaseMetadata
+            SET generated_at = ?
+            """,
+            (generated_at,),
+        )
+        database.execute(
+            "INSERT INTO FoodSearch(FoodSearch) VALUES ('rebuild')"
+        )
+        database.execute("PRAGMA optimize")
 
     print(f"Read {rows_processed} CSV rows")
     print(f"Inserted {new_foods_inserted} new foods")

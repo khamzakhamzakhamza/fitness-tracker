@@ -12,8 +12,8 @@ from off_create_uk_foods_database import new_uuid
 SCRIPT_DIRECTORY = Path(__file__).resolve().parent
 DATABASE_PATH = SCRIPT_DIRECTORY / "uk_foods.sqlite"
 COUNTRY_ISO_ALPHA2_CODE = "GB"
-SCHEMA_VERSION = 2
-SOURCE_TRUSTED = True
+SCHEMA_VERSION = 1
+FOOD_TRUSTED = True
 QUANTITY_GRAMS = 100.0
 SERVING_SIZE_GRAMS = 100.0
 TOTAL_AMOUNT_GRAMS = 100.0
@@ -79,14 +79,13 @@ def get_or_create_source_id(
 ) -> str:
     database.execute(
         """
-        INSERT INTO Sources (id, name, url, trusted, date_added)
-        VALUES (?, ?, NULL, ?, ?)
-        ON CONFLICT(name) DO UPDATE SET trusted = excluded.trusted
+        INSERT INTO Sources (id, name, url, date_added)
+        VALUES (?, ?, NULL, ?)
+        ON CONFLICT(name) DO NOTHING
         """,
         (
             new_uuid(),
             source_name,
-            int(SOURCE_TRUSTED),
             generated_at,
         ),
     )
@@ -172,6 +171,7 @@ def insert_food(
         INSERT OR IGNORE INTO Foods (
             id,
             source_id,
+            trusted,
             country_id,
             origin_id,
             version,
@@ -188,11 +188,12 @@ def insert_food(
             date_added,
             date_updated
         )
-        VALUES (?, ?, ?, ?, ?, ?, NULL, NULL, NULL, NULL, ?, ?, ?, ?, ?, ?, NULL)
+        VALUES (?, ?, ?, ?, ?, ?, ?, NULL, NULL, NULL, NULL, ?, ?, ?, ?, ?, ?, NULL)
         """,
         (
             food_id,
             source_id,
+            int(FOOD_TRUSTED),
             country_id,
             origin_id,
             version,

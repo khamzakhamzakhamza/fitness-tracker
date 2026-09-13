@@ -63,6 +63,7 @@ fastlane/test_output/
 
 # Data exports
 *.csv
+data/uk_foods.sqlite
 
 # Python
 __pycache__/

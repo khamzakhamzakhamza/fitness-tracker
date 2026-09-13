@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-import argparse
 import csv
 from pathlib import Path
 import re
@@ -8,7 +7,7 @@ import sys
 
 
 SCRIPT_DIRECTORY = Path(__file__).resolve().parent
-DEFAULT_INPUT = SCRIPT_DIRECTORY / "data"
+INPUT_CSV_PATH = SCRIPT_DIRECTORY / "en.openfoodfacts.org.products.csv"
 MINIMUM_YEAR = 2023
 COUNTRY_NAMES = {
     "uk",
@@ -22,21 +21,24 @@ COUNTRY_NAMES = {
     "wales",
     "northernireland",
 }
-DEFAULT_OUTPUT = SCRIPT_DIRECTORY / f"{COUNTRY_NAMES[0]}_products_updated_after_{MINIMUM_YEAR}.csv"
-
-
-def parse_arguments() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(
-        description="Filter the Open Food Facts TSV export to UK products updated after 2023."
-    )
-    parser.add_argument("input", nargs="?", type=Path, default=DEFAULT_INPUT)
-    parser.add_argument("output", nargs="?", type=Path, default=DEFAULT_OUTPUT)
-    return parser.parse_args()
+OUTPUT_CSV_PATH = (
+    SCRIPT_DIRECTORY
+    / f"uk_products_updated_after_{MINIMUM_YEAR}.csv"
+)
 
 
 def is_uk_country(countries: str) -> bool:
     for country in re.split(r"[,;|]", countries):
-        normalized_country = re.sub(r"[^a-z]", "", country.casefold())
+        country_without_language_prefix = re.sub(
+            r"^[a-z]{2,3}:",
+            "",
+            country.casefold().strip(),
+        )
+        normalized_country = re.sub(
+            r"[^a-z]",
+            "",
+            country_without_language_prefix,
+        )
         if normalized_country in COUNTRY_NAMES:
             return True
     return False
@@ -48,13 +50,16 @@ def was_updated_after_2023(last_modified_datetime: str) -> bool:
 
 
 def main() -> None:
-    arguments = parse_arguments()
     csv.field_size_limit(sys.maxsize)
 
-    with arguments.input.open("r", encoding="utf-8", newline="") as source:
-        with arguments.output.open("w", encoding="utf-8", newline="") as destination:
+    with INPUT_CSV_PATH.open("r", encoding="utf-8", newline="") as source:
+        with OUTPUT_CSV_PATH.open("w", encoding="utf-8", newline="") as destination:
             reader = csv.DictReader(source, delimiter="\t")
-            required_columns = {"countries_en", "last_modified_datetime"}
+            required_columns = {
+                "brands",
+                "countries_en",
+                "last_modified_datetime",
+            }
             missing_columns = required_columns.difference(reader.fieldnames or [])
             if missing_columns:
                 missing = ", ".join(sorted(missing_columns))
@@ -70,6 +75,8 @@ def main() -> None:
 
             products_written = 0
             for product in reader:
+                if not product.get("brands", "").strip():
+                    continue
                 if not is_uk_country(product.get("countries_en", "")):
                     continue
                 if not was_updated_after_2023(
@@ -80,7 +87,7 @@ def main() -> None:
                 writer.writerow(product)
                 products_written += 1
 
-    print(f"Wrote {products_written} products to {arguments.output}")
+    print(f"Wrote {products_written} products to {OUTPUT_CSV_PATH}")
 
 
 if __name__ == "__main__":

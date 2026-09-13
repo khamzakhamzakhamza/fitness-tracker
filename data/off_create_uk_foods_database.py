@@ -15,10 +15,10 @@ SCRIPT_DIRECTORY = Path(__file__).resolve().parent
 INPUT_CSV_PATH = SCRIPT_DIRECTORY / "uk_products_updated_after_2023.csv"
 OUTPUT_DATABASE_PATH = SCRIPT_DIRECTORY / "uk_foods.sqlite"
 ROW_LIMIT = 10_000
-SCHEMA_VERSION = 2
+SCHEMA_VERSION = 1
 SOURCE_NAME = "Open Food Facts"
 SOURCE_URL = "https://world.openfoodfacts.org/"
-SOURCE_TRUSTED = False
+FOOD_TRUSTED = False
 SOURCE_LICENCE = "Open Database Licence (ODbL) 1.0"
 SOURCE_ATTRIBUTION = "Open Food Facts contributors"
 COUNTRY_NAME = "United Kingdom"
@@ -66,7 +66,6 @@ CREATE TABLE Sources (
     id TEXT PRIMARY KEY,
     name TEXT NOT NULL UNIQUE,
     url TEXT,
-    trusted INTEGER NOT NULL CHECK (trusted IN (0, 1)),
     date_added INTEGER NOT NULL
 );
 
@@ -80,6 +79,7 @@ CREATE TABLE Countries (
 CREATE TABLE Foods (
     id TEXT PRIMARY KEY,
     source_id TEXT NOT NULL,
+    trusted INTEGER NOT NULL CHECK (trusted IN (0, 1)),
     country_id TEXT NOT NULL,
     origin_id TEXT NOT NULL,
     version INTEGER NOT NULL,
@@ -210,14 +210,13 @@ def create_reference_data(
     source_id = new_uuid()
     database.execute(
         """
-        INSERT INTO Sources (id, name, url, trusted, date_added)
-        VALUES (?, ?, ?, ?, ?)
+        INSERT INTO Sources (id, name, url, date_added)
+        VALUES (?, ?, ?, ?)
         """,
         (
             source_id,
             SOURCE_NAME,
             SOURCE_URL,
-            int(SOURCE_TRUSTED),
             generated_at,
         ),
     )
@@ -385,6 +384,7 @@ def insert_food(
         INSERT OR IGNORE INTO Foods (
             id,
             source_id,
+            trusted,
             country_id,
             origin_id,
             version,
@@ -401,11 +401,12 @@ def insert_food(
             date_added,
             date_updated
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             food_id,
             source_id,
+            int(FOOD_TRUSTED),
             country_id,
             origin_id,
             version,

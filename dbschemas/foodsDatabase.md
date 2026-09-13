@@ -17,6 +17,7 @@ MeasurementUnits    1 ──── * FoodNutrients
 |---|---|---|
 | `id` | `TEXT` | Primary key, UUID |
 | `source_id` | `TEXT` | Not null, foreign key to `Sources.id` |
+| `trusted` | `INTEGER` | Not null, boolean `0` or `1` |
 | `country_id` | `TEXT` | Not null, foreign key to `Countries.id` |
 | `origin_id` | `TEXT` | Not null |
 | `version` | `INTEGER` | Not null |
@@ -88,7 +89,6 @@ CHECK (basis_amount > 0)
 | `id` | `TEXT` | Primary key, UUID |
 | `name` | `TEXT` | Not null, unique |
 | `url` | `TEXT` | Nullable |
-| `trusted` | `INTEGER` | Not null, boolean `0` or `1` |
 | `date_added` | `INTEGER` | Not null |
 
 ## Countries
@@ -106,7 +106,7 @@ CHECK (basis_amount > 0)
 |---|---|---|
 | `id` | `TEXT` | Primary key, UUID |
 | `database_id` | `TEXT` | Not null, unique UUID identifying this database |
-| `schema_version` | `INTEGER` | Not null |
+| `schema_version` | `INTEGER` | Not null, currently `1` |
 | `dataset_version` | `TEXT` | Nullable |
 | `generated_at` | `INTEGER` | Not null |
 | `source_licence` | `TEXT` | Not null |
@@ -130,7 +130,8 @@ CREATE VIRTUAL TABLE FoodSearch USING fts5(
 - Enable SQLite foreign-key enforcement when building and opening the database.
 - Store UUIDs as canonical lowercase text in `8-4-4-4-12` format.
 - Give each generated database its own `DatabaseMetadata.database_id` UUID.
-- Store `Sources.trusted` as `0` for Open Food Facts and `1` for government datasets.
+- Keep `DatabaseMetadata.schema_version` and `PRAGMA user_version` at `1` until the schema reaches its first stable release.
+- Store `Foods.trusted` as `0` for Open Food Facts and `1` for government datasets.
 - Store timestamps consistently as Unix timestamps. SQLite has no dedicated datetime storage class.
 - Use `ON DELETE CASCADE` from `Foods` to `FoodNutrients`.
 - Use restrictive deletion for referenced `Sources`, `Countries`, `Nutrients`, and `MeasurementUnits`.
