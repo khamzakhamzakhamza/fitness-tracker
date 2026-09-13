@@ -64,7 +64,7 @@ CREATE INDEX user_measurements_user_id_idx ON UserMeasurements (userId);
 | `name` | `TEXT` | Not null, unique |
 | `shortName` | `TEXT` | Not null, unique |
 | `pluralForm` | `TEXT` | Nullable |
-| `gramConvertionValue` | `REAL` | Nullable |
+| `siConversionValue` | `REAL` | Nullable |
 | `dateAdded` | `INTEGER` | Not null, Unix timestamp |
 
 ## Database rules

@@ -58,7 +58,7 @@ CREATE TABLE MeasurementUnits (
     name TEXT NOT NULL UNIQUE,
     short_name TEXT NOT NULL UNIQUE,
     plural_form TEXT,
-    gram_convertion_value REAL,
+    si_conversion_value REAL,
     date_added INTEGER NOT NULL
 );
 
@@ -242,7 +242,7 @@ def create_reference_data(
             name,
             short_name,
             plural_form,
-            gram_convertion_value,
+            si_conversion_value,
             date_added
         )
         VALUES (?, ?, ?, ?, ?, ?)
@@ -253,10 +253,10 @@ def create_reference_data(
                 name,
                 short_name,
                 plural_form,
-                gram_convertion_value,
+                si_conversion_value,
                 generated_at,
             )
-            for name, short_name, plural_form, gram_convertion_value
+            for name, short_name, plural_form, si_conversion_value
             in MEASUREMENT_UNITS
         ),
     )

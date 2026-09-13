@@ -83,6 +83,30 @@ def validate_database(database: sqlite3.Connection) -> None:
         )
 
 
+def migrate_legacy_measurement_units_schema(
+    database: sqlite3.Connection,
+) -> None:
+    column_names = {
+        str(column[1])
+        for column in database.execute("PRAGMA table_info(MeasurementUnits)")
+    }
+
+    if "gram_convertion_value" not in column_names:
+        return
+
+    if "si_conversion_value" in column_names:
+        raise ValueError(
+            "MeasurementUnits contains both conversion value columns"
+        )
+
+    database.execute(
+        """
+        ALTER TABLE MeasurementUnits
+        RENAME COLUMN gram_convertion_value TO si_conversion_value
+        """
+    )
+
+
 def update_database() -> None:
     for input_csv_path in INPUT_CSV_PATHS:
         if not input_csv_path.is_file():
@@ -102,6 +126,7 @@ def update_database() -> None:
 
     with sqlite3.connect(DATABASE_PATH) as database:
         database.execute("PRAGMA foreign_keys = ON")
+        migrate_legacy_measurement_units_schema(database)
         validate_database(database)
 
         source_id = require_reference_id(
