@@ -5,11 +5,12 @@ import SQLite3
 final class AppInitializer {
     private(set) var initializationError: Error?
 
-    func initialize() {
+    func initialize() -> Bool {
         do {
-            try LocalDatabaseInitializer().initialize()
+            return try LocalDatabaseInitializer().initialize()
         } catch {
             initializationError = error
+            return true
         }
     }
 }
@@ -42,7 +43,7 @@ private struct LocalDatabaseInitializer {
         PlanType(id: 4, name: "Custom")
     ]
 
-    func initialize() throws {
+    func initialize() throws -> Bool {
         let databaseURL = try databaseURL()
         var database: OpaquePointer?
 
@@ -59,15 +60,15 @@ private struct LocalDatabaseInitializer {
         let schema = """
             PRAGMA foreign_keys = ON;
 
-            CREATE TABLE IF NOT EXISTS NutritionLogs (
+            CREATE TABLE IF NOT EXISTS \(NutritionLog.tableName) (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 foodId TEXT NOT NULL,
                 date TEXT NOT NULL,
                 time TEXT NOT NULL
             );
-            CREATE INDEX IF NOT EXISTS nutrition_logs_date_idx ON NutritionLogs (date);
+            CREATE INDEX IF NOT EXISTS nutrition_logs_date_idx ON \(NutritionLog.tableName) (date);
 
-            CREATE TABLE IF NOT EXISTS MeasurementUnits (
+            CREATE TABLE IF NOT EXISTS \(MeasurementUnit.tableName) (
                 id INTEGER PRIMARY KEY,
                 name TEXT NOT NULL UNIQUE,
                 shortName TEXT NOT NULL UNIQUE,
@@ -76,7 +77,7 @@ private struct LocalDatabaseInitializer {
                 dateAdded INTEGER NOT NULL
             );
 
-            CREATE TABLE IF NOT EXISTS ActivityLevels (
+            CREATE TABLE IF NOT EXISTS \(ActivityLevel.tableName) (
                 id INTEGER PRIMARY KEY,
                 name TEXT NOT NULL UNIQUE,
                 calorieMultiplier REAL NOT NULL,
@@ -84,14 +85,14 @@ private struct LocalDatabaseInitializer {
                 dateAdded INTEGER NOT NULL
             );
 
-            CREATE TABLE IF NOT EXISTS "User" (
+            CREATE TABLE IF NOT EXISTS "\(User.tableName)" (
                 id TEXT PRIMARY KEY,
                 name TEXT,
                 birthday INTEGER NOT NULL,
                 dateAdded INTEGER NOT NULL
             );
 
-            CREATE TABLE IF NOT EXISTS UserMeasurements (
+            CREATE TABLE IF NOT EXISTS \(UserMeasurement.tableName) (
                 id TEXT PRIMARY KEY,
                 userId TEXT NOT NULL,
                 weight REAL,
@@ -100,36 +101,36 @@ private struct LocalDatabaseInitializer {
                 heightMeasurementUnitId INTEGER NOT NULL DEFAULT \(centimetresUnitID),
                 leanMass REAL,
                 activityLevelId INTEGER,
-                FOREIGN KEY (userId) REFERENCES "User" (id),
-                FOREIGN KEY (weightMeasurementUnitId) REFERENCES MeasurementUnits (id),
-                FOREIGN KEY (heightMeasurementUnitId) REFERENCES MeasurementUnits (id),
-                FOREIGN KEY (activityLevelId) REFERENCES ActivityLevels (id)
+                FOREIGN KEY (userId) REFERENCES "\(User.tableName)" (id),
+                FOREIGN KEY (weightMeasurementUnitId) REFERENCES \(MeasurementUnit.tableName) (id),
+                FOREIGN KEY (heightMeasurementUnitId) REFERENCES \(MeasurementUnit.tableName) (id),
+                FOREIGN KEY (activityLevelId) REFERENCES \(ActivityLevel.tableName) (id)
             );
-            CREATE INDEX IF NOT EXISTS user_measurements_user_id_idx ON UserMeasurements (userId);
+            CREATE INDEX IF NOT EXISTS user_measurements_user_id_idx ON \(UserMeasurement.tableName) (userId);
 
-            CREATE TABLE IF NOT EXISTS PlanTypes (
+            CREATE TABLE IF NOT EXISTS \(PlanType.tableName) (
                 id INTEGER PRIMARY KEY,
                 name TEXT NOT NULL UNIQUE
             );
 
-            CREATE TABLE IF NOT EXISTS NutritionPlans (
+            CREATE TABLE IF NOT EXISTS \(NutritionPlan.tableName) (
                 id TEXT PRIMARY KEY,
                 planTypeId INTEGER NOT NULL,
                 userMeasurementId TEXT NOT NULL,
                 targetWeightSI REAL NOT NULL,
-                FOREIGN KEY (planTypeId) REFERENCES PlanTypes (id),
-                FOREIGN KEY (userMeasurementId) REFERENCES UserMeasurements (id)
+                FOREIGN KEY (planTypeId) REFERENCES \(PlanType.tableName) (id),
+                FOREIGN KEY (userMeasurementId) REFERENCES \(UserMeasurement.tableName) (id)
             );
 
-            CREATE TABLE IF NOT EXISTS NutritionPlanSpans (
+            CREATE TABLE IF NOT EXISTS \(NutritionPlanSpan.tableName) (
                 id TEXT PRIMARY KEY,
                 nutritionPlanId TEXT NOT NULL,
                 startDate INTEGER NOT NULL,
                 endDate INTEGER NOT NULL,
                 targetCaloriesSI REAL NOT NULL,
-                FOREIGN KEY (nutritionPlanId) REFERENCES NutritionPlans (id)
+                FOREIGN KEY (nutritionPlanId) REFERENCES \(NutritionPlan.tableName) (id)
             );
-            CREATE INDEX IF NOT EXISTS nutrition_plan_spans_plan_id_idx ON NutritionPlanSpans (nutritionPlanId);
+            CREATE INDEX IF NOT EXISTS nutrition_plan_spans_plan_id_idx ON \(NutritionPlanSpan.tableName) (nutritionPlanId);
             """
 
         guard sqlite3_exec(database, schema, nil, nil, nil) == SQLITE_OK else {
@@ -137,6 +138,24 @@ private struct LocalDatabaseInitializer {
         }
 
         try seedLookupTables(in: database)
+        return try hasUserData(in: database)
+    }
+
+    private func hasUserData(in database: OpaquePointer) throws -> Bool {
+        var statement: OpaquePointer?
+        let query = "SELECT EXISTS(SELECT 1 FROM \"\(User.tableName)\" LIMIT 1);"
+
+        guard sqlite3_prepare_v2(database, query, -1, &statement, nil) == SQLITE_OK,
+              let statement else {
+            throw LocalDatabaseInitializationError.userDataCheckFailed
+        }
+        defer { sqlite3_finalize(statement) }
+
+        guard sqlite3_step(statement) == SQLITE_ROW else {
+            throw LocalDatabaseInitializationError.userDataCheckFailed
+        }
+
+        return sqlite3_column_int(statement, 0) == 1
     }
 
     private func seedLookupTables(in database: OpaquePointer) throws {
@@ -145,7 +164,7 @@ private struct LocalDatabaseInitializer {
         for unit in measurementUnits {
             try execute(
                 """
-                INSERT OR IGNORE INTO MeasurementUnits
+                INSERT OR IGNORE INTO \(MeasurementUnit.tableName)
                     (id, name, shortName, pluralForm, siConversionValue, dateAdded)
                 VALUES
                     (\(unit.id), \(sqlString(unit.name)), \(sqlString(unit.shortName)), \(sqlString(unit.pluralForm)), \(unit.siConversionValue.map { String($0) } ?? "NULL"), \(dateAdded));
@@ -157,7 +176,7 @@ private struct LocalDatabaseInitializer {
         for level in activityLevels {
             try execute(
                 """
-                INSERT OR IGNORE INTO ActivityLevels
+                INSERT OR IGNORE INTO \(ActivityLevel.tableName)
                     (id, name, calorieMultiplier, description, dateAdded)
                 VALUES
                     (\(level.id), \(sqlString(level.name)), \(level.calorieMultiplier), \(sqlString(level.description)), \(dateAdded));
@@ -169,7 +188,7 @@ private struct LocalDatabaseInitializer {
         for planType in planTypes {
             try execute(
                 """
-                INSERT OR IGNORE INTO PlanTypes (id, name)
+                INSERT OR IGNORE INTO \(PlanType.tableName) (id, name)
                 VALUES (\(planType.id), \(sqlString(planType.name)));
                 """,
                 in: database
@@ -207,29 +226,10 @@ private struct LocalDatabaseInitializer {
     }
 }
 
-private struct MeasurementUnit {
-    let id: Int
-    let name: String
-    let shortName: String
-    let pluralForm: String
-    let siConversionValue: Double?
-}
-
-private struct ActivityLevel {
-    let id: Int
-    let name: String
-    let calorieMultiplier: Double
-    let description: String
-}
-
-private struct PlanType {
-    let id: Int
-    let name: String
-}
-
 private enum LocalDatabaseInitializationError: Error {
     case applicationSupportUnavailable
     case openFailed
     case schemaCreationFailed
     case lookupTableSeedingFailed
+    case userDataCheckFailed
 }
