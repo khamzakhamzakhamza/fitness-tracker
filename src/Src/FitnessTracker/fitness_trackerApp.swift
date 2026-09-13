@@ -3,6 +3,8 @@ import SwiftData
 
 @main
 struct fitness_trackerApp: App {
+    @State private var appInitializer = AppInitializer()
+
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([])
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
@@ -17,6 +19,9 @@ struct fitness_trackerApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .task {
+                    appInitializer.initialize()
+                }
         }
         .modelContainer(sharedModelContainer)
     }
