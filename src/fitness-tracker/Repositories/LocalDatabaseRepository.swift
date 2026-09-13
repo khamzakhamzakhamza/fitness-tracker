@@ -273,6 +273,7 @@ actor LocalDatabaseRepository: LocalDatabaseRepositoryProtocol {
 
     private func createSchema(in database: OpaquePointer) throws {
         try migrateLegacyMeasurementUnitsSchema(in: database)
+        try migrateLegacyUserMeasurementsSchema(in: database)
 
         let sql = """
             PRAGMA foreign_keys = ON;
@@ -323,12 +324,9 @@ actor LocalDatabaseRepository: LocalDatabaseRepositoryProtocol {
                 heightMeasurementUnitId TEXT NOT NULL
                     DEFAULT '\(Self.centimetresMeasurementUnitID)',
                 leanMass REAL,
-                leanMassMeasurementUnitId TEXT NOT NULL
-                    DEFAULT '\(Self.gramsMeasurementUnitID)',
                 FOREIGN KEY (userId) REFERENCES "User" (id),
                 FOREIGN KEY (weightMeasurementUnitId) REFERENCES MeasurementUnits (id),
-                FOREIGN KEY (heightMeasurementUnitId) REFERENCES MeasurementUnits (id),
-                FOREIGN KEY (leanMassMeasurementUnitId) REFERENCES MeasurementUnits (id)
+                FOREIGN KEY (heightMeasurementUnitId) REFERENCES MeasurementUnits (id)
             );
             CREATE INDEX IF NOT EXISTS user_measurements_user_id_idx
                 ON UserMeasurements (userId);
@@ -377,6 +375,86 @@ actor LocalDatabaseRepository: LocalDatabaseRepositoryProtocol {
         let migrationSQL = """
             ALTER TABLE MeasurementUnits
             RENAME COLUMN gramConvertionValue TO siConversionValue
+            """
+        guard sqlite3_exec(database, migrationSQL, nil, nil, nil) == SQLITE_OK else {
+            throw LocalDatabaseError.schemaCreationFailed(
+                databaseErrorMessage(database)
+            )
+        }
+    }
+
+    private func migrateLegacyUserMeasurementsSchema(
+        in database: OpaquePointer
+    ) throws {
+        let columnCheckSQL = """
+            SELECT COUNT(*)
+            FROM pragma_table_info('UserMeasurements')
+            WHERE name = 'leanMassMeasurementUnitId'
+            """
+        var statement: OpaquePointer?
+
+        guard sqlite3_prepare_v2(
+            database,
+            columnCheckSQL,
+            -1,
+            &statement,
+            nil
+        ) == SQLITE_OK else {
+            throw LocalDatabaseError.schemaCreationFailed(
+                databaseErrorMessage(database)
+            )
+        }
+        defer { sqlite3_finalize(statement) }
+
+        guard sqlite3_step(statement) == SQLITE_ROW else {
+            throw LocalDatabaseError.schemaCreationFailed(
+                databaseErrorMessage(database)
+            )
+        }
+
+        guard sqlite3_column_int(statement, 0) > 0 else {
+            return
+        }
+
+        let migrationSQL = """
+            BEGIN TRANSACTION;
+            CREATE TABLE UserMeasurementsReplacement (
+                id TEXT PRIMARY KEY,
+                userId TEXT NOT NULL,
+                weight REAL,
+                weightMeasurementUnitId TEXT NOT NULL
+                    DEFAULT '\(Self.gramsMeasurementUnitID)',
+                height REAL,
+                heightMeasurementUnitId TEXT NOT NULL
+                    DEFAULT '\(Self.centimetresMeasurementUnitID)',
+                leanMass REAL,
+                FOREIGN KEY (userId) REFERENCES "User" (id),
+                FOREIGN KEY (weightMeasurementUnitId) REFERENCES MeasurementUnits (id),
+                FOREIGN KEY (heightMeasurementUnitId) REFERENCES MeasurementUnits (id)
+            );
+            INSERT INTO UserMeasurementsReplacement (
+                id,
+                userId,
+                weight,
+                weightMeasurementUnitId,
+                height,
+                heightMeasurementUnitId,
+                leanMass
+            )
+            SELECT
+                id,
+                userId,
+                weight,
+                weightMeasurementUnitId,
+                height,
+                heightMeasurementUnitId,
+                leanMass
+            FROM UserMeasurements;
+            DROP TABLE UserMeasurements;
+            ALTER TABLE UserMeasurementsReplacement RENAME TO UserMeasurements;
+            CREATE INDEX user_measurements_user_id_idx
+                ON UserMeasurements (userId);
+            COMMIT;
             """
         guard sqlite3_exec(database, migrationSQL, nil, nil, nil) == SQLITE_OK else {
             throw LocalDatabaseError.schemaCreationFailed(

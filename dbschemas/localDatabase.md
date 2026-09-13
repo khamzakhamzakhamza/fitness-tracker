@@ -7,7 +7,6 @@ Foods (foods database)    1 ──── * NutritionLogs
 User                    1 ──── * UserMeasurements
 MeasurementUnits        1 ──── * UserMeasurements (weight)
 MeasurementUnits        1 ──── * UserMeasurements (height)
-MeasurementUnits        1 ──── * UserMeasurements (lean mass)
 ```
 
 `NutritionLogs.foodId` is an application-level reference to `Foods.id` in the
@@ -47,8 +46,7 @@ CREATE INDEX nutrition_logs_date_idx ON NutritionLogs (date);
 | `weightMeasurementUnitId` | `TEXT` | Not null, foreign key to `MeasurementUnits.id`, defaults to grams |
 | `height` | `REAL` | Nullable |
 | `heightMeasurementUnitId` | `TEXT` | Not null, foreign key to `MeasurementUnits.id`, defaults to centimetres |
-| `leanMass` | `REAL` | Nullable |
-| `leanMassMeasurementUnitId` | `TEXT` | Not null, foreign key to `MeasurementUnits.id`, defaults to grams |
+| `leanMass` | `REAL` | Nullable, percentage |
 
 ### Indexes
 
@@ -72,4 +70,4 @@ CREATE INDEX user_measurements_user_id_idx ON UserMeasurements (userId);
 - The database is stored locally on the device at `Application Support/FitnessTracker/local.sqlite`.
 - `foodId` stores the canonical lowercase UUID from the foods database.
 - `date` and `time` are stored as text.
-- `UserMeasurements` uses grams by default for weight and lean mass, and centimetres by default for height.
+- `UserMeasurements` uses grams by default for weight and centimetres by default for height.
