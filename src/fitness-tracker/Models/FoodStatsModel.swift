@@ -15,7 +15,7 @@ struct FoodStatsModel: Equatable, Sendable {
 }
 
 struct AddFoodModel: Equatable, Sendable {
-    let id: Int64
+    let id: String
     let title: String
     let subtitle: String
     let imageURL: URL?
@@ -23,4 +23,5 @@ struct AddFoodModel: Equatable, Sendable {
     let totalAmountGrams: Double?
     let sourceName: String
     let stats: FoodStatsModel
+    let isTrusted: Bool
 }

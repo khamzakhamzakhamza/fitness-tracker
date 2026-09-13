@@ -1,6 +1,8 @@
 import SwiftUI
 
 struct LogFoodScreen: View {
+    var onLogCreated: () -> Void = {}
+
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
@@ -13,7 +15,7 @@ struct LogFoodScreen: View {
             }
             .padding(.horizontal, 20)
 
-            FoodSearch()
+            FoodSearch(onLogCreated: onLogCreated)
         }
         .padding(.top, 20)
         .frame(maxWidth: .infinity, maxHeight: .infinity)

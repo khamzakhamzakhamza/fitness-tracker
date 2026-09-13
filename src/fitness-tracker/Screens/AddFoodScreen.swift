@@ -2,12 +2,15 @@ import SwiftUI
 import UIKit
 
 struct AddFoodScreen: View {
-    let foodID: Int64
+    let foodID: String
+    var onLogCreated: () -> Void = {}
 
     @Environment(\.dismiss) private var dismiss
     @State private var food: AddFoodModel?
     @State private var errorMessage: String?
+    @State private var logErrorMessage: String?
     @State private var selectedWeightGrams = 0.0
+    @State private var isSavingLog = false
     private let nutritionService = NutritionService()
 
     var body: some View {
@@ -44,7 +47,6 @@ struct AddFoodScreen: View {
                 .padding(.top, 24)
 
                 FoodStats(stats: scaledStats(for: food))
-                    .padding(.horizontal, 20)
                     .padding(.top, 24)
 
                 WarningMessage(
@@ -54,6 +56,14 @@ struct AddFoodScreen: View {
                 )
                 .padding(.horizontal, 20)
                 .padding(.top, 24)
+
+                if let logErrorMessage {
+                    Text(logErrorMessage)
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(Color("SearchBoxSecondary"))
+                        .padding(.horizontal, 20)
+                        .padding(.top, 12)
+                }
             } else if let errorMessage {
                 Text(errorMessage)
                     .foregroundStyle(Color("SearchBoxSecondary"))
@@ -64,8 +74,6 @@ struct AddFoodScreen: View {
             }
 
             Spacer()
-
-            PrimaryActionButton(title: "ADD TO TODAY", action: {})
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color("AppBackground"))
@@ -83,8 +91,38 @@ struct AddFoodScreen: View {
                 }
         )
         .toolbar(.hidden, for: .navigationBar)
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            PrimaryActionButton(
+                title: isSavingLog ? "ADDING..." : "ADD TO TODAY",
+                minimumHeight: 76
+            ) {
+                Task {
+                    await addNutritionLog()
+                }
+            }
+            .disabled(food == nil || isSavingLog)
+        }
         .task {
             await loadFood()
+        }
+    }
+
+    private func addNutritionLog() async {
+        guard let food, !isSavingLog else {
+            return
+        }
+
+        isSavingLog = true
+        logErrorMessage = nil
+        defer { isSavingLog = false }
+
+        do {
+            _ = try await nutritionService.addNutritionLog(foodID: food.id)
+            onLogCreated()
+        } catch is CancellationError {
+            return
+        } catch {
+            logErrorMessage = error.localizedDescription
         }
     }
 
@@ -137,5 +175,5 @@ struct AddFoodScreen: View {
 }
 
 #Preview {
-    AddFoodScreen(foodID: 22_411)
+    AddFoodScreen(foodID: "preview-food")
 }

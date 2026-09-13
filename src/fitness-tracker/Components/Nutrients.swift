@@ -1,7 +1,11 @@
 import SwiftUI
 
 struct Nutrients: View {
+    private static let rowHeight: CGFloat = 32
+    private static let visibleRowCount = 3
+
     let nutrients: [NutrientModel]
+    @State private var scrollOffset: CGFloat = 0
 
     private var displayedNutrients: [NutrientModel] {
         nutrients
@@ -22,18 +26,20 @@ struct Nutrients: View {
             .map(\.element)
     }
 
-    var body: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 8) {
-                ForEach(Array(displayedNutrients.enumerated()), id: \.element.id) {
-                    index,
-                    nutrient in
-                    if index > 0 {
-                        Text("·")
-                            .foregroundStyle(Color("SearchBoxSecondary"))
-                    }
+    private var viewportHeight: CGFloat {
+        CGFloat(min(displayedNutrients.count, Self.visibleRowCount))
+            * Self.rowHeight
+    }
 
-                    HStack(spacing: 3) {
+    var body: some View {
+        ScrollView(.vertical, showsIndicators: false) {
+            Grid(
+                alignment: .leading,
+                horizontalSpacing: 10,
+                verticalSpacing: 0
+            ) {
+                ForEach(displayedNutrients) { nutrient in
+                    GridRow {
                         Text(nutrient.name)
                             .foregroundStyle(Color("SearchBoxSecondary"))
 
@@ -46,15 +52,75 @@ struct Nutrients: View {
                                 )
                         }
                     }
+                    .frame(minHeight: Self.rowHeight)
+                    .contentShape(Rectangle())
+                }
+            }
+            .padding(.horizontal, 20)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background {
+                GeometryReader { geometry in
+                    Color.clear.preference(
+                        key: NutrientScrollOffsetPreferenceKey.self,
+                        value: geometry.frame(
+                            in: .named("nutrient-scroll")
+                        ).minY
+                    )
                 }
             }
             .font(.system(size: 12, weight: .bold))
             .lineLimit(1)
-            .frame(minHeight: 48)
-            .contentShape(Rectangle())
         }
-        .frame(minHeight: 48)
+        .coordinateSpace(name: "nutrient-scroll")
+        .onPreferenceChange(NutrientScrollOffsetPreferenceKey.self) {
+            scrollOffset = $0
+        }
+        .frame(maxWidth: .infinity)
+        .frame(height: viewportHeight)
+        .overlay(alignment: .trailing) {
+            persistentScrollIndicator
+        }
         .contentShape(Rectangle())
+    }
+
+    private var persistentScrollIndicator: some View {
+        GeometryReader { geometry in
+            let contentHeight = CGFloat(displayedNutrients.count)
+                * Self.rowHeight
+            let thumbHeight = contentHeight > 0
+                ? min(
+                    geometry.size.height,
+                    max(
+                        24,
+                        geometry.size.height * geometry.size.height
+                            / contentHeight
+                    )
+                )
+                : 0
+            let maximumScrollOffset = max(
+                contentHeight - geometry.size.height,
+                0
+            )
+            let scrollProgress = maximumScrollOffset > 0
+                ? min(max(-scrollOffset / maximumScrollOffset, 0), 1)
+                : 0
+
+            ZStack(alignment: .top) {
+                Capsule()
+                    .fill(Color("SearchBoxSecondary").opacity(0.12))
+
+                Capsule()
+                    .fill(Color("SearchBoxSecondary").opacity(0.65))
+                    .frame(height: thumbHeight)
+                    .offset(
+                        y: scrollProgress
+                            * (geometry.size.height - thumbHeight)
+                    )
+            }
+            .frame(width: 4)
+            .frame(maxWidth: .infinity, alignment: .trailing)
+        }
+        .allowsHitTesting(false)
     }
 
     nonisolated static func roundedAmountForDisplay(
@@ -97,6 +163,14 @@ struct Nutrients: View {
         value.formatted(
             .number.precision(.fractionLength(0...1))
         )
+    }
+}
+
+private struct NutrientScrollOffsetPreferenceKey: PreferenceKey {
+    nonisolated(unsafe) static var defaultValue: CGFloat = 0
+
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = nextValue()
     }
 }
 

@@ -20,11 +20,17 @@ struct WeightSelector: View {
                     .frame(maxWidth: .infinity)
                     .accessibilityLabel("Selected weight in grams")
 
-                Text("g")
-                    .font(.system(size: 20, weight: .black))
-                    .foregroundStyle(Color("SearchBoxSecondary"))
-                    .offset(x: 95, y: 10)
-                    .allowsHitTesting(false)
+                VStack(spacing: 1) {
+                    Image(systemName: "pencil")
+                        .font(.system(size: 13, weight: .bold))
+                        .accessibilityHidden(true)
+
+                    Text("g")
+                        .font(.system(size: 20, weight: .black))
+                }
+                .foregroundStyle(Color("SearchBoxSecondary"))
+                .offset(x: 115, y: 2)
+                .allowsHitTesting(false)
             }
             .frame(maxWidth: .infinity)
 
@@ -40,7 +46,7 @@ struct WeightSelector: View {
                                 isSelected(weight) ? .primary :
                                     Color("SearchBoxSecondary")
                             )
-                            .frame(maxWidth: .infinity, minHeight: 46)
+                            .frame(maxWidth: .infinity, minHeight: 54)
                             .overlay {
                                 RoundedRectangle(cornerRadius: 10)
                                     .stroke(

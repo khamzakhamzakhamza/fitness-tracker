@@ -89,6 +89,64 @@ final class fitness_trackerUITests: XCTestCase {
     }
 
     @MainActor
+    func testAddingFoodReturnsToNutritionScreen() throws {
+        let app = XCUIApplication()
+        app.launch()
+
+        app.buttons["Log meal"].tap()
+
+        let searchField = app.textFields["Search foods"]
+        XCTAssertTrue(searchField.waitForExistence(timeout: 5))
+        searchField.tap()
+        searchField.typeText("yorkshire pudding")
+
+        let food = app.buttons.matching(
+            NSPredicate(format: "label CONTAINS 'Yorkshire pudding'")
+        ).firstMatch
+        XCTAssertTrue(food.waitForExistence(timeout: 5))
+        food.tap()
+
+        let addButton = app.buttons["Add to today"]
+        XCTAssertTrue(addButton.waitForExistence(timeout: 5))
+        addButton.tap()
+
+        XCTAssertTrue(
+            app.staticTexts["Progress is built on the plate."]
+                .waitForExistence(timeout: 5)
+        )
+        XCTAssertFalse(searchField.exists)
+    }
+
+    @MainActor
+    func testAddButtonIsHittableWhileWeightKeyboardIsOpen() throws {
+        let app = XCUIApplication()
+        app.launch()
+
+        app.buttons["Log meal"].tap()
+
+        let searchField = app.textFields["Search foods"]
+        XCTAssertTrue(searchField.waitForExistence(timeout: 5))
+        searchField.tap()
+        searchField.typeText("yorkshire pudding")
+
+        let food = app.buttons.matching(
+            NSPredicate(format: "label CONTAINS 'Yorkshire pudding'")
+        ).firstMatch
+        XCTAssertTrue(food.waitForExistence(timeout: 5))
+        food.tap()
+
+        let weightField = app.textFields["Selected weight in grams"]
+        XCTAssertTrue(weightField.waitForExistence(timeout: 5))
+        weightField.tap()
+
+        XCTAssertTrue(app.keyboards.firstMatch.waitForExistence(timeout: 5))
+
+        let addButton = app.buttons["Add to today"]
+        XCTAssertTrue(addButton.exists)
+        XCTAssertTrue(addButton.isHittable)
+    }
+
+    @MainActor
     func testLaunchPerformance() throws {
         // This measures how long it takes to launch your application.
         measure(metrics: [XCTApplicationLaunchMetric()]) {

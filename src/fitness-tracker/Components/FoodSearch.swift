@@ -3,6 +3,8 @@ import SwiftUI
 struct FoodSearch: View {
     private static let pageSize = 500
 
+    var onLogCreated: () -> Void = {}
+
     @State private var searchText = ""
     @State private var foodItems: [FoodListItemModel] = []
     @State private var totalMatches = 0
@@ -13,7 +15,7 @@ struct FoodSearch: View {
     @State private var nextOffset = 0
     @State private var activeQuery = ""
     @State private var searchRequestID = UUID()
-    @State private var selectedFoodID: Int64?
+    @State private var selectedFoodID: String?
     private let nutritionService = NutritionService()
 
     var body: some View {
@@ -46,7 +48,10 @@ struct FoodSearch: View {
             await searchFoods(query: searchText)
         }
         .navigationDestination(item: $selectedFoodID) { foodID in
-            AddFoodScreen(foodID: foodID)
+            AddFoodScreen(
+                foodID: foodID,
+                onLogCreated: onLogCreated
+            )
         }
     }
 

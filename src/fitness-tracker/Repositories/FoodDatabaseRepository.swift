@@ -28,12 +28,13 @@ enum FoodDatabaseError: LocalizedError {
 }
 
 struct StoredFood: Equatable, Sendable {
-    let id: Int64
+    let id: String
     let name: String
     let brand: String?
     let imageURL: URL?
     let quantity: Double?
     let measurementUnitShortName: String?
+    let isTrusted: Bool
 
     var subtitle: String {
         var parts: [String] = []
@@ -61,7 +62,7 @@ struct StoredNutrient: Equatable, Sendable {
 }
 
 struct StoredFoodDetails: Equatable, Sendable {
-    let id: Int64
+    let id: String
     let name: String
     let brand: String?
     let imageURL: URL?
@@ -72,6 +73,7 @@ struct StoredFoodDetails: Equatable, Sendable {
     let calories: Double?
     let sourceName: String
     let nutrients: [StoredNutrient]
+    let isTrusted: Bool
 
     var subtitle: String {
         var parts: [String] = []
@@ -103,7 +105,7 @@ protocol FoodDatabaseRepositoryProtocol: Sendable {
         offset: Int
     ) async throws -> FoodDatabasePage
 
-    func foodDetails(id: Int64) async throws -> StoredFoodDetails?
+    func foodDetails(id: String) async throws -> StoredFoodDetails?
 }
 
 actor FoodDatabaseRepository: FoodDatabaseRepositoryProtocol {
@@ -179,7 +181,7 @@ actor FoodDatabaseRepository: FoodDatabaseRepositoryProtocol {
         )
     }
 
-    func foodDetails(id: Int64) throws -> StoredFoodDetails? {
+    func foodDetails(id: String) throws -> StoredFoodDetails? {
         guard let databaseURL = databaseURL ?? Bundle.main.url(
             forResource: "uk_foods",
             withExtension: "sqlite"
@@ -237,7 +239,8 @@ actor FoodDatabaseRepository: FoodDatabaseRepositoryProtocol {
                 END,
                 SelectedFood.selected_amount_grams,
                 SelectedFood.total_amount_grams,
-                Sources.name
+                Sources.name,
+                SelectedFood.trusted
             FROM SelectedFood
             JOIN MeasurementUnits
                 ON MeasurementUnits.id = SelectedFood.measurement_unit_id
@@ -259,11 +262,7 @@ actor FoodDatabaseRepository: FoodDatabaseRepositoryProtocol {
         }
         defer { sqlite3_finalize(statement) }
 
-        guard sqlite3_bind_int64(statement, 1, id) == SQLITE_OK else {
-            throw FoodDatabaseError.queryBindingFailed(
-                databaseErrorMessage(database)
-            )
-        }
+        try bindText(id, to: statement, index: 1, database: database)
 
         switch sqlite3_step(statement) {
         case SQLITE_ROW:
@@ -280,7 +279,7 @@ actor FoodDatabaseRepository: FoodDatabaseRepositoryProtocol {
             )
 
             return StoredFoodDetails(
-                id: sqlite3_column_int64(statement, 0),
+                id: stringValue(in: statement, column: 0) ?? id,
                 name: name,
                 brand: stringValue(in: statement, column: 2),
                 imageURL: stringValue(in: statement, column: 3)
@@ -295,7 +294,8 @@ actor FoodDatabaseRepository: FoodDatabaseRepositoryProtocol {
                 calories: doubleValue(in: statement, column: 6),
                 sourceName: stringValue(in: statement, column: 9)
                     ?? "Unknown source",
-                nutrients: nutrients
+                nutrients: nutrients,
+                isTrusted: sqlite3_column_int(statement, 10) != 0
             )
         case SQLITE_DONE:
             return nil
@@ -308,7 +308,7 @@ actor FoodDatabaseRepository: FoodDatabaseRepositoryProtocol {
 
     private func readNutrients(
         from database: OpaquePointer,
-        foodID: Int64,
+        foodID: String,
         servingAmountGrams: Double
     ) throws -> [StoredNutrient] {
         let sql = """
@@ -340,18 +340,16 @@ actor FoodDatabaseRepository: FoodDatabaseRepositoryProtocol {
         }
         defer { sqlite3_finalize(statement) }
 
-        guard
-            sqlite3_bind_double(
-                statement,
-                1,
-                servingAmountGrams
-            ) == SQLITE_OK,
-            sqlite3_bind_int64(statement, 2, foodID) == SQLITE_OK
-        else {
+        guard sqlite3_bind_double(
+            statement,
+            1,
+            servingAmountGrams
+        ) == SQLITE_OK else {
             throw FoodDatabaseError.queryBindingFailed(
                 databaseErrorMessage(database)
             )
         }
+        try bindText(foodID, to: statement, index: 2, database: database)
 
         var nutrients: [StoredNutrient] = []
 
@@ -458,9 +456,10 @@ actor FoodDatabaseRepository: FoodDatabaseRepositoryProtocol {
                       NULLIF(Foods.image_url, '')
                   ),
                   Foods.quantity,
-                  MeasurementUnits.short_name
+                  MeasurementUnits.short_name,
+                  Foods.trusted
               FROM FoodSearch
-              JOIN Foods ON Foods.id = FoodSearch.rowid
+              JOIN Foods ON Foods.rowid = FoodSearch.rowid
               JOIN MeasurementUnits
                   ON MeasurementUnits.id = Foods.measurement_unit_id
               WHERE FoodSearch MATCH ?
@@ -477,7 +476,8 @@ actor FoodDatabaseRepository: FoodDatabaseRepositoryProtocol {
                       NULLIF(Foods.image_url, '')
                   ),
                   Foods.quantity,
-                  MeasurementUnits.short_name
+                  MeasurementUnits.short_name,
+                  Foods.trusted
               FROM Foods
               JOIN MeasurementUnits
                   ON MeasurementUnits.id = Foods.measurement_unit_id
@@ -546,12 +546,13 @@ actor FoodDatabaseRepository: FoodDatabaseRepositoryProtocol {
 
                 foods.append(
                     StoredFood(
-                        id: sqlite3_column_int64(statement, 0),
+                        id: stringValue(in: statement, column: 0) ?? "",
                         name: name,
                         brand: brand,
                         imageURL: imageURL,
                         quantity: quantity,
-                        measurementUnitShortName: measurementUnitShortName
+                        measurementUnitShortName: measurementUnitShortName,
+                        isTrusted: sqlite3_column_int(statement, 6) != 0
                     )
                 )
             case SQLITE_DONE:

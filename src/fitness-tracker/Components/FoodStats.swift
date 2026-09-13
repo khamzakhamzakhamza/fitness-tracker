@@ -9,6 +9,7 @@ struct FoodStats: View {
                 .font(.system(size: 20, weight: .black))
                 .foregroundStyle(Color("NutrientCalories"))
                 .lineLimit(1)
+                .padding(.horizontal, 20)
 
             Nutrients(nutrients: stats.nutrients)
         }

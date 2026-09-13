@@ -2,6 +2,7 @@ import SwiftUI
 
 struct PrimaryActionButton: View {
     let title: String
+    var minimumHeight: CGFloat = 56
     let action: () -> Void
 
     var body: some View {
@@ -10,7 +11,7 @@ struct PrimaryActionButton: View {
                 .font(.system(size: 17, weight: .black))
                 .tracking(0.5)
                 .foregroundStyle(Color("AppBackground"))
-                .frame(maxWidth: .infinity, minHeight: 56)
+                .frame(maxWidth: .infinity, minHeight: minimumHeight)
                 .background(Color.primary)
         }
         .buttonStyle(.plain)

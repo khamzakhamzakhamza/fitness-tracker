@@ -76,12 +76,12 @@ struct FoodList: View {
     FoodList(
         items: [
             FoodListItemModel(
-                id: 1,
+                id: "preview-food-1",
                 title: "Chicken & rice bowl",
                 subtitle: "Your foods · logged 6 times"
             ),
             FoodListItemModel(
-                id: 2,
+                id: "preview-food-2",
                 title: "Chicken breast, grilled",
                 subtitle: "UK CoFID · per 100 g"
             )

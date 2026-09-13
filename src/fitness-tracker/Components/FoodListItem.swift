@@ -48,7 +48,7 @@ struct FoodListItem: View {
 #Preview {
     FoodListItem(
         item: FoodListItemModel(
-            id: 1,
+            id: "preview-food-1",
             title: "Chicken & rice bowl",
             subtitle: "Your foods · logged 6 times",
             imageURL: URL(string: "https://picsum.photos/seed/chicken-rice/100")
