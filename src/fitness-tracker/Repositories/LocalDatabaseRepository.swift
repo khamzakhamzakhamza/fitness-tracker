@@ -67,6 +67,16 @@ actor LocalDatabaseRepository: LocalDatabaseRepositoryProtocol {
         "11111111-1111-1111-1111-111111111111"
     private static let centimetresMeasurementUnitID =
         "22222222-2222-2222-2222-222222222222"
+    private static let sedentaryActivityLevelID =
+        "33333333-3333-3333-3333-333333333333"
+    private static let lightActivityLevelID =
+        "44444444-4444-4444-4444-444444444444"
+    private static let moderateActivityLevelID =
+        "55555555-5555-5555-5555-555555555555"
+    private static let heavyActivityLevelID =
+        "66666666-6666-6666-6666-666666666666"
+    private static let athleteActivityLevelID =
+        "77777777-7777-7777-7777-777777777777"
 
     private let customDatabaseURL: URL?
 
@@ -307,6 +317,27 @@ actor LocalDatabaseRepository: LocalDatabaseRepositoryProtocol {
                 ('\(Self.gramsMeasurementUnitID)', 'gram', 'g', 'grams', 1, strftime('%s', 'now')),
                 ('\(Self.centimetresMeasurementUnitID)', 'centimetre', 'cm', 'centimetres', NULL, strftime('%s', 'now'));
 
+            CREATE TABLE IF NOT EXISTS ActivityLevels (
+                id TEXT PRIMARY KEY,
+                name TEXT NOT NULL UNIQUE,
+                calorieMultiplier REAL NOT NULL,
+                description TEXT NOT NULL,
+                dateAdded INTEGER NOT NULL
+            );
+
+            INSERT OR IGNORE INTO ActivityLevels (
+                id,
+                name,
+                calorieMultiplier,
+                description,
+                dateAdded
+            ) VALUES
+                ('\(Self.sedentaryActivityLevelID)', 'Sedentary', 1.2, 'desk job, no training', strftime('%s', 'now')),
+                ('\(Self.lightActivityLevelID)', 'Light', 1.375, '1–3 sessions a week', strftime('%s', 'now')),
+                ('\(Self.moderateActivityLevelID)', 'Moderate', 1.55, '3–5 sessions a week', strftime('%s', 'now')),
+                ('\(Self.heavyActivityLevelID)', 'Heavy', 1.725, '6–7 sessions a week', strftime('%s', 'now')),
+                ('\(Self.athleteActivityLevelID)', 'Athlete', 1.9, 'training twice a day', strftime('%s', 'now'));
+
             CREATE TABLE IF NOT EXISTS "User" (
                 id TEXT PRIMARY KEY,
                 name TEXT,
@@ -324,9 +355,11 @@ actor LocalDatabaseRepository: LocalDatabaseRepositoryProtocol {
                 heightMeasurementUnitId TEXT NOT NULL
                     DEFAULT '\(Self.centimetresMeasurementUnitID)',
                 leanMass REAL,
+                activityLevelId TEXT,
                 FOREIGN KEY (userId) REFERENCES "User" (id),
                 FOREIGN KEY (weightMeasurementUnitId) REFERENCES MeasurementUnits (id),
-                FOREIGN KEY (heightMeasurementUnitId) REFERENCES MeasurementUnits (id)
+                FOREIGN KEY (heightMeasurementUnitId) REFERENCES MeasurementUnits (id),
+                FOREIGN KEY (activityLevelId) REFERENCES ActivityLevels (id)
             );
             CREATE INDEX IF NOT EXISTS user_measurements_user_id_idx
                 ON UserMeasurements (userId);
@@ -337,6 +370,8 @@ actor LocalDatabaseRepository: LocalDatabaseRepositoryProtocol {
                 databaseErrorMessage(database)
             )
         }
+
+        try migrateUserMeasurementsActivityLevel(in: database)
     }
 
     private func migrateLegacyMeasurementUnitsSchema(
@@ -428,9 +463,11 @@ actor LocalDatabaseRepository: LocalDatabaseRepositoryProtocol {
                 heightMeasurementUnitId TEXT NOT NULL
                     DEFAULT '\(Self.centimetresMeasurementUnitID)',
                 leanMass REAL,
+                activityLevelId TEXT,
                 FOREIGN KEY (userId) REFERENCES "User" (id),
                 FOREIGN KEY (weightMeasurementUnitId) REFERENCES MeasurementUnits (id),
-                FOREIGN KEY (heightMeasurementUnitId) REFERENCES MeasurementUnits (id)
+                FOREIGN KEY (heightMeasurementUnitId) REFERENCES MeasurementUnits (id),
+                FOREIGN KEY (activityLevelId) REFERENCES ActivityLevels (id)
             );
             INSERT INTO UserMeasurementsReplacement (
                 id,
@@ -455,6 +492,51 @@ actor LocalDatabaseRepository: LocalDatabaseRepositoryProtocol {
             CREATE INDEX user_measurements_user_id_idx
                 ON UserMeasurements (userId);
             COMMIT;
+            """
+        guard sqlite3_exec(database, migrationSQL, nil, nil, nil) == SQLITE_OK else {
+            throw LocalDatabaseError.schemaCreationFailed(
+                databaseErrorMessage(database)
+            )
+        }
+    }
+
+    private func migrateUserMeasurementsActivityLevel(
+        in database: OpaquePointer
+    ) throws {
+        let columnCheckSQL = """
+            SELECT COUNT(*)
+            FROM pragma_table_info('UserMeasurements')
+            WHERE name = 'activityLevelId'
+            """
+        var statement: OpaquePointer?
+
+        guard sqlite3_prepare_v2(
+            database,
+            columnCheckSQL,
+            -1,
+            &statement,
+            nil
+        ) == SQLITE_OK else {
+            throw LocalDatabaseError.schemaCreationFailed(
+                databaseErrorMessage(database)
+            )
+        }
+        defer { sqlite3_finalize(statement) }
+
+        guard sqlite3_step(statement) == SQLITE_ROW else {
+            throw LocalDatabaseError.schemaCreationFailed(
+                databaseErrorMessage(database)
+            )
+        }
+
+        guard sqlite3_column_int(statement, 0) == 0 else {
+            return
+        }
+
+        let migrationSQL = """
+            ALTER TABLE UserMeasurements
+            ADD COLUMN activityLevelId TEXT
+                REFERENCES ActivityLevels (id)
             """
         guard sqlite3_exec(database, migrationSQL, nil, nil, nil) == SQLITE_OK else {
             throw LocalDatabaseError.schemaCreationFailed(

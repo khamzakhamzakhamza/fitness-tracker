@@ -7,6 +7,7 @@ Foods (foods database)    1 ──── * NutritionLogs
 User                    1 ──── * UserMeasurements
 MeasurementUnits        1 ──── * UserMeasurements (weight)
 MeasurementUnits        1 ──── * UserMeasurements (height)
+ActivityLevels          1 ──── * UserMeasurements
 ```
 
 `NutritionLogs.foodId` is an application-level reference to `Foods.id` in the
@@ -47,6 +48,7 @@ CREATE INDEX nutrition_logs_date_idx ON NutritionLogs (date);
 | `height` | `REAL` | Nullable |
 | `heightMeasurementUnitId` | `TEXT` | Not null, foreign key to `MeasurementUnits.id`, defaults to centimetres |
 | `leanMass` | `REAL` | Nullable, percentage |
+| `activityLevelId` | `TEXT` | Nullable, foreign key to `ActivityLevels.id` |
 
 ### Indexes
 
@@ -64,6 +66,26 @@ CREATE INDEX user_measurements_user_id_idx ON UserMeasurements (userId);
 | `pluralForm` | `TEXT` | Nullable |
 | `siConversionValue` | `REAL` | Nullable |
 | `dateAdded` | `INTEGER` | Not null, Unix timestamp |
+
+## ActivityLevels
+
+| Column | SQLite type | Rules |
+|---|---|---|
+| `id` | `TEXT` | Primary key, UUID |
+| `name` | `TEXT` | Not null, unique |
+| `calorieMultiplier` | `REAL` | Not null |
+| `description` | `TEXT` | Not null |
+| `dateAdded` | `INTEGER` | Not null, Unix timestamp |
+
+The lookup table contains these five activity levels:
+
+| Name | Calorie multiplier | Description |
+|---|---|---|
+| `Sedentary` | `1.2` | Desk job, no training |
+| `Light` | `1.375` | 1–3 sessions a week |
+| `Moderate` | `1.55` | 3–5 sessions a week |
+| `Heavy` | `1.725` | 6–7 sessions a week |
+| `Athlete` | `1.9` | Training twice a day |
 
 ## Database rules
 
