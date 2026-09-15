@@ -16,31 +16,12 @@ final class AppInitializer {
 }
 
 private struct LocalDatabaseInitializer {
-    private let gramsUnitID = 1
-    private let centimetresUnitID = 2
-
-    private let measurementUnits = [
-        MeasurementUnit(id: 1, name: "gram", shortName: "g", pluralForm: "grams", siConversionValue: 1),
-        MeasurementUnit(id: 2, name: "centimetre", shortName: "cm", pluralForm: "centimetres", siConversionValue: nil),
-        MeasurementUnit(id: 3, name: "pound", shortName: "lb", pluralForm: "pounds", siConversionValue: 453.59237),
-        MeasurementUnit(id: 4, name: "ounce", shortName: "oz", pluralForm: "ounces", siConversionValue: 28.349523125),
-        MeasurementUnit(id: 5, name: "inch", shortName: "in", pluralForm: "inches", siConversionValue: 2.54),
-        MeasurementUnit(id: 6, name: "foot", shortName: "ft", pluralForm: "feet", siConversionValue: 30.48)
-    ]
-
     private let activityLevels = [
         ActivityLevel(id: 1, name: "Sedentary", calorieMultiplier: 1.2, description: "desk job, no training"),
         ActivityLevel(id: 2, name: "Light", calorieMultiplier: 1.375, description: "1–3 sessions a week"),
         ActivityLevel(id: 3, name: "Moderate", calorieMultiplier: 1.55, description: "3–5 sessions a week"),
         ActivityLevel(id: 4, name: "Heavy", calorieMultiplier: 1.725, description: "6–7 sessions a week"),
         ActivityLevel(id: 5, name: "Athlete", calorieMultiplier: 1.9, description: "training twice a day")
-    ]
-
-    private let planTypes = [
-        PlanType(id: 1, name: "Maintenance"),
-        PlanType(id: 2, name: "Progressive gain"),
-        PlanType(id: 3, name: "Progressive loss"),
-        PlanType(id: 4, name: "Custom")
     ]
 
     func initialize() throws -> Bool {
@@ -68,15 +49,6 @@ private struct LocalDatabaseInitializer {
             );
             CREATE INDEX IF NOT EXISTS nutrition_logs_date_idx ON \(NutritionLog.tableName) (date);
 
-            CREATE TABLE IF NOT EXISTS \(MeasurementUnit.tableName) (
-                id INTEGER PRIMARY KEY,
-                name TEXT NOT NULL UNIQUE,
-                shortName TEXT NOT NULL UNIQUE,
-                pluralForm TEXT,
-                siConversionValue REAL,
-                dateAdded INTEGER NOT NULL
-            );
-
             CREATE TABLE IF NOT EXISTS \(ActivityLevel.tableName) (
                 id INTEGER PRIMARY KEY,
                 name TEXT NOT NULL UNIQUE,
@@ -95,50 +67,113 @@ private struct LocalDatabaseInitializer {
             CREATE TABLE IF NOT EXISTS \(UserMeasurement.tableName) (
                 id TEXT PRIMARY KEY,
                 userId TEXT NOT NULL,
-                weight REAL,
-                weightMeasurementUnitId INTEGER NOT NULL DEFAULT \(gramsUnitID),
-                height REAL,
-                heightMeasurementUnitId INTEGER NOT NULL DEFAULT \(centimetresUnitID),
-                leanMass REAL,
-                activityLevelId INTEGER,
+                weightSI REAL NOT NULL,
+                heightSI REAL,
+                leanMass REAL NOT NULL,
+                activityLevelId INTEGER NOT NULL,
                 FOREIGN KEY (userId) REFERENCES "\(User.tableName)" (id),
-                FOREIGN KEY (weightMeasurementUnitId) REFERENCES \(MeasurementUnit.tableName) (id),
-                FOREIGN KEY (heightMeasurementUnitId) REFERENCES \(MeasurementUnit.tableName) (id),
                 FOREIGN KEY (activityLevelId) REFERENCES \(ActivityLevel.tableName) (id)
             );
             CREATE INDEX IF NOT EXISTS user_measurements_user_id_idx ON \(UserMeasurement.tableName) (userId);
 
-            CREATE TABLE IF NOT EXISTS \(PlanType.tableName) (
-                id INTEGER PRIMARY KEY,
-                name TEXT NOT NULL UNIQUE
+            CREATE TABLE IF NOT EXISTS \(Plan.tableName) (
+                id TEXT PRIMARY KEY,
+                name TEXT NOT NULL,
+                targetWeightSI REAL NOT NULL
             );
 
-            CREATE TABLE IF NOT EXISTS \(NutritionPlan.tableName) (
+            CREATE TABLE IF NOT EXISTS \(ActivePlanMilestone.tableName) (
                 id TEXT PRIMARY KEY,
-                planTypeId INTEGER NOT NULL,
-                userMeasurementId TEXT NOT NULL,
+                planId TEXT NOT NULL,
+                date INTEGER NOT NULL,
                 targetWeightSI REAL NOT NULL,
-                FOREIGN KEY (planTypeId) REFERENCES \(PlanType.tableName) (id),
-                FOREIGN KEY (userMeasurementId) REFERENCES \(UserMeasurement.tableName) (id)
+                isActive INTEGER NOT NULL CHECK (isActive IN (0, 1)),
+                FOREIGN KEY (planId) REFERENCES \(Plan.tableName) (id)
             );
-
-            CREATE TABLE IF NOT EXISTS \(NutritionPlanSpan.tableName) (
-                id TEXT PRIMARY KEY,
-                nutritionPlanId TEXT NOT NULL,
-                startDate INTEGER NOT NULL,
-                endDate INTEGER NOT NULL,
-                targetCaloriesSI REAL NOT NULL,
-                FOREIGN KEY (nutritionPlanId) REFERENCES \(NutritionPlan.tableName) (id)
-            );
-            CREATE INDEX IF NOT EXISTS nutrition_plan_spans_plan_id_idx ON \(NutritionPlanSpan.tableName) (nutritionPlanId);
+            CREATE INDEX IF NOT EXISTS active_plan_milestones_date_idx ON \(ActivePlanMilestone.tableName) (date);
             """
 
         guard sqlite3_exec(database, schema, nil, nil, nil) == SQLITE_OK else {
             throw LocalDatabaseInitializationError.schemaCreationFailed
         }
 
+        try migrateUserMeasurementsIfNeeded(in: database)
         try seedLookupTables(in: database)
         return try hasUserData(in: database)
+    }
+
+    private func migrateUserMeasurementsIfNeeded(in database: OpaquePointer) throws {
+        guard try tableHasColumn("weight", in: UserMeasurement.tableName, database: database),
+              !(try tableHasColumn("weightSI", in: UserMeasurement.tableName, database: database)) else {
+            return
+        }
+
+        let migration = """
+            PRAGMA foreign_keys = OFF;
+            BEGIN TRANSACTION;
+            CREATE TABLE UserMeasurementsReplacement (
+                id TEXT PRIMARY KEY,
+                userId TEXT NOT NULL,
+                weightSI REAL NOT NULL,
+                heightSI REAL,
+                leanMass REAL NOT NULL,
+                activityLevelId INTEGER NOT NULL,
+                FOREIGN KEY (userId) REFERENCES "\(User.tableName)" (id),
+                FOREIGN KEY (activityLevelId) REFERENCES \(ActivityLevel.tableName) (id)
+            );
+            INSERT INTO UserMeasurementsReplacement (
+                id,
+                userId,
+                weightSI,
+                heightSI,
+                leanMass,
+                activityLevelId
+            )
+            SELECT
+                id,
+                userId,
+                COALESCE(weight, 0),
+                height,
+                COALESCE(leanMass, 0),
+                COALESCE(activityLevelId, 1)
+            FROM \(UserMeasurement.tableName);
+            DROP TABLE \(UserMeasurement.tableName);
+            ALTER TABLE UserMeasurementsReplacement RENAME TO \(UserMeasurement.tableName);
+            CREATE INDEX user_measurements_user_id_idx ON \(UserMeasurement.tableName) (userId);
+            COMMIT;
+            PRAGMA foreign_keys = ON;
+            """
+
+        guard sqlite3_exec(database, migration, nil, nil, nil) == SQLITE_OK else {
+            throw LocalDatabaseInitializationError.schemaMigrationFailed
+        }
+    }
+
+    private func tableHasColumn(
+        _ columnName: String,
+        in tableName: String,
+        database: OpaquePointer
+    ) throws -> Bool {
+        var statement: OpaquePointer?
+        let query = """
+            SELECT EXISTS(
+                SELECT 1 FROM pragma_table_info('\(tableName)')
+                WHERE name = '\(columnName.replacingOccurrences(of: "'", with: "''"))'
+                LIMIT 1
+            );
+            """
+
+        guard sqlite3_prepare_v2(database, query, -1, &statement, nil) == SQLITE_OK,
+              let statement else {
+            throw LocalDatabaseInitializationError.schemaMigrationFailed
+        }
+        defer { sqlite3_finalize(statement) }
+
+        guard sqlite3_step(statement) == SQLITE_ROW else {
+            throw LocalDatabaseInitializationError.schemaMigrationFailed
+        }
+
+        return sqlite3_column_int(statement, 0) == 1
     }
 
     private func hasUserData(in database: OpaquePointer) throws -> Bool {
@@ -161,18 +196,6 @@ private struct LocalDatabaseInitializer {
     private func seedLookupTables(in database: OpaquePointer) throws {
         let dateAdded = Int(Date().timeIntervalSince1970)
 
-        for unit in measurementUnits {
-            try execute(
-                """
-                INSERT OR IGNORE INTO \(MeasurementUnit.tableName)
-                    (id, name, shortName, pluralForm, siConversionValue, dateAdded)
-                VALUES
-                    (\(unit.id), \(sqlString(unit.name)), \(sqlString(unit.shortName)), \(sqlString(unit.pluralForm)), \(unit.siConversionValue.map { String($0) } ?? "NULL"), \(dateAdded));
-                """,
-                in: database
-            )
-        }
-
         for level in activityLevels {
             try execute(
                 """
@@ -185,15 +208,6 @@ private struct LocalDatabaseInitializer {
             )
         }
 
-        for planType in planTypes {
-            try execute(
-                """
-                INSERT OR IGNORE INTO \(PlanType.tableName) (id, name)
-                VALUES (\(planType.id), \(sqlString(planType.name)));
-                """,
-                in: database
-            )
-        }
     }
 
     private func execute(_ sql: String, in database: OpaquePointer) throws {
@@ -230,6 +244,7 @@ private enum LocalDatabaseInitializationError: Error {
     case applicationSupportUnavailable
     case openFailed
     case schemaCreationFailed
+    case schemaMigrationFailed
     case lookupTableSeedingFailed
     case userDataCheckFailed
 }

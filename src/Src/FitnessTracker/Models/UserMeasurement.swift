@@ -3,10 +3,8 @@ struct UserMeasurement {
 
     let id: String
     let userID: String
-    let weight: Double?
-    let weightMeasurementUnitID: Int
-    let height: Double?
-    let heightMeasurementUnitID: Int
-    let leanMass: Double?
-    let activityLevelID: Int?
+    let weightSI: Double
+    let heightSI: Double?
+    let leanMass: Double
+    let activityLevelID: Int
 }

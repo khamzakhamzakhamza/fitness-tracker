@@ -1,9 +1,11 @@
 import SwiftUI
 import SwiftData
+import FitnessTrackerPlanner
 
 @main
 struct fitness_trackerApp: App {
     @State private var appInitializer = AppInitializer()
+    @State private var hasUserData: Bool?
 
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([])
@@ -18,10 +20,20 @@ struct fitness_trackerApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
-                .task {
-                    appInitializer.initialize()
+            Group {
+                if let hasUserData {
+                    if hasUserData {
+                        EmptyView()
+                    } else {
+                        IntroductionScreen()
+                    }
+                } else {
+                    ProgressView()
                 }
+            }
+            .task {
+                hasUserData = appInitializer.initialize()
+            }
         }
         .modelContainer(sharedModelContainer)
     }
