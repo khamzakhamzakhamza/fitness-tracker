@@ -14,14 +14,14 @@ public struct InputDateRow: View {
         VStack(alignment: .leading, spacing: 7) {
             Text(label)
                 .font(.system(size: 12, weight: .bold))
-                .foregroundStyle(Color("SearchBoxSecondary"))
+                .foregroundStyle(Color(Constants.secondaryTextColor))
 
             Button {
                 isShowingPicker.toggle()
             } label: {
                 HStack {
                     Text(displayValue)
-                        .foregroundStyle(date == nil ? Color("SearchBoxSecondary") : .primary)
+                        .foregroundStyle(date == nil ? Color(Constants.secondaryTextColor) : .primary)
 
                     Spacer()
                 }
@@ -38,14 +38,15 @@ public struct InputDateRow: View {
 
             if isShowingPicker {
                 DatePicker(
-                    "Date of birth",
+                    Constants.datePickerLabel,
                     selection: pickerDate,
                     in: earliestDate...Date(),
                     displayedComponents: .date
                 )
                 .datePickerStyle(.wheel)
                 .labelsHidden()
-                .frame(maxWidth: .infinity, height: 180)
+                .frame(maxWidth: .infinity)
+                .frame(height: 180)
                 .clipped()
             }
         }
@@ -53,7 +54,7 @@ public struct InputDateRow: View {
 
     private var displayValue: String {
         guard let date else {
-            return "DD / MM / YYYY"
+            return Constants.placeholder
         }
 
         return date.formatted(.dateTime.day(.twoDigits).month(.twoDigits).year())
@@ -73,4 +74,10 @@ public struct InputDateRow: View {
     private var earliestDate: Date {
         Calendar.current.date(from: DateComponents(year: 1900, month: 1, day: 1)) ?? .distantPast
     }
+}
+
+private enum Constants {
+    static let secondaryTextColor = "SearchBoxSecondary"
+    static let datePickerLabel = "Date of birth"
+    static let placeholder = "DD / MM / YYYY"
 }

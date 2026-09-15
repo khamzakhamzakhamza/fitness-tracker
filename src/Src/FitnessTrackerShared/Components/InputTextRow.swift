@@ -16,7 +16,7 @@ public struct InputTextRow: View {
         VStack(alignment: .leading, spacing: 7) {
             Text(label)
                 .font(.system(size: 12, weight: .bold))
-                .foregroundStyle(Color("SearchBoxSecondary"))
+                .foregroundStyle(Color(Constants.secondaryTextColor))
 
             TextField(placeholder, text: $text)
                 .multilineTextAlignment(.leading)
@@ -48,4 +48,8 @@ public struct InputTextRow: View {
         translation.height > 10
             && abs(translation.height) > abs(translation.width)
     }
+}
+
+private enum Constants {
+    static let secondaryTextColor = "SearchBoxSecondary"
 }
