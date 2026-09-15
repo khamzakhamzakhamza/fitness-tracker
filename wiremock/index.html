@@ -80,6 +80,10 @@
   .plan-field .plan-input .unit { font-size: 12px; font-weight: 700; color: var(--muted); }
   .plan-field .plan-input .unit-select { border: 0; padding: 0; background: transparent;
                                          color: var(--muted); font: 700 12px 'Archivo', 'Segoe UI', sans-serif; }
+  .plan-field .plan-select { width: 100%; height: 52px; border: 1.5px solid #D9D9E1; border-radius: 8px;
+                             padding: 0 14px; background: #FAFAFB; color: var(--ink);
+                             font: 16px 'Archivo', 'Segoe UI', sans-serif; }
+  .plan-field .plan-name-divider { height: 1px; border: 0; background: var(--hair); margin: 4px 0; }
   .activity-select { width: 100%; height: 52px; border: 1.5px solid #D9D9E1; border-radius: 8px;
                      padding: 0 14px; background: #FAFAFB; color: var(--ink);
                      font: 16px 'Archivo', 'Segoe UI', sans-serif; }
@@ -87,6 +91,69 @@
   .measurement-input .readout { border-bottom: 0; }
   .measurement-input .ro-m { font-size: 12px; }
   .measurement-input .tabbar { display: none; }
+
+  /* ---------- plan visualiser ---------- */
+  .planning-greeting { order: 1; }
+  .planning-user-creation { order: 2; }
+  .planning-measurements { order: 3; }
+  .planning-build { order: 4; }
+  .planning-default { order: 5; }
+  .planning-edit { order: 6; }
+  .planning-weigh-in { order: 7; }
+  .plan-visualiser { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; gap: 4px; margin-inline: -20px; padding-bottom: 16px; background: #FAFAFB; }
+  .plan-visualiser .seclabel { display: block; padding: 0 20px 8px; border-bottom: 1px solid var(--hair); }
+  .plan-visualiser .seclabel { font-size: 12px; font-weight: 700; color: var(--muted); }
+  .plan-deltas { display: flex; gap: 8px; padding-inline: 20px; }
+  .selected-plan-date { padding-inline: 20px; font-size: 12px; font-weight: 700; color: var(--ink); }
+  .plan-delta-field { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+  .plan-delta-field > span { font-size: 12px; font-weight: 700; color: var(--muted); }
+  .plan-delta-field .input-info { display: inline-flex; align-items: center; justify-content: center; width: 13px; height: 13px;
+                                  margin-left: 3px; border: 1px solid currentColor; border-radius: 50%; font-size: 9px; font-style: normal; }
+  .plan-delta-input { width: 100%; height: 42px; display: flex; align-items: center; gap: 6px;
+                      padding: 0 12px; border: 1.5px solid #D9D9E1; border-radius: 8px; background: #FAFAFB; }
+  .plan-delta-input input { flex: 1 1 auto; min-width: 0; border: 0; outline: 0; background: transparent;
+                            color: var(--ink); font: 16px 'Archivo', 'Segoe UI', sans-serif; }
+  .plan-delta-input span { font-size: 12px; font-weight: 700; color: var(--muted); }
+  .plan-chart { flex: 1 1 auto; min-height: 0; width: 100%; height: auto; display: block; }
+  .plan-chart .chart-neutral { fill: #FAFAFB; }
+  .plan-chart .fill-above-maintenance { fill: #FFD6D6; }
+  .plan-chart .fill-below-maintenance { fill: #D6E7FF; }
+  .plan-chart .week-guide { stroke: #E1E1E6; stroke-width: 1; }
+  .plan-chart .chart-axis { stroke: #B8B8C2; stroke-width: 1.2; }
+  .plan-chart .maintenance-marker { stroke: #9AA6A0; stroke-width: 1.5; stroke-dasharray: 4 4; }
+  .plan-chart .today-marker { stroke: #9DDBAA; stroke-width: 2; }
+  .plan-chart .target { fill: none; stroke: var(--a2); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .plan-chart .progressed-plan { fill: none; stroke: #075D70; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+  .plan-chart .target-dot { fill: var(--a2); stroke: var(--a2); stroke-width: 1; }
+  .plan-chart .target-dot.selected { filter: drop-shadow(0 0 4px var(--a2)); }
+  .selected-weight-editor { width: 72px; height: 28px; display: flex; align-items: center; gap: 3px;
+                            padding: 0 7px; border: 1.5px solid var(--a2); border-radius: 6px; background: #E2F3F5; }
+  .selected-weight-editor input { width: 38px; min-width: 0; border: 0; outline: 0; background: transparent;
+                                  color: var(--ink); font: 700 10px 'Archivo', 'Segoe UI', sans-serif; }
+  .selected-weight-editor span { color: var(--muted); font: 700 9px 'Archivo', 'Segoe UI', sans-serif; }
+  .plan-chart text { fill: var(--muted); font: 700 9px 'Archivo', 'Segoe UI', sans-serif; }
+
+  /* ---------- default plan ---------- */
+  .plan-overview .tabs { grid-template-columns: repeat(3, 1fr); }
+  .plan-overview main { gap: 14px; }
+  .overview-plan-head { display: flex; align-items: center; justify-content: space-between; }
+  .overview-plan-name { font-size: 14px; font-weight: 700; }
+  .overview-edit-plan { border: 0; background: transparent; color: var(--a2); font: 700 12px 'Archivo', 'Segoe UI', sans-serif; cursor: pointer; }
+  .overview-chart { flex: 0 0 auto; width: 100%; height: 250px; display: block; background: #FAFAFB; }
+  .overview-chart .guide { stroke: #E1E1E6; stroke-width: 1; }
+  .overview-chart .plan-segment { stroke: #A9A9B1; stroke-width: 2; stroke-linecap: round; }
+  .overview-chart .actual-line { fill: none; stroke: var(--a2); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .overview-chart .actual-dot { fill: var(--a2); }
+  .overview-chart .selected-measurement { fill: var(--a2); filter: drop-shadow(0 0 4px var(--a2)); }
+  .overview-chart .measurement-label { fill: #0E7490; }
+  .measurement-log { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; border-top: 1px solid var(--hair); }
+  .measurement-log .seclabel { padding: 10px 0 4px; }
+  .measurement-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-top: 1px solid var(--hair); font-size: 12px; font-weight: 700; }
+  .measurement-row time { color: var(--muted); font-size: 11px; }
+  .edit-plan-preview { flex: 1 1 auto; min-height: 110px; width: 100%; background: #FAFAFB; }
+  .edit-plan-preview .guide { stroke: #E1E1E6; stroke-width: 1; }
+  .edit-plan-preview .planned { fill: none; stroke: #A9A9B1; stroke-width: 2; stroke-dasharray: 5 5; }
+  .edit-plan-preview .actual { fill: none; stroke: var(--a2); stroke-width: 2; }
 
   /* ---------- cards ---------- */
   .card { border: 1.5px solid var(--ink); border-radius: 12px; padding: 16px;
@@ -1152,7 +1219,7 @@
   <!-- ============================================================
        SCREEN 0 — GREETING
        ============================================================ -->
-  <div class="frame">
+  <div class="frame planning-greeting">
     <span class="name">Greeting</span>
     <div class="phone greeting">
       <div class="status">
@@ -1193,7 +1260,7 @@
   <!-- ============================================================
        SCREEN 1 — USER CREATION
        ============================================================ -->
-  <div class="frame">
+  <div class="frame planning-user-creation">
     <span class="name">Greeting → User creation</span>
     <div class="phone user-creation">
       <div class="status">
@@ -1252,7 +1319,7 @@
        Every other screen measures a day against the calorie goal; this is
        where that goal comes from, with the arithmetic left on show.
        ============================================================ -->
-  <div class="frame">
+  <div class="frame planning-measurements">
     <span class="name">Plan</span>
     <div class="phone measurement-input">
 
@@ -1367,7 +1434,7 @@
        A reading and a photo are taken in the same breath, because a number
        on its own stops meaning much after a few weeks.
        ============================================================ -->
-  <div class="frame">
+  <div class="frame planning-weigh-in">
     <span class="name">Plan → Weigh in</span>
     <div class="phone">
 
@@ -1423,36 +1490,6 @@
           </div>
         </div>
 
-        <div class="section grow">
-          <div class="sechead">
-            <span class="seclabel">Photo</span>
-            <button class="linkbtn">From library</button>
-          </div>
-          <button class="shot">
-            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M3 8.5A1.5 1.5 0 0 1 4.5 7h2.3l1.3-2h7.8l1.3 2h2.3A1.5 1.5 0 0 1 21 8.5v9A1.5 1.5 0 0 1 19.5 19h-15A1.5 1.5 0 0 1 3 17.5z"/>
-              <circle cx="12" cy="13" r="3.6"/>
-            </svg>
-            <b>Take a photo</b>
-            <span>Same pose, same light</span>
-          </button>
-        </div>
-
-        <div class="section">
-          <div class="sechead">
-            <span class="seclabel">Records</span>
-            <button class="linkbtn">See all</button>
-          </div>
-          <div class="shots" id="wshots"></div>
-        </div>
-
-        <div class="note">
-          <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="7" cy="7" r="6"/><path d="M7 6.3v4"/><path d="M7 3.9v.1"/>
-          </svg>
-          <p>Photos stay on the device and are never part of an export. Two of them
-             only compare if the light and the time of day match.</p>
-        </div>
       </main>
 
       <div class="cta"><button class="btn display">Save weigh-in</button></div>
@@ -1468,7 +1505,7 @@
        said month by month, because "75 kg by March" is a thing you can
        picture and "313 kcal under maintenance" is not.
        ============================================================ -->
-  <div class="frame">
+  <div class="frame planning-build">
     <span class="name">Plan → Build a plan</span>
     <div class="phone">
 
@@ -1495,64 +1532,245 @@
       </div>
 
       <main>
-        <div class="sheet-head">
-          <div class="titlewrap">
-            <h1 class="display">Build a plan</h1>
-            <span class="caption" id="bfrom"></span>
-          </div>
-          <button class="close">
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-              <path d="M2 2l10 10M12 2L2 12"/>
-            </svg>
-          </button>
-        </div>
+        <section class="title-block">
+          <h1 class="display">Select or build a plan</h1>
+        </section>
 
-        <div class="section">
-          <span class="seclabel">Which way</span>
-          <div class="portions" id="dirchips"></div>
+        <div class="field plan-field">
+          <span class="seclabel">Select a pre-made plan</span>
+          <select class="plan-select" id="plan-type-select" aria-label="Select a pre-made plan"></select>
+          <hr class="plan-name-divider">
+          <span class="seclabel">Name</span>
+          <div class="input plan-input">
+            <input id="plan-name-input" type="text" placeholder="Plan name" aria-label="Plan name">
+          </div>
         </div>
 
         <div class="field plan-field">
-          <span class="seclabel">Target weight</span>
+          <span class="seclabel">Final weight</span>
           <div class="input plan-input">
-            <input id="btarget" type="number" step="0.1" min="35" max="200">
-            <span class="unit">kg</span>
+            <input id="btarget" type="number" step="0.1" min="35" max="200" value="75">
+            <select class="unit-select" aria-label="Final weight unit"><option>Unit</option><option selected>kg</option><option>lb</option></select>
           </div>
         </div>
 
-        <div class="section">
-          <span class="seclabel">How long</span>
-          <div class="portions" id="monthchips"></div>
-        </div>
-
-        <div class="readout">
-          <div class="ro-row">
-            <span class="ro-k display" id="bkcal"></span>
-            <span class="ro-m" id="bhow"></span>
-          </div>
-          <div class="ro-row">
-            <span class="ro-m" id="bgap"></span>
-            <span class="ro-m" id="brate"></span>
+        <div class="field plan-field">
+          <span class="seclabel">Plan time</span>
+          <div class="portions" id="weekchips"></div>
+          <div class="input plan-input">
+            <input type="number" min="1" value="24" aria-label="Custom plan time">
+            <span class="unit">weeks</span>
           </div>
         </div>
 
-        <div class="section grow">
-          <span class="seclabel">Month by month · kg</span>
-          <div class="months" id="bmonths"></div>
-        </div>
-
-        <div class="note">
-          <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="7" cy="7" r="6"/><path d="M7 6.3v4"/><path d="M7 3.9v.1"/>
+        <section class="plan-visualiser" aria-label="Weekly calorie plan">
+          <span class="seclabel">Current weight</span>
+          <svg class="plan-chart" viewBox="0 0 350 150" role="img" aria-label="Calories across seven weeks">
+            <rect class="chart-neutral" x="0" y="12" width="350" height="120"/>
+            <line class="week-guide" x1="35" y1="20" x2="35" y2="125"/>
+            <line class="week-guide" x1="86" y1="20" x2="86" y2="125"/>
+            <line class="week-guide" x1="137" y1="20" x2="137" y2="125"/>
+            <line class="week-guide" x1="188" y1="20" x2="188" y2="125"/>
+            <line class="week-guide" x1="239" y1="20" x2="239" y2="125"/>
+            <line class="week-guide" x1="290" y1="20" x2="290" y2="125"/>
+            <line class="week-guide" x1="340" y1="20" x2="340" y2="125"/>
+            <line class="today-marker" x1="35" y1="20" x2="35" y2="125"/>
+            <text x="30" y="68" text-anchor="end">75 kg</text>
+            <line class="chart-axis" x1="35" y1="125" x2="340" y2="125"/>
+            <path class="fill-below-maintenance" d="M35 65 L35 106 L86 91 L137 100 L178.5 65 Z"/>
+            <path class="fill-above-maintenance" d="M178.5 65 L188 57 L206.2 65 Z"/>
+            <path class="fill-below-maintenance" d="M206.2 65 L239 79 L255 65 Z"/>
+            <path class="fill-above-maintenance" d="M255 65 L290 35 L340 55 L340 65 Z"/>
+            <line class="maintenance-marker" x1="35" y1="65" x2="340" y2="65"/>
+            <polyline class="target" points="35,106 86,91 137,100 188,57 239,79 290,35 340,55"/>
+            <circle class="target-dot" cx="35" cy="106" r="2.5"/>
+            <circle class="target-dot" cx="86" cy="91" r="2.5"/>
+            <circle class="target-dot" cx="137" cy="100" r="2.5"/>
+            <circle class="target-dot selected" cx="188" cy="57" r="5"/>
+            <foreignObject x="152" y="20" width="72" height="28">
+              <div xmlns="http://www.w3.org/1999/xhtml" class="selected-weight-editor">
+                <input type="number" value="76.2" aria-label="Selected week actual weight"/><span>kg</span>
+              </div>
+            </foreignObject>
+            <circle class="target-dot" cx="239" cy="79" r="2.5"/>
+            <circle class="target-dot" cx="290" cy="35" r="2.5"/>
+            <circle class="target-dot" cx="340" cy="55" r="2.5"/>
+            <text x="35" y="144" text-anchor="middle">07/09</text>
+            <text x="86" y="144" text-anchor="middle">14/09</text>
+            <text x="137" y="144" text-anchor="middle">21/09</text>
+            <text x="188" y="144" text-anchor="middle">28/09</text>
+            <text x="239" y="144" text-anchor="middle">05/10</text>
+            <text x="290" y="144" text-anchor="middle">12/10</text>
+            <text x="340" y="144" text-anchor="middle">19/10</text>
           </svg>
-          <p>Milestones assume a straight line; real weight moves in steps. Past
-             about <b>1% of body weight a week</b>, what moves includes muscle.</p>
-        </div>
+        </section>
       </main>
 
-      <div class="cta"><button class="btn display">Use this plan</button></div>
-      <div class="sheet-foot"><i></i></div>
+      <div class="cta"><button class="btn display">Activate plan</button></div>
+      <div class="safe"><i></i></div>
 
+    </div>
+  </div>
+
+  <!-- ============================================================
+       SCREEN 12 — DEFAULT PLAN
+       ============================================================ -->
+  <div class="frame planning-default">
+    <span class="name">Plan</span>
+    <div class="phone plan-overview">
+      <div class="status">
+        <div class="time">9:41</div>
+        <div class="icons">
+          <svg width="18" height="12" viewBox="0 0 18 12" fill="none"><rect y="8" width="3" height="4" rx="1" fill="#1A1A1A"/><rect x="5" y="5.5" width="3" height="6.5" rx="1" fill="#1A1A1A"/><rect x="10" y="3" width="3" height="9" rx="1" fill="#1A1A1A"/><rect x="15" width="3" height="12" rx="1" fill="#1A1A1A"/></svg>
+          <svg width="16" height="12" viewBox="0 0 16 12" fill="none"><path d="M1.2 4.1C3 2.5 5.4 1.5 8 1.5C10.6 1.5 13 2.5 14.8 4.1" stroke="#1A1A1A" stroke-width="2" stroke-linecap="round"/><path d="M4 7C5.1 6 6.5 5.4 8 5.4C9.5 5.4 10.9 6 12 7" stroke="#1A1A1A" stroke-width="2" stroke-linecap="round"/><path d="M6.7 9.9C7.1 9.6 7.5 9.4 8 9.4C8.5 9.4 8.9 9.6 9.3 9.9" stroke="#1A1A1A" stroke-width="2" stroke-linecap="round"/></svg>
+          <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x="0.5" y="0.5" width="21" height="11" rx="3" stroke="#1A1A1A" stroke-opacity="0.4"/><rect x="2" y="2" width="18" height="8" rx="1.5" fill="#1A1A1A"/><path d="M23 4.4V7.6C23.9 7.3 24.5 6.7 24.5 6C24.5 5.3 23.9 4.7 23 4.4Z" fill="#1A1A1A" fill-opacity="0.4"/></svg>
+        </div>
+      </div>
+
+      <main>
+        <section class="title-block"><h1 class="display">Plan</h1></section>
+
+        <div class="overview-plan-head">
+          <span class="overview-plan-name">Maintenance</span>
+          <button class="overview-edit-plan">Edit plan</button>
+        </div>
+
+        <svg class="overview-chart" viewBox="0 0 350 250" role="img" aria-label="Planned and logged weight measurements">
+          <line class="guide" x1="22" y1="30" x2="22" y2="214"/>
+          <line class="guide" x1="22" y1="214" x2="338" y2="214"/>
+          <line class="guide" x1="22" y1="82" x2="338" y2="82"/>
+          <line class="guide" x1="22" y1="148" x2="338" y2="148"/>
+          <line class="plan-segment" x1="26" y1="72" x2="66" y2="77"/>
+          <line class="plan-segment" x1="82" y1="80" x2="122" y2="86"/>
+          <line class="plan-segment" x1="138" y1="90" x2="178" y2="96"/>
+          <line class="plan-segment" x1="194" y1="100" x2="234" y2="106"/>
+          <line class="plan-segment" x1="250" y1="110" x2="290" y2="116"/>
+          <line class="plan-segment" x1="306" y1="120" x2="338" y2="125"/>
+          <polyline class="actual-line" points="26,70 82,92 138,84 194,111 250,104 306,132"/>
+          <circle class="actual-dot" cx="26" cy="70" r="4"/>
+          <circle class="actual-dot" cx="82" cy="92" r="4"/>
+          <circle class="actual-dot" cx="138" cy="84" r="4"/>
+          <circle class="selected-measurement" cx="194" cy="111" r="6"/>
+          <rect x="172" y="82" width="44" height="18" rx="5" fill="#E2F3F5"/>
+          <text class="measurement-label" x="194" y="95" text-anchor="middle">76.2 kg</text>
+          <circle class="actual-dot" cx="250" cy="104" r="4"/>
+          <circle class="actual-dot" cx="306" cy="132" r="4"/>
+          <text x="26" y="234" text-anchor="middle">07/09</text>
+          <text x="82" y="234" text-anchor="middle">14/09</text>
+          <text x="138" y="234" text-anchor="middle">21/09</text>
+          <text x="194" y="234" text-anchor="middle">28/09</text>
+          <text x="250" y="234" text-anchor="middle">05/10</text>
+          <text x="306" y="234" text-anchor="middle">12/10</text>
+        </svg>
+
+        <section class="measurement-log" aria-label="Measurement logs">
+          <span class="seclabel">Logged measurements</span>
+          <div class="measurement-row"><time datetime="2026-09-28T09:30">28/09 · 09:30</time><span>76.2 kg</span></div>
+          <div class="measurement-row"><time datetime="2026-09-21T08:45">21/09 · 08:45</time><span>76.8 kg</span></div>
+          <div class="measurement-row"><time datetime="2026-09-14T09:10">14/09 · 09:10</time><span>76.6 kg</span></div>
+        </section>
+      </main>
+
+      <div class="cta"><button class="btn display">Log measurements</button></div>
+      <div class="tabbar">
+        <div class="tabs">
+          <div class="tab">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20.94c1.5 0 2.75 1.06 4 1.06 3 0 6-8 6-12.22A4.91 4.91 0 0 0 17 5c-2.22 0-4 1.44-5 2-1-.56-2.78-2-5-2a4.9 4.9 0 0 0-5 4.78C2 14 5 22 8 22c1.25 0 2.5-1.06 4-1.06Z"/><path d="M10 2c1 .5 2 2 2 5"/></svg>
+            <span>Nutrition</span>
+          </div>
+          <div class="tab active">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 7 2 2 4-4"/><path d="m3 17 2 2 4-4"/><path d="M13 6h8"/><path d="M13 12h8"/><path d="M13 18h8"/></svg>
+            <span>Plan</span>
+          </div>
+          <div class="tab">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.1 2.1-.06-.06a1.7 1.7 0 0 0-1.88-.34 1.7 1.7 0 0 0-1.03 1.56v.09h-3v-.09a1.7 1.7 0 0 0-1.03-1.56 1.7 1.7 0 0 0-1.88.34l-.06.06-2.1-2.1.06-.06A1.7 1.7 0 0 0 7.06 15 1.7 1.7 0 0 0 5.5 13.97h-.09v-3h.09A1.7 1.7 0 0 0 7.06 9.94a1.7 1.7 0 0 0-.34-1.88l-.06-.06 2.1-2.1.06.06a1.7 1.7 0 0 0 1.88.34 1.7 1.7 0 0 0 1.03-1.56v-.09h3v.09a1.7 1.7 0 0 0 1.03 1.56 1.7 1.7 0 0 0 1.88-.34l.06-.06 2.1 2.1-.06.06a1.7 1.7 0 0 0-.34 1.88 1.7 1.7 0 0 0 1.56 1.03h.09v3h-.09A1.7 1.7 0 0 0 19.4 15Z"/></svg>
+            <span>Settings</span>
+          </div>
+        </div>
+        <div class="safe"><i></i></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       SCREEN 13 — EDIT PLAN
+       ============================================================ -->
+  <div class="frame planning-edit">
+    <span class="name">Plan → Edit plan</span>
+    <div class="phone">
+      <div class="status">
+        <div class="time">9:41</div>
+        <div class="icons">
+          <svg width="18" height="12" viewBox="0 0 18 12" fill="none"><rect y="8" width="3" height="4" rx="1" fill="#1A1A1A"/><rect x="5" y="5.5" width="3" height="6.5" rx="1" fill="#1A1A1A"/><rect x="10" y="3" width="3" height="9" rx="1" fill="#1A1A1A"/><rect x="15" width="3" height="12" rx="1" fill="#1A1A1A"/></svg>
+          <svg width="16" height="12" viewBox="0 0 16 12" fill="none"><path d="M1.2 4.1C3 2.5 5.4 1.5 8 1.5C10.6 1.5 13 2.5 14.8 4.1" stroke="#1A1A1A" stroke-width="2" stroke-linecap="round"/><path d="M4 7C5.1 6 6.5 5.4 8 5.4C9.5 5.4 10.9 6 12 7" stroke="#1A1A1A" stroke-width="2" stroke-linecap="round"/><path d="M6.7 9.9C7.1 9.6 7.5 9.4 8 9.4C8.5 9.4 8.9 9.6 9.3 9.9" stroke="#1A1A1A" stroke-width="2" stroke-linecap="round"/></svg>
+          <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x="0.5" y="0.5" width="21" height="11" rx="3" stroke="#1A1A1A" stroke-opacity="0.4"/><rect x="2" y="2" width="18" height="8" rx="1.5" fill="#1A1A1A"/><path d="M23 4.4V7.6C23.9 7.3 24.5 6.7 24.5 6C24.5 5.3 23.9 4.7 23 4.4Z" fill="#1A1A1A" fill-opacity="0.4"/></svg>
+        </div>
+      </div>
+
+      <main>
+        <section class="title-block"><h1 class="display">Edit plan</h1></section>
+
+        <div class="field plan-field">
+          <span class="seclabel">Select a pre-made plan</span>
+          <select class="plan-select" aria-label="Select a pre-made plan"><option selected>Maintenance</option><option>Progressive gain</option><option>Progressive loss</option></select>
+          <hr class="plan-name-divider">
+          <span class="seclabel">Name</span>
+          <div class="input plan-input"><input type="text" value="Maintenance" aria-label="Plan name"></div>
+        </div>
+
+        <div class="field plan-field">
+          <span class="seclabel">Final weight</span>
+          <div class="input plan-input"><input type="number" value="75" aria-label="Final weight"><span class="unit">kg</span></div>
+        </div>
+
+        <div class="field plan-field">
+          <span class="seclabel">Plan time</span>
+          <div class="portions"><button class="portion">12 weeks</button><button class="portion on">24 weeks</button><button class="portion">52 weeks</button></div>
+          <div class="input plan-input"><input type="number" value="24" aria-label="Plan time"><span class="unit">weeks</span></div>
+        </div>
+
+        <section class="plan-visualiser" aria-label="Weekly calorie plan">
+          <span class="seclabel">Current weight</span>
+          <svg class="plan-chart" viewBox="0 0 350 150" role="img" aria-label="Calories across seven weeks">
+            <rect class="chart-neutral" x="0" y="12" width="350" height="120"/>
+            <line class="week-guide" x1="35" y1="20" x2="35" y2="125"/>
+            <line class="week-guide" x1="86" y1="20" x2="86" y2="125"/>
+            <line class="week-guide" x1="137" y1="20" x2="137" y2="125"/>
+            <line class="week-guide" x1="188" y1="20" x2="188" y2="125"/>
+            <line class="week-guide" x1="239" y1="20" x2="239" y2="125"/>
+            <line class="week-guide" x1="290" y1="20" x2="290" y2="125"/>
+            <line class="week-guide" x1="340" y1="20" x2="340" y2="125"/>
+            <line class="today-marker" x1="35" y1="20" x2="35" y2="125"/>
+            <text x="30" y="68" text-anchor="end">75 kg</text>
+            <line class="chart-axis" x1="35" y1="125" x2="340" y2="125"/>
+            <path class="fill-below-maintenance" d="M35 65 L35 106 L86 91 L137 100 L178.5 65 Z"/>
+            <path class="fill-above-maintenance" d="M178.5 65 L188 57 L206.2 65 Z"/>
+            <path class="fill-below-maintenance" d="M206.2 65 L239 79 L255 65 Z"/>
+            <path class="fill-above-maintenance" d="M255 65 L290 35 L340 55 L340 65 Z"/>
+            <line class="maintenance-marker" x1="35" y1="65" x2="340" y2="65"/>
+            <polyline class="target" points="35,106 86,91 137,100 188,57 239,79 290,35 340,55"/>
+            <polyline class="progressed-plan" points="35,106 86,91 137,100 188,57"/>
+            <circle class="target-dot" cx="35" cy="106" r="2.5"/>
+            <circle class="target-dot" cx="86" cy="91" r="2.5"/>
+            <circle class="target-dot" cx="137" cy="100" r="2.5"/>
+            <circle class="target-dot selected" cx="188" cy="57" r="5"/>
+            <foreignObject x="152" y="20" width="72" height="28"><div xmlns="http://www.w3.org/1999/xhtml" class="selected-weight-editor"><input type="number" value="76.2" aria-label="Selected week actual weight"/><span>kg</span></div></foreignObject>
+            <circle class="target-dot" cx="239" cy="79" r="2.5"/>
+            <circle class="target-dot" cx="290" cy="35" r="2.5"/>
+            <circle class="target-dot" cx="340" cy="55" r="2.5"/>
+            <text x="35" y="144" text-anchor="middle">07/09</text>
+            <text x="86" y="144" text-anchor="middle">14/09</text>
+            <text x="137" y="144" text-anchor="middle">21/09</text>
+            <text x="188" y="144" text-anchor="middle">28/09</text>
+            <text x="239" y="144" text-anchor="middle">05/10</text>
+            <text x="290" y="144" text-anchor="middle">12/10</text>
+            <text x="340" y="144" text-anchor="middle">19/10</text>
+          </svg>
+        </section>
+      </main>
+
+      <div class="cta"><button class="btn display">Save changes</button></div>
+      <div class="safe"><i></i></div>
     </div>
   </div>
 
@@ -2281,24 +2499,10 @@ const weighDate = i => {
 const shortDate = d => d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
   .replace('Sept', 'Sep');
 
-/* Not every weigh-in gets a photo, so the records are their own sparse set of
-   indices into the series rather than one per reading. */
-const PHOTO_AT = [0, 4, 8, 11];
-
-const figure = `<svg width="22" height="30" viewBox="0 0 22 30" fill="none" stroke="currentColor"
-  stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-  <circle cx="11" cy="5" r="3.4"/><path d="M11 8.8v9.6"/>
-  <path d="M4.6 12.4 11 10.2l6.4 2.2"/><path d="M11 18.4 7.2 28"/><path d="M11 18.4l3.8 9.6"/></svg>`;
-
 let weighIn = data[data.length - 1];
 
 document.getElementById('wdate').textContent =
   'Today, ' + TODAY.toLocaleDateString('en-GB', { day: 'numeric', month: 'long' });
-
-document.getElementById('wshots').innerHTML = PHOTO_AT.map(i =>
-  `<div class="thumb"><div class="img">${figure}</div>`
-  + `<span class="cap"><span class="dt">${shortDate(weighDate(i))}</span>`
-  + `<span class="wt">${data[i].toFixed(1)} kg</span></span></div>`).join('');
 
 /* Steps of 0.1 land on values a scale actually reports, and rounding at each
    step keeps 82.4 − 0.1 from drifting into 82.30000000000001. */
@@ -2333,12 +2537,13 @@ renderWeighIn();
    Direction and target say where you are going; the horizon is the only thing
    that decides what it costs a day. Maintenance is read off the Plan screen, so
    the whole chain is one profile deep and the two can never disagree. */
-const MONTH_OPTS = [3, 6, 12];
+const WEEK_OPTS = [12, 24, 52];
+const PLAN_TYPES = ['Maintenance', 'Progressive gain', 'Progressive loss'];
 const DIRS = [{ k: 'lose', label: 'Lose weight' }, { k: 'gain', label: 'Gain weight' }];
 /* Each direction keeps its own target. Sharing one would mean flipping to Gain
    silently proposed a bulk up to a weight-loss number. */
 const TARGETS = { lose: 75.0, gain: 88.0 };
-const PLAN = { dir: 'lose', months: 6 };
+const PLAN = { dir: 'lose', weeks: 24, type: 'Maintenance' };
 
 /* Calendar months rather than 30-day blocks: "75 kg by March" is the promise
    being made, so March is what has to be counted to. */
@@ -2356,6 +2561,14 @@ const syncTargetField = () =>
   { document.getElementById('btarget').value = TARGETS[PLAN.dir].toFixed(1); };
 
 function renderBuild() {
+  const typeSelect = document.getElementById('plan-type-select');
+  typeSelect.innerHTML = PLAN_TYPES.map(type =>
+    `<option value="${type}"${type === PLAN.type ? ' selected' : ''}>${type}</option>`).join('');
+  document.getElementById('weekchips').innerHTML = WEEK_OPTS.map(weeks =>
+    `<button class="portion${weeks === PLAN.weeks ? ' on' : ''}" data-weeks="${weeks}">`
+    + `${weeks} weeks</button>`).join('');
+  return;
+
   const now = PROFILE.weight;
   const goalKg = TARGETS[PLAN.dir];
   const maint = maintenanceOf(PROFILE);
@@ -2397,7 +2610,7 @@ function renderBuild() {
     }).join('');
 }
 
-document.getElementById('dirchips').addEventListener('click', e => {
+document.getElementById('dirchips')?.addEventListener('click', e => {
   const b = e.target.closest('[data-dir]');
   if (!b) return;
   PLAN.dir = b.dataset.dir;
@@ -2405,10 +2618,15 @@ document.getElementById('dirchips').addEventListener('click', e => {
   renderBuild();
 });
 
-document.getElementById('monthchips').addEventListener('click', e => {
-  const b = e.target.closest('[data-mon]');
+document.getElementById('weekchips').addEventListener('click', e => {
+  const b = e.target.closest('[data-weeks]');
   if (!b) return;
-  PLAN.months = Number(b.dataset.mon);
+  PLAN.weeks = Number(b.dataset.weeks);
+  renderBuild();
+});
+
+document.getElementById('plan-type-select').addEventListener('change', e => {
+  PLAN.type = e.target.value;
   renderBuild();
 });
 
@@ -2419,7 +2637,6 @@ document.getElementById('btarget').addEventListener('input', e => {
   renderBuild();
 });
 
-syncTargetField();
 renderPlan();          /* cascades into renderBuild */
 
 /* ================= Confirming a removal =================
