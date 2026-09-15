@@ -73,6 +73,42 @@ The lookup table contains these five activity levels:
 | `Heavy` | `1.725` | 6–7 sessions a week |
 | `Athlete` | `1.9` | Training twice a day |
 
+## HeightMeasurementUnits
+
+| Column | SQLite type | Rules |
+|---|---|---|
+| `id` | `INTEGER` | Primary key |
+| `name` | `TEXT` | Not null, unique |
+| `shortName` | `TEXT` | Not null, unique |
+| `siConversionValue` | `REAL` | Not null, multiplier for conversion to centimetres |
+| `isDefault` | `INTEGER` | Not null, boolean (`0` or `1`) |
+| `dateAdded` | `INTEGER` | Not null, Unix timestamp |
+
+The planning units are:
+
+| Name | Short name | SI conversion value | Default |
+|---|---|---:|---|
+| `Centimetres` | `cm` | `1` | Yes |
+| `Feet` | `ft` | `30.48` | No |
+
+## WeightMeasurementUnits
+
+| Column | SQLite type | Rules |
+|---|---|---|
+| `id` | `INTEGER` | Primary key |
+| `name` | `TEXT` | Not null, unique |
+| `shortName` | `TEXT` | Not null, unique |
+| `siConversionValue` | `REAL` | Not null, multiplier for conversion to grams |
+| `isDefault` | `INTEGER` | Not null, boolean (`0` or `1`) |
+| `dateAdded` | `INTEGER` | Not null, Unix timestamp |
+
+The planning units are:
+
+| Name | Short name | SI conversion value | Default |
+|---|---|---:|---|
+| `Kilograms` | `kg` | `1000` | Yes |
+| `Pounds` | `lb` | `453.59237` | No |
+
 ## Plans
 
 | Column | SQLite type | Rules |
@@ -104,3 +140,5 @@ CREATE INDEX active_plan_milestones_date_idx
 - `foodId` stores the canonical lowercase UUID from the foods database.
 - `date` and `time` are stored as text.
 - `UserMeasurements.weightSI` is stored in grams and `UserMeasurements.heightSI` in centimetres.
+- Exactly one row in each measurement-unit table is selected as the default by the measurement service.
+- Measurement-unit queries return the default unit first.
