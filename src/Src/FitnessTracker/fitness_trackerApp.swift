@@ -28,6 +28,7 @@ struct fitness_trackerApp: App {
                 }
             }
             .task {
+                PlanningDependencyContext.measurementUnitService = MeasurementService.shared
                 appInitializer.initialize()
                 isInitialized = true
             }

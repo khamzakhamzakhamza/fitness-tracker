@@ -5,8 +5,10 @@ public struct MeasurementInputScreen: View {
     @State private var weight = ""
     @State private var height = ""
     @State private var leanMass = ""
-    @State private var weightUnit = Constants.weightUnits[0]
-    @State private var heightUnit = Constants.heightUnits[0]
+    @State private var weightUnits: [MeasurementUnitOption] = []
+    @State private var heightUnits: [MeasurementUnitOption] = []
+    @State private var weightUnit = ""
+    @State private var heightUnit = ""
     @State private var leanMassPreset: String?
     @State private var activity = Constants.activityOptions[0]
 
@@ -30,7 +32,7 @@ public struct MeasurementInputScreen: View {
                             value: $weight,
                             label: Constants.weightLabel,
                             placeholder: Constants.weightPlaceholder,
-                            unitOptions: Constants.weightUnits,
+                            unitOptions: weightUnits.map(\.shortName),
                             selectedUnit: $weightUnit,
                             focus: $isWeightFocused
                         )
@@ -39,7 +41,7 @@ public struct MeasurementInputScreen: View {
                             value: $height,
                             label: Constants.heightLabel,
                             placeholder: Constants.heightPlaceholder,
-                            unitOptions: Constants.heightUnits,
+                            unitOptions: heightUnits.map(\.shortName),
                             selectedUnit: $heightUnit,
                             focus: $isHeightFocused
                         )
@@ -71,6 +73,9 @@ public struct MeasurementInputScreen: View {
         }
         .background(Color(Constants.backgroundColor).ignoresSafeArea())
         .navigationBarBackButtonHidden(true)
+        .task {
+            loadMeasurementUnits()
+        }
         .onChange(of: leanMassPreset) { preset in
             switch preset {
             case Constants.averageMaleLabel:
@@ -83,6 +88,14 @@ public struct MeasurementInputScreen: View {
             dismissKeyboard()
         }
         .onChange(of: activity) { _ in
+            dismissKeyboard()
+        }
+        .onChange(of: weightUnit) { selectedUnit in
+            updateDefaultWeightUnit(shortName: selectedUnit)
+            dismissKeyboard()
+        }
+        .onChange(of: heightUnit) { selectedUnit in
+            updateDefaultHeightUnit(shortName: selectedUnit)
             dismissKeyboard()
         }
         .onChange(of: isWeightFocused) { isFocused in
@@ -111,6 +124,54 @@ public struct MeasurementInputScreen: View {
         isHeightFocused = false
         isLeanMassFocused = false
     }
+
+    private func loadMeasurementUnits() {
+        guard let measurementUnitService = PlanningDependencyContext.measurementUnitService else {
+            return
+        }
+
+        do {
+            weightUnits = try measurementUnitService.fetchWeightMeasurementUnits()
+            heightUnits = try measurementUnitService.fetchHeightMeasurementUnits()
+            weightUnit = preferredUnit(from: weightUnits)?.shortName ?? ""
+            heightUnit = preferredUnit(from: heightUnits)?.shortName ?? ""
+        } catch {
+            weightUnits = []
+            heightUnits = []
+        }
+    }
+
+    private func updateDefaultWeightUnit(shortName: String) {
+        guard let measurementUnitService = PlanningDependencyContext.measurementUnitService,
+              let selectedUnit = weightUnits.first(where: { $0.shortName == shortName }) else {
+            return
+        }
+
+        do {
+            try measurementUnitService.setDefaultWeightMeasurementUnit(id: selectedUnit.id)
+            weightUnits = try measurementUnitService.fetchWeightMeasurementUnits()
+        } catch {
+            return
+        }
+    }
+
+    private func updateDefaultHeightUnit(shortName: String) {
+        guard let measurementUnitService = PlanningDependencyContext.measurementUnitService,
+              let selectedUnit = heightUnits.first(where: { $0.shortName == shortName }) else {
+            return
+        }
+
+        do {
+            try measurementUnitService.setDefaultHeightMeasurementUnit(id: selectedUnit.id)
+            heightUnits = try measurementUnitService.fetchHeightMeasurementUnits()
+        } catch {
+            return
+        }
+    }
+
+    private func preferredUnit(from units: [MeasurementUnitOption]) -> MeasurementUnitOption? {
+        units.first(where: \.isDefault) ?? units.first
+    }
 }
 
 private enum Constants {
@@ -129,8 +190,6 @@ private enum Constants {
     static let averageFemaleLeanMass = "69"
     static let leanMassOptions = [averageMaleLabel, averageFemaleLabel]
     static let activityLabel = "How often do you exercise?"
-    static let weightUnits = ["kg", "lb"]
-    static let heightUnits = ["cm", "ft"]
     static let activityOptions = [
         "desk job, no training",
         "1–3 sessions a week",

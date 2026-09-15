@@ -23,6 +23,40 @@ private struct LocalDatabaseInitializer {
         ActivityLevel(id: 5, name: "Athlete", calorieMultiplier: 1.9, description: "training twice a day")
     ]
 
+    private let heightMeasurementUnits = [
+        HeightMeasurementUnit(
+            id: 1,
+            name: "Centimetres",
+            shortName: "cm",
+            siConversionValue: 1,
+            isDefault: true
+        ),
+        HeightMeasurementUnit(
+            id: 2,
+            name: "Feet",
+            shortName: "ft",
+            siConversionValue: 30.48,
+            isDefault: false
+        )
+    ]
+
+    private let weightMeasurementUnits = [
+        WeightMeasurementUnit(
+            id: 1,
+            name: "Kilograms",
+            shortName: "kg",
+            siConversionValue: 1_000,
+            isDefault: true
+        ),
+        WeightMeasurementUnit(
+            id: 2,
+            name: "Pounds",
+            shortName: "lb",
+            siConversionValue: 453.59237,
+            isDefault: false
+        )
+    ]
+
     func initialize() throws {
         let databaseURL = try databaseURL()
         var database: OpaquePointer?
@@ -53,6 +87,24 @@ private struct LocalDatabaseInitializer {
                 name TEXT NOT NULL UNIQUE,
                 calorieMultiplier REAL NOT NULL,
                 description TEXT NOT NULL,
+                dateAdded INTEGER NOT NULL
+            );
+
+            CREATE TABLE IF NOT EXISTS \(HeightMeasurementUnit.tableName) (
+                id INTEGER PRIMARY KEY,
+                name TEXT NOT NULL UNIQUE,
+                shortName TEXT NOT NULL UNIQUE,
+                siConversionValue REAL NOT NULL,
+                isDefault INTEGER NOT NULL CHECK (isDefault IN (0, 1)),
+                dateAdded INTEGER NOT NULL
+            );
+
+            CREATE TABLE IF NOT EXISTS \(WeightMeasurementUnit.tableName) (
+                id INTEGER PRIMARY KEY,
+                name TEXT NOT NULL UNIQUE,
+                shortName TEXT NOT NULL UNIQUE,
+                siConversionValue REAL NOT NULL,
+                isDefault INTEGER NOT NULL CHECK (isDefault IN (0, 1)),
                 dateAdded INTEGER NOT NULL
             );
 
@@ -97,7 +149,14 @@ private struct LocalDatabaseInitializer {
         }
 
         try migrateUserMeasurementsIfNeeded(in: database)
+        try removeLegacyMeasurementUnits(in: database)
         try seedLookupTables(in: database)
+    }
+
+    private func removeLegacyMeasurementUnits(in database: OpaquePointer) throws {
+        guard sqlite3_exec(database, "DROP TABLE IF EXISTS MeasurementUnits;", nil, nil, nil) == SQLITE_OK else {
+            throw LocalDatabaseInitializationError.schemaMigrationFailed
+        }
     }
 
     private func migrateUserMeasurementsIfNeeded(in database: OpaquePointer) throws {
@@ -184,6 +243,30 @@ private struct LocalDatabaseInitializer {
                     (id, name, calorieMultiplier, description, dateAdded)
                 VALUES
                     (\(level.id), \(sqlString(level.name)), \(level.calorieMultiplier), \(sqlString(level.description)), \(dateAdded));
+                """,
+                in: database
+            )
+        }
+
+        for unit in heightMeasurementUnits {
+            try execute(
+                """
+                INSERT OR IGNORE INTO \(HeightMeasurementUnit.tableName)
+                    (id, name, shortName, siConversionValue, isDefault, dateAdded)
+                VALUES
+                    (\(unit.id), \(sqlString(unit.name)), \(sqlString(unit.shortName)), \(unit.siConversionValue), \(unit.isDefault ? 1 : 0), \(dateAdded));
+                """,
+                in: database
+            )
+        }
+
+        for unit in weightMeasurementUnits {
+            try execute(
+                """
+                INSERT OR IGNORE INTO \(WeightMeasurementUnit.tableName)
+                    (id, name, shortName, siConversionValue, isDefault, dateAdded)
+                VALUES
+                    (\(unit.id), \(sqlString(unit.name)), \(sqlString(unit.shortName)), \(unit.siConversionValue), \(unit.isDefault ? 1 : 0), \(dateAdded));
                 """,
                 in: database
             )
