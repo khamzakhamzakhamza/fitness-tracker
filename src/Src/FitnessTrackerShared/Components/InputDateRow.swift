@@ -3,11 +3,23 @@ import SwiftUI
 public struct InputDateRow: View {
     @Binding public var date: Date?
     public let label: String
-    @State private var isShowingPicker = false
+    public let showValidationError: Bool
+    public let allowedDateRange: ClosedRange<Date>?
+    private let pickerVisibility: Binding<Bool>?
+    @State private var internalPickerVisibility = false
 
-    public init(date: Binding<Date?>, label: String) {
+    public init(
+        date: Binding<Date?>,
+        label: String,
+        showValidationError: Bool = false,
+        allowedDateRange: ClosedRange<Date>? = nil,
+        isPickerShowing: Binding<Bool>? = nil
+    ) {
         _date = date
         self.label = label
+        self.showValidationError = showValidationError
+        self.allowedDateRange = allowedDateRange
+        pickerVisibility = isPickerShowing
     }
 
     public var body: some View {
@@ -17,7 +29,7 @@ public struct InputDateRow: View {
                 .foregroundStyle(Color(Constants.secondaryTextColor))
 
             Button {
-                isShowingPicker.toggle()
+                setPickerShowing(!isPickerShowing)
             } label: {
                 HStack {
                     Text(displayValue)
@@ -31,16 +43,19 @@ public struct InputDateRow: View {
                 .clipShape(RoundedRectangle(cornerRadius: 8))
                 .overlay {
                     RoundedRectangle(cornerRadius: 8)
-                        .stroke(.primary.opacity(0.15), lineWidth: 1)
+                        .stroke(
+                            showValidationError ? Color.red : Color.primary.opacity(0.15),
+                            lineWidth: showValidationError ? 1.5 : 1
+                        )
                 }
             }
             .buttonStyle(.plain)
 
-            if isShowingPicker {
+            if isPickerShowing {
                 DatePicker(
                     Constants.datePickerLabel,
                     selection: pickerDate,
-                    in: earliestDate...Date(),
+                    in: effectiveDateRange,
                     displayedComponents: .date
                 )
                 .datePickerStyle(.wheel)
@@ -68,7 +83,24 @@ public struct InputDateRow: View {
     }
 
     private var defaultDate: Date {
-        Calendar.current.date(byAdding: .year, value: -25, to: Date()) ?? Date()
+        let twentyFiveYearsAgo = Calendar.current.date(byAdding: .year, value: -25, to: Date()) ?? Date()
+        return min(max(twentyFiveYearsAgo, effectiveDateRange.lowerBound), effectiveDateRange.upperBound)
+    }
+
+    private var effectiveDateRange: ClosedRange<Date> {
+        allowedDateRange ?? earliestDate...Date()
+    }
+
+    private var isPickerShowing: Bool {
+        pickerVisibility?.wrappedValue ?? internalPickerVisibility
+    }
+
+    private func setPickerShowing(_ isShowing: Bool) {
+        if let pickerVisibility {
+            pickerVisibility.wrappedValue = isShowing
+        } else {
+            internalPickerVisibility = isShowing
+        }
     }
 
     private var earliestDate: Date {

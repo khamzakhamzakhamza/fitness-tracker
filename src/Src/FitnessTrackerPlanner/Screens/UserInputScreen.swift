@@ -4,6 +4,10 @@ import FitnessTrackerShared
 public struct UserInputScreen: View {
     @State private var name = ""
     @State private var birthday: Date?
+    @State private var shouldShowValidationErrors = false
+    @State private var isDatePickerShowing = false
+    @State private var isShowingMeasurementInput = false
+    @FocusState private var isNameFieldFocused: Bool
 
     public init() {}
 
@@ -19,19 +23,64 @@ public struct UserInputScreen: View {
                     InputTextRow(
                         text: $name,
                         label: Constants.nameLabel,
-                        placeholder: Constants.namePlaceholder
+                        placeholder: Constants.namePlaceholder,
+                        showValidationError: shouldShowValidationErrors && !isNameValid,
+                        focus: $isNameFieldFocused
                     )
-                    InputDateRow(date: $birthday, label: Constants.birthdayLabel)
+                    InputDateRow(
+                        date: $birthday,
+                        label: Constants.birthdayLabel,
+                        showValidationError: shouldShowValidationErrors && !isBirthdayValid,
+                        isPickerShowing: $isDatePickerShowing
+                    )
                 }
                 .padding(.top, 12)
             }
             .padding(20)
+            .padding(.top, 15)
 
             Spacer()
 
-            PrimaryActionButton(title: Constants.nextButtonTitle) {}
+            PrimaryActionButton(title: Constants.nextButtonTitle) {
+                createUser()
+            }
         }
         .background(Color(Constants.backgroundColor).ignoresSafeArea())
+        .navigationBarBackButtonHidden(true)
+        .navigationDestination(isPresented: $isShowingMeasurementInput) {
+            MeasurementInputScreen()
+        }
+        .onChange(of: isNameFieldFocused) { isFocused in
+            if isFocused {
+                isDatePickerShowing = false
+            }
+        }
+        .onChange(of: isDatePickerShowing) { isShowing in
+            if isShowing {
+                isNameFieldFocused = false
+            }
+        }
+    }
+
+    private var isNameValid: Bool {
+        !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+
+    private var isBirthdayValid: Bool {
+        birthday != nil
+    }
+
+    private func createUser() {
+        shouldShowValidationErrors = true
+
+        guard isNameValid, let birthday else {
+            return
+        }
+
+        isShowingMeasurementInput = PlanningService.shared.createUser(
+            name: name.trimmingCharacters(in: .whitespacesAndNewlines),
+            birthday: birthday
+        )
     }
 }
 

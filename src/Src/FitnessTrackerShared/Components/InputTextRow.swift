@@ -4,12 +4,22 @@ public struct InputTextRow: View {
     @Binding public var text: String
     public let label: String
     public let placeholder: String
-    @FocusState private var isFocused: Bool
+    public let showValidationError: Bool
+    private let focus: FocusState<Bool>.Binding?
+    @FocusState private var internalFocus: Bool
 
-    public init(text: Binding<String>, label: String, placeholder: String = "") {
+    public init(
+        text: Binding<String>,
+        label: String,
+        placeholder: String = "",
+        showValidationError: Bool = false,
+        focus: FocusState<Bool>.Binding? = nil
+    ) {
         _text = text
         self.label = label
         self.placeholder = placeholder
+        self.showValidationError = showValidationError
+        self.focus = focus
     }
 
     public var body: some View {
@@ -20,25 +30,28 @@ public struct InputTextRow: View {
 
             TextField(placeholder, text: $text)
                 .multilineTextAlignment(.leading)
-                .focused($isFocused)
+                .focused(activeFocus)
                 .padding(.horizontal, 14)
                 .frame(maxWidth: .infinity, minHeight: 52)
                 .background(.primary.opacity(0.03))
                 .clipShape(RoundedRectangle(cornerRadius: 8))
                 .overlay {
                     RoundedRectangle(cornerRadius: 8)
-                        .stroke(.primary.opacity(0.15), lineWidth: 1)
+                        .stroke(
+                            showValidationError ? Color.red : Color.primary.opacity(0.15),
+                            lineWidth: showValidationError ? 1.5 : 1
+                        )
                 }
         }
         .contentShape(Rectangle())
         .onTapGesture {
-            isFocused = true
+            activeFocus.wrappedValue = true
         }
         .simultaneousGesture(
             DragGesture(minimumDistance: 10)
                 .onChanged { value in
                     if shouldDismissKeyboard(for: value.translation) {
-                        isFocused = false
+                        activeFocus.wrappedValue = false
                     }
                 }
         )
@@ -47,6 +60,10 @@ public struct InputTextRow: View {
     private func shouldDismissKeyboard(for translation: CGSize) -> Bool {
         translation.height > 10
             && abs(translation.height) > abs(translation.width)
+    }
+
+    private var activeFocus: FocusState<Bool>.Binding {
+        focus ?? $internalFocus
     }
 }
 
