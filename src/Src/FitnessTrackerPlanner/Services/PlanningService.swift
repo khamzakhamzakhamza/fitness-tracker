@@ -1,12 +1,18 @@
 import Foundation
 
 @MainActor
-public final class PlanningService {
+public protocol PlanningServiceProtocol {
+    func hasUsers() throws -> Bool
+    func hasMeasurements() throws -> Bool
+}
+
+@MainActor
+public final class PlanningService: PlanningServiceProtocol {
     public static let shared = PlanningService()
 
-    private let repository: PlanningRepository
+    private let repository: any PlanningRepositoryProtocol
 
-    public init(repository: PlanningRepository = .shared) {
+    public init(repository: any PlanningRepositoryProtocol = PlanningRepository.shared) {
         self.repository = repository
     }
 
@@ -18,5 +24,13 @@ public final class PlanningService {
         } catch {
             return false
         }
+    }
+
+    public func hasUsers() throws -> Bool {
+        try repository.hasUsers()
+    }
+
+    public func hasMeasurements() throws -> Bool {
+        try repository.hasMeasurements()
     }
 }

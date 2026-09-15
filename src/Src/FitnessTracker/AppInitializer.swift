@@ -5,12 +5,11 @@ import SQLite3
 final class AppInitializer {
     private(set) var initializationError: Error?
 
-    func initialize() -> Bool {
+    func initialize() {
         do {
-            return try LocalDatabaseInitializer().initialize()
+            try LocalDatabaseInitializer().initialize()
         } catch {
             initializationError = error
-            return true
         }
     }
 }
@@ -24,7 +23,7 @@ private struct LocalDatabaseInitializer {
         ActivityLevel(id: 5, name: "Athlete", calorieMultiplier: 1.9, description: "training twice a day")
     ]
 
-    func initialize() throws -> Bool {
+    func initialize() throws {
         let databaseURL = try databaseURL()
         var database: OpaquePointer?
 
@@ -99,7 +98,6 @@ private struct LocalDatabaseInitializer {
 
         try migrateUserMeasurementsIfNeeded(in: database)
         try seedLookupTables(in: database)
-        return try hasUserData(in: database)
     }
 
     private func migrateUserMeasurementsIfNeeded(in database: OpaquePointer) throws {
@@ -176,23 +174,6 @@ private struct LocalDatabaseInitializer {
         return sqlite3_column_int(statement, 0) == 1
     }
 
-    private func hasUserData(in database: OpaquePointer) throws -> Bool {
-        var statement: OpaquePointer?
-        let query = "SELECT EXISTS(SELECT 1 FROM \"\(User.tableName)\" LIMIT 1);"
-
-        guard sqlite3_prepare_v2(database, query, -1, &statement, nil) == SQLITE_OK,
-              let statement else {
-            throw LocalDatabaseInitializationError.userDataCheckFailed
-        }
-        defer { sqlite3_finalize(statement) }
-
-        guard sqlite3_step(statement) == SQLITE_ROW else {
-            throw LocalDatabaseInitializationError.userDataCheckFailed
-        }
-
-        return sqlite3_column_int(statement, 0) == 1
-    }
-
     private func seedLookupTables(in database: OpaquePointer) throws {
         let dateAdded = Int(Date().timeIntervalSince1970)
 
@@ -246,5 +227,4 @@ private enum LocalDatabaseInitializationError: Error {
     case schemaCreationFailed
     case schemaMigrationFailed
     case lookupTableSeedingFailed
-    case userDataCheckFailed
 }
