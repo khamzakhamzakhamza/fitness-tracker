@@ -13,9 +13,7 @@ public struct UserInputScreen: View {
                 Text(Constants.title)
                     .font(.system(size: 28, weight: .black))
 
-                Label(Constants.privacyMessage, systemImage: Constants.infoIcon)
-                    .font(.system(size: 13, weight: .medium))
-                    .foregroundStyle(Color(Constants.secondaryTextColor))
+                InfoLabel(text: Constants.privacyMessage)
 
                 VStack(spacing: 16) {
                     InputTextRow(
@@ -40,11 +38,9 @@ public struct UserInputScreen: View {
 private enum Constants {
     static let title = "Pls set your user data"
     static let privacyMessage = "Your data is stored on device only"
-    static let infoIcon = "info.circle"
     static let nameLabel = "Name"
     static let namePlaceholder = "Bob for example"
     static let birthdayLabel = "Date of birth"
     static let nextButtonTitle = "NEXT"
-    static let secondaryTextColor = "SearchBoxSecondary"
     static let backgroundColor = "AppBackground"
 }
