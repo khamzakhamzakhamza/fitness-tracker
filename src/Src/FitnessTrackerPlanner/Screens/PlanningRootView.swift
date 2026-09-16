@@ -18,8 +18,10 @@ public struct PlanningRootView: View {
                 NavigationStack {
                     MeasurementInputScreen()
                 }
-            case .onboardingComplete:
-                EmptyView()
+            case .planCreation:
+                NavigationStack {
+                    PlanCreationScreen()
+                }
             case nil:
                 ProgressView()
             }

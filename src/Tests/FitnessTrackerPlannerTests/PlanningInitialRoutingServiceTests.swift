@@ -25,13 +25,13 @@ struct PlanningInitialRoutingServiceTests {
     }
 
     @Test
-    func completesOnboardingWhenUserHasMeasurements() {
+    func routesToPlanCreationWhenUserHasMeasurements() {
         let routingService = makeRoutingService(
             hasUsers: true,
             hasMeasurements: true
         )
 
-        #expect(routingService.initialRoute() == .onboardingComplete)
+        #expect(routingService.initialRoute() == .planCreation)
     }
 
     private func makeRoutingService(

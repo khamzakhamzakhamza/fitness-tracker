@@ -3,7 +3,7 @@ import Foundation
 public enum PlanningInitialRoute: Equatable {
     case introduction
     case firstMeasurement
-    case onboardingComplete
+    case planCreation
 }
 
 @MainActor
@@ -26,7 +26,7 @@ public final class PlanningInitialRoutingService {
                 return .firstMeasurement
             }
 
-            return .onboardingComplete
+            return .planCreation
         } catch {
             return .introduction
         }
