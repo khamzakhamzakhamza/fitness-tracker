@@ -5,12 +5,8 @@
 ```text
 Foods (foods database)    1 ──── * NutritionLogs
 User                    1 ──── * UserMeasurements
-MeasurementUnits        1 ──── * UserMeasurements (weight)
-MeasurementUnits        1 ──── * UserMeasurements (height)
 ActivityLevels          1 ──── * UserMeasurements
-PlanTypes               1 ──── * NutritionPlans
-UserMeasurements        1 ──── * NutritionPlans
-NutritionPlans          1 ──── * NutritionPlanSpans
+Plans                   1 ──── * ActivePlanMilestones
 ```
 
 `NutritionLogs.foodId` is an application-level reference to `Foods.id` in the
@@ -46,12 +42,10 @@ CREATE INDEX nutrition_logs_date_idx ON NutritionLogs (date);
 |---|---|---|
 | `id` | `TEXT` | Primary key, UUID |
 | `userId` | `TEXT` | Not null, foreign key to `User.id` |
-| `weight` | `REAL` | Nullable |
-| `weightMeasurementUnitId` | `TEXT` | Not null, foreign key to `MeasurementUnits.id`, defaults to grams |
-| `height` | `REAL` | Nullable |
-| `heightMeasurementUnitId` | `TEXT` | Not null, foreign key to `MeasurementUnits.id`, defaults to centimetres |
-| `leanMass` | `REAL` | Nullable, percentage |
-| `activityLevelId` | `TEXT` | Nullable, foreign key to `ActivityLevels.id` |
+| `weightSI` | `REAL` | Not null, stored in grams |
+| `heightSI` | `REAL` | Nullable, stored in centimetres |
+| `leanMass` | `REAL` | Not null, percentage |
+| `activityLevelId` | `INTEGER` | Not null, foreign key to `ActivityLevels.id` |
 
 ### Indexes
 
@@ -59,22 +53,11 @@ CREATE INDEX nutrition_logs_date_idx ON NutritionLogs (date);
 CREATE INDEX user_measurements_user_id_idx ON UserMeasurements (userId);
 ```
 
-## MeasurementUnits
-
-| Column | SQLite type | Rules |
-|---|---|---|
-| `id` | `TEXT` | Primary key, UUID |
-| `name` | `TEXT` | Not null, unique |
-| `shortName` | `TEXT` | Not null, unique |
-| `pluralForm` | `TEXT` | Nullable |
-| `siConversionValue` | `REAL` | Nullable |
-| `dateAdded` | `INTEGER` | Not null, Unix timestamp |
-
 ## ActivityLevels
 
 | Column | SQLite type | Rules |
 |---|---|---|
-| `id` | `TEXT` | Primary key, UUID |
+| `id` | `INTEGER` | Primary key |
 | `name` | `TEXT` | Not null, unique |
 | `calorieMultiplier` | `REAL` | Not null |
 | `description` | `TEXT` | Not null |
@@ -90,39 +73,65 @@ The lookup table contains these five activity levels:
 | `Heavy` | `1.725` | 6–7 sessions a week |
 | `Athlete` | `1.9` | Training twice a day |
 
-## PlanTypes
+## HeightMeasurementUnits
 
 | Column | SQLite type | Rules |
 |---|---|---|
-| `id` | `TEXT` | Primary key, UUID |
+| `id` | `INTEGER` | Primary key |
 | `name` | `TEXT` | Not null, unique |
+| `shortName` | `TEXT` | Not null, unique |
+| `siConversionValue` | `REAL` | Not null, multiplier for conversion to centimetres |
+| `isDefault` | `INTEGER` | Not null, boolean (`0` or `1`) |
+| `dateAdded` | `INTEGER` | Not null, Unix timestamp |
 
-The lookup table contains `Maintenance`, `Progressive gain`, `Progressive loss`, and `Custom`.
+The planning units are:
 
-## NutritionPlans
+| Name | Short name | SI conversion value | Default |
+|---|---|---:|---|
+| `Centimetres` | `cm` | `1` | Yes |
+| `Feet` | `ft` | `30.48` | No |
+
+## WeightMeasurementUnits
+
+| Column | SQLite type | Rules |
+|---|---|---|
+| `id` | `INTEGER` | Primary key |
+| `name` | `TEXT` | Not null, unique |
+| `shortName` | `TEXT` | Not null, unique |
+| `siConversionValue` | `REAL` | Not null, multiplier for conversion to grams |
+| `isDefault` | `INTEGER` | Not null, boolean (`0` or `1`) |
+| `dateAdded` | `INTEGER` | Not null, Unix timestamp |
+
+The planning units are:
+
+| Name | Short name | SI conversion value | Default |
+|---|---|---:|---|
+| `Kilograms` | `kg` | `1000` | Yes |
+| `Pounds` | `lb` | `453.59237` | No |
+
+## Plans
 
 | Column | SQLite type | Rules |
 |---|---|---|
 | `id` | `TEXT` | Primary key, UUID |
-| `planTypeId` | `TEXT` | Not null, foreign key to `PlanTypes.id` |
-| `userMeasurementId` | `TEXT` | Not null, foreign key to `UserMeasurements.id` |
+| `name` | `TEXT` | Not null |
 | `targetWeightSI` | `REAL` | Not null |
 
-## NutritionPlanSpans
+## ActivePlanMilestones
 
 | Column | SQLite type | Rules |
 |---|---|---|
 | `id` | `TEXT` | Primary key, UUID |
-| `nutritionPlanId` | `TEXT` | Not null, foreign key to `NutritionPlans.id` |
-| `startDate` | `INTEGER` | Not null, Unix timestamp |
-| `endDate` | `INTEGER` | Not null, Unix timestamp |
-| `targetCaloriesSI` | `REAL` | Not null |
+| `planId` | `TEXT` | Not null, foreign key to `Plans.id` |
+| `date` | `INTEGER` | Not null, Unix timestamp |
+| `targetWeightSI` | `REAL` | Not null |
+| `isActive` | `INTEGER` | Not null, boolean (`0` or `1`) |
 
 ### Indexes
 
 ```sql
-CREATE INDEX nutrition_plan_spans_plan_id_idx
-    ON NutritionPlanSpans (nutritionPlanId);
+CREATE INDEX active_plan_milestones_date_idx
+    ON ActivePlanMilestones (date);
 ```
 
 ## Database rules
@@ -130,4 +139,6 @@ CREATE INDEX nutrition_plan_spans_plan_id_idx
 - The database is stored locally on the device at `Application Support/FitnessTracker/local.sqlite`.
 - `foodId` stores the canonical lowercase UUID from the foods database.
 - `date` and `time` are stored as text.
-- `UserMeasurements` uses grams by default for weight and centimetres by default for height.
+- `UserMeasurements.weightSI` is stored in grams and `UserMeasurements.heightSI` in centimetres.
+- Exactly one row in each measurement-unit table is selected as the default by the measurement service.
+- Measurement-unit queries return the default unit first.
