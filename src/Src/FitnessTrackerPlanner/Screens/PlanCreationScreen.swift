@@ -19,45 +19,47 @@ public struct PlanCreationScreen: View {
     public var body: some View {
         VStack(spacing: 0) {
             ScrollView {
-                VStack(alignment: .leading, spacing: 20) {
-                    Text(Constants.title)
-                        .font(.system(size: 28, weight: .black))
+                VStack(spacing: 0) {
+                    VStack(alignment: .leading, spacing: 20) {
+                        Text(Constants.title)
+                            .font(.system(size: 28, weight: .black))
 
-                    InputDropdownRow(
-                        selection: planSelection,
-                        label: Constants.planSelectorLabel,
-                        options: PlanTemplate.preMadePlans.map(\.name)
-                    )
+                        InputDropdownRow(
+                            selection: planSelection,
+                            label: Constants.planSelectorLabel,
+                            options: PlanTemplate.preMadePlans.map(\.name)
+                        )
 
-                    Divider()
+                        Divider()
 
-                    InputTextRow(
-                        text: $planName,
-                        label: Constants.planNameLabel,
-                        placeholder: Constants.planNamePlaceholder
-                    )
+                        InputTextRow(
+                            text: $planName,
+                            label: Constants.planNameLabel,
+                            placeholder: Constants.planNamePlaceholder
+                        )
 
-                    InputNumberRow(
-                        value: $finalWeight,
-                        label: Constants.finalWeightLabel,
-                        unitOptions: weightUnits.map(\.shortName),
-                        selectedUnit: $weightUnit
-                    )
-
-                    InputNumberRow(
-                        value: $planLength,
-                        label: Constants.planTimeLabel,
-                        allowedRange: Constants.planLengthRange,
-                        unit: Constants.weeksUnit,
-                        inlineOptions: Constants.planLengthOptions,
-                        selectedInlineOption: $selectedPlanLength
-                    )
-
-                    Spacer(minLength: 0)
+                        InputNumberRow(
+                            value: $planLength,
+                            label: Constants.planTimeLabel,
+                            allowedRange: Constants.planLengthRange,
+                            unit: Constants.weeksUnit,
+                            inlineOptions: Constants.planLengthOptions,
+                            selectedInlineOption: $selectedPlanLength
+                        )
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(20)
+                    .padding(.top, 15)
+                    
+                    if let currentMeasurement {
+                        PlanComponent(
+                            title: selectedPlanName,
+                            numberOfWeeks: Int(planLength) ?? 0,
+                            latestMeasurement: currentMeasurement
+                        )
+                    }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(20)
-                .padding(.top, 15)
             }
             .scrollDismissesKeyboard(.interactively)
 
