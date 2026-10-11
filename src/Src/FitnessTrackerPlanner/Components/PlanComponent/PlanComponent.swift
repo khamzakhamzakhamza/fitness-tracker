@@ -8,8 +8,7 @@ public struct PlanComponent: View {
     public let latestMeasurement: UserMeasurement
 
     @State private var weekValues: [Date: WeekValue]
-    @State private var scrollPosition = Date.now
-    @State private var scrollStartPosition: Date?
+    @State private var scrollPosition: Date
     
     @State private var updating = false
     @State private var draggedWeekDate: Date?
@@ -25,6 +24,9 @@ public struct PlanComponent: View {
         let calendar = Calendar.current
         let dates = PlanComponentService.makeAxisDates(numberOfWeeks)
         let startDate = dates.first ?? calendar.startOfDay(for: .now)
+        let xDomain = PlanComponentService.makeXDomain(dates: dates)
+        
+        _scrollPosition = State(initialValue: xDomain.lowerBound)
 
         _weekValues = State(
             initialValue: PlanComponentService.makeWeekValues(
@@ -43,15 +45,7 @@ public struct PlanComponent: View {
     }
     
     private var xDomain: ClosedRange<Date> {
-        let paddingDays = 3
-        
-        let calendar = Calendar.current
-        let first = axisDates.first!
-        let last = axisDates.last!
-        
-        let lowerBound = calendar.date(byAdding: .day, value: paddingDays * -1, to: first) ?? first
-        let upperBound = calendar.date(byAdding: .day, value: paddingDays, to: last) ?? last
-        return lowerBound...upperBound
+        PlanComponentService.makeXDomain(dates: axisDates)
     }
 
     private var yDomain: ClosedRange<Double> {
@@ -500,56 +494,4 @@ private enum Constants {
                     activityLevelID: 3
                   )
     ).padding()
-}
-
-
-
-
-
-import SwiftUI
-
-struct PlanMark: View {
-    let date: Date
-    let weightText: String
-    let fixed: Bool
-    let locked: Bool
-    let onLongPress: (Date) -> Void
-
-    var body: some View {
-        ZStack {
-            Circle()
-                .fill(
-                    fixed
-                        ? Color.green.opacity(0.5)
-                        : Color.accentColor
-                )
-                .frame(width: 10, height: 10)
-
-            Text(weightText)
-                .font(.caption)
-                .foregroundStyle(
-                    fixed ? Color.green : Color.accentColor
-                )
-                .offset(
-                    x: fixed ? -7 : 0,
-                    y: -18
-                )
-
-            if locked {
-                Image(systemName: "lock.fill")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .offset(y: -34)
-            }
-        }
-        .frame(width: 44, height: 70)
-        .contentShape(Rectangle())
-        .onLongPressGesture(minimumDuration: 0.5) {
-            print("test")
-            onLongPress(date)
-        }
-        .onTapGesture {
-            print("PlanMark tapped")
-        }
-    }
 }

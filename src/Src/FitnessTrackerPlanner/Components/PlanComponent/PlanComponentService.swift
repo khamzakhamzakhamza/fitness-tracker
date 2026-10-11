@@ -73,6 +73,31 @@ internal enum PlanComponentService {
     internal static func weightToString(_ weight: Double) -> String {
         return weight.formatted(.number.precision(.fractionLength(0...2)))
     }
+
+    internal static func makeXDomain(
+        dates: [Date],
+        calendar: Calendar = .current
+    ) -> ClosedRange<Date> {
+        guard let first = dates.first,
+              let last = dates.last else {
+            let today = calendar.startOfDay(for: .now)
+            return today...today
+        }
+
+        let paddingDays = 3
+        let lowerBound = calendar.date(
+            byAdding: .day,
+            value: -paddingDays,
+            to: first
+        ) ?? first
+        let upperBound = calendar.date(
+            byAdding: .day,
+            value: paddingDays,
+            to: last
+        ) ?? last
+
+        return lowerBound...upperBound
+    }
     
     internal static func makeAxisDates(_ numberOfWeeks: Int) -> [Date] {
         let calendar = Calendar.current
