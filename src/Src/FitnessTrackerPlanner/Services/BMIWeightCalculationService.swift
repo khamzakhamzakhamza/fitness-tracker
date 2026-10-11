@@ -9,7 +9,7 @@ public final class BMIWeightCalculationService {
         targetBMI: Double,
         heightSI: Double
     ) throws -> Double {
-        guard targetBMI > 0, heightSI > 0 else {
+        guard heightSI > 0 else {
             throw BMIWeightCalculationError.invalidInput
         }
 
