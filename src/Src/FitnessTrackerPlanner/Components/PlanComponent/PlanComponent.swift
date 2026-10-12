@@ -150,8 +150,7 @@ public struct PlanComponent: View {
                             weight: convertedWeight,
                             fixed: weekValue.fixed,
                             locked: weekValue.locked,
-                            isDragged: draggedWeekDate == date,
-                            onLongPress: lockWeekValue
+                            isDragged: draggedWeekDate == date
                         )
                     }
                 }
@@ -201,7 +200,7 @@ public struct PlanComponent: View {
                 onChangeEnded: {
                     draggedWeekDate = nil
                 },
-                onLongPress: { event in
+                onTap: { event in
                     lockWeekValue(with: event)
                 }
             )
@@ -213,54 +212,8 @@ public struct PlanComponent: View {
         .accessibilityLabel(title)
     }
     
-    private func getTouchedDate(
-        at touchLocation: CGPoint,
-        proxy: ChartProxy
-    ) -> WeekValue? {
-        let hitRadius: CGFloat = 22
-
-        for date in axisDates {
-            guard let xPosition = proxy.position(forX: date),
-                  abs(xPosition - touchLocation.x) <= hitRadius,
-                  let weekValue = weekValues[date] else {
-                continue
-            }
-
-            let convertedWeight = convertWeight(
-                weightSi: weekValue.weightSi
-            )
-
-            guard let yPosition = proxy.position(forY: convertedWeight),
-                  abs(yPosition - touchLocation.y) <= hitRadius else {
-                continue
-            }
-
-            let distance = hypot(
-                xPosition - touchLocation.x,
-                yPosition - touchLocation.y
-            )
-
-            guard distance <= hitRadius else {
-                continue
-            }
-
-            return weekValue
-        }
-        
-        return nil
-    }
-    
-    private func lockWeekValue(at date: Date) {
-        guard let weekValue = weekValues[date] else {
-            return
-        }
-
-        weekValue.locked.toggle()
-        weekValues[date] = weekValue
-    }
-
     private func lockWeekValue(
-        with event: WeeklyWeightLongPressEvent
+        with event: WeeklyWeightTapEvent
     ) {
         guard let weekValue = weekValue(near: event.date),
               isWeightNear(
@@ -270,7 +223,8 @@ public struct PlanComponent: View {
             return
         }
 
-        lockWeekValue(at: weekValue.date)
+        weekValue.locked.toggle()
+        weekValues[weekValue.date] = weekValue
     }
 
     private var latestFixedOrLockedWeekBeforeDraggedWeek: WeekValue? {
@@ -391,7 +345,7 @@ public struct PlanComponent: View {
         _ secondWeightSi: Double
     ) -> Bool {
         abs(firstWeightSi - secondWeightSi)
-            <= Constants.pointHitValueRange * 1_000.0
+            <= Constants.pointHitValueRange * 5000.0
     }
 
     private func previousFixedOrLockedWeek(

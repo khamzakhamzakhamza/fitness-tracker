@@ -5,7 +5,6 @@ struct PlanMark: View {
     let weightText: String
     let fixed: Bool
     let locked: Bool
-    let onLongPress: (Date) -> Void
 
     var body: some View {
         ZStack {
@@ -36,12 +35,5 @@ struct PlanMark: View {
         }
         .frame(width: 44, height: 70)
         .contentShape(Rectangle())
-        .onLongPressGesture(minimumDuration: 0.5) {
-            print("test")
-            onLongPress(date)
-        }
-        .onTapGesture {
-            print("PlanMark tapped")
-        }
     }
 }

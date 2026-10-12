@@ -7,7 +7,7 @@ struct WeeklyWeightChangeEvent {
     let weightSi: Double
 }
 
-struct WeeklyWeightLongPressEvent {
+struct WeeklyWeightTapEvent {
     let date: Date
     let weightSi: Double
 }
@@ -17,7 +17,7 @@ private struct PlanChartGesturesModifier: ViewModifier {
     let siConversionValue: Double
     let onChanged: (WeeklyWeightChangeEvent) -> Void
     let onChangeEnded: () -> Void
-    let onLongPress: (WeeklyWeightLongPressEvent) -> Void
+    let onTap: (WeeklyWeightTapEvent) -> Void
 
     @State private var latestHorizontalDragPosition: Double?
     @State private var isHorizontalDragLocked: Bool?
@@ -78,21 +78,17 @@ private struct PlanChartGesturesModifier: ViewModifier {
                                 }
                         )
                         .simultaneousGesture(
-                            LongPressGesture(minimumDuration: 0.5)
-                                .sequenced(
-                                    before: DragGesture(minimumDistance: 0)
-                                )
-                                .onEnded { gesture in
-                                    guard case .second(true, let drag?) = gesture,
-                                          let event = makeWeeklyWeightLongPressEvent(
-                                              at: drag.startLocation,
+                            SpatialTapGesture()
+                                .onEnded { tap in
+                                    guard let event = makeWeeklyWeightTapEvent(
+                                              at: tap.location,
                                               proxy: proxy,
                                               plotFrame: plotFrame
                                           ) else {
                                         return
                                     }
 
-                                    onLongPress(event)
+                                    onTap(event)
                                 }
                         )
                 }
@@ -125,11 +121,11 @@ private struct PlanChartGesturesModifier: ViewModifier {
         )
     }
 
-    private func makeWeeklyWeightLongPressEvent(
+    private func makeWeeklyWeightTapEvent(
         at location: CGPoint,
         proxy: ChartProxy,
         plotFrame: CGRect
-    ) -> WeeklyWeightLongPressEvent? {
+    ) -> WeeklyWeightTapEvent? {
         let plotX = location.x - plotFrame.minX
         let plotY = location.y - plotFrame.minY
 
@@ -138,7 +134,7 @@ private struct PlanChartGesturesModifier: ViewModifier {
             return nil
         }
 
-        return WeeklyWeightLongPressEvent(
+        return WeeklyWeightTapEvent(
             date: date,
             weightSi: convertWeightToSi(weight)
         )
@@ -185,7 +181,7 @@ extension View {
         scrollPosition: Binding<Date>,
         onChanged: @escaping (WeeklyWeightChangeEvent) -> Void,
         onChangeEnded: @escaping () -> Void,
-        onLongPress: @escaping (WeeklyWeightLongPressEvent) -> Void
+        onTap: @escaping (WeeklyWeightTapEvent) -> Void
     ) -> some View {
         modifier(
             PlanChartGesturesModifier(
@@ -193,7 +189,7 @@ extension View {
                 siConversionValue: siConversionValue,
                 onChanged: onChanged,
                 onChangeEnded: onChangeEnded,
-                onLongPress: onLongPress
+                onTap: onTap
             )
         )
     }
