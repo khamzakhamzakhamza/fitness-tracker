@@ -169,6 +169,7 @@ public struct PlanComponent: View {
                                     .month(.twoDigits)
                             )
                             .offset(x: -18)
+                            .padding(.bottom, 8)
                         }
                     }
                 }
