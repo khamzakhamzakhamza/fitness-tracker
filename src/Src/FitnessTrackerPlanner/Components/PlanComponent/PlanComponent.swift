@@ -1,5 +1,6 @@
 import Charts
 import SwiftUI
+import UIKit
 import FitnessTrackerShared
 
 public struct PlanComponent: View {
@@ -283,6 +284,11 @@ public struct PlanComponent: View {
             draggedWeek = matchedWeek
         }
 
+        guard abs(event.weightSi - draggedWeek.weightSi)
+                >= Constants.minimumDragWeightChangeSi else {
+            return
+        }
+
         guard let previousUpdates = proposedPreviousWeekUpdates(
             from: draggedWeek,
             draggedWeightSi: event.weightSi
@@ -300,6 +306,8 @@ public struct PlanComponent: View {
         for update in previousUpdates + followingUpdates {
             setWeight(update.weightSi, for: update.week)
         }
+
+        UISelectionFeedbackGenerator().selectionChanged()
     }
 
     private func proposedPreviousWeekUpdates(
@@ -353,15 +361,6 @@ public struct PlanComponent: View {
         var followingWeek = draggedWeek.nextWeek
 
         while let week = followingWeek {
-            if week.fixed || week.locked {
-                guard abs(week.weightSi - precedingWeightSi)
-                        <= Constants.maximumWeeklyWeightChangeSi else {
-                    return nil
-                }
-
-                return updates
-            }
-
             let updatedWeightSi = min(
                 max(
                     week.weightSi,
@@ -463,6 +462,7 @@ private enum Constants {
     static let maximumGainSeries = "Maximum gain"
     static let maximumLossSeries = "Maximum loss"
     static let maximumWeeklyWeightChangeSi = 1_000.0
+    static let minimumDragWeightChangeSi = 1000.0
 
     
     
