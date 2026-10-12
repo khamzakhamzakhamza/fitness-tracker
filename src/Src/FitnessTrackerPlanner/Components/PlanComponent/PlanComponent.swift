@@ -97,23 +97,12 @@ public struct PlanComponent: View {
                         )
                         .foregroundStyle(Color.red.opacity(0.7))
 
-                        LineMark(
-                            x: .value(
-                                Constants.weekValueLabel,
-                                projection.date
-                            ),
-                            y: .value(
-                                Constants.planValueLabel,
-                                convertWeight(
-                                    weightSi: projection.minimumWeightSi
-                                )
-                            ),
-                            series: .value(
-                                Constants.weightLimitSeriesLabel,
-                                Constants.maximumLossSeries
+                        ProjectionLineMark(
+                            date: projection.date,
+                            weight: convertWeight(
+                                weightSi: projection.minimumWeightSi
                             )
                         )
-                        .foregroundStyle(Color.blue.opacity(0.7))
                     }
                 }
 
