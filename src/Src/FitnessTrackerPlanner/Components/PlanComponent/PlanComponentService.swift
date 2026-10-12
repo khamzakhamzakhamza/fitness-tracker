@@ -98,6 +98,26 @@ internal enum PlanComponentService {
 
         return lowerBound...upperBound
     }
+
+    internal static func makeYDomain(
+        numberOfWeeks: Int,
+        startingWeightSI: Double,
+        siConversionValue: Double
+    ) -> ClosedRange<Double> {
+        let paddingWeightSI = 8_000.0
+        let maximumWeeklyChangeSI = 1_000.0
+        let totalPotentialChangeSI = maximumWeeklyChangeSI
+            * Double(numberOfWeeks)
+
+        let minimumWeightSI = startingWeightSI
+            - totalPotentialChangeSI
+            - paddingWeightSI
+        let maximumWeightSI = startingWeightSI
+            + totalPotentialChangeSI
+            + paddingWeightSI
+
+        return (minimumWeightSI / siConversionValue)...(maximumWeightSI / siConversionValue)
+    }
     
     internal static func makeAxisDates(_ numberOfWeeks: Int) -> [Date] {
         let calendar = Calendar.current

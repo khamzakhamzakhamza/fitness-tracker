@@ -11,6 +11,7 @@ public struct PlanComponent: View {
     @State private var weekValues: [Date: WeekValue]
     @State private var scrollPosition: Date
     @State private var draggedWeekDate: Date?
+    @State private var weightUnit: MeasurementUnitOption?
     
     public init(title: String,
                 numberOfWeeks: Int,
@@ -48,23 +49,25 @@ public struct PlanComponent: View {
         PlanComponentService.makeXDomain(dates: axisDates)
     }
 
-    // TODO: Move this to a static service thing
     private var yDomain: ClosedRange<Double> {
-        let paddingWeightSi = 8000.0
-        let maxWeeklyChangeSi = 1000.0
-        
-        let maxPotentialWeightIncrease = maxWeeklyChangeSi * Double(numberOfWeeks)
-        let maxPotentialWeight = latestMeasurement.weightSI + maxPotentialWeightIncrease
-        
-        let minPotentialWeightDecrease = maxWeeklyChangeSi * Double(numberOfWeeks)
-        let minPotentialWeight = latestMeasurement.weightSI - minPotentialWeightDecrease
-        
-        return convertWeight(weightSi:(minPotentialWeight - paddingWeightSi))...convertWeight(weightSi:(maxPotentialWeight + paddingWeightSi))
+        PlanComponentService.makeYDomain(
+            numberOfWeeks: numberOfWeeks,
+            startingWeightSI: latestMeasurement.weightSI,
+            siConversionValue: weightConversionValue
+        )
     }
-    
+
+    private var weightConversionValue: Double {
+        guard let conversionValue = weightUnit?.siConversionValue,
+              conversionValue > 0 else {
+            return Constants.defaultWeightConversionValue
+        }
+
+        return conversionValue
+    }
+
     private func convertWeight(weightSi: Double) -> Double {
-        // TODO: Add actual unit convertion
-        return weightSi / 1000.0
+        weightSi / weightConversionValue
     }
 
     public var body: some View {
@@ -194,7 +197,7 @@ public struct PlanComponent: View {
             .chartXVisibleDomain(length: visibleDuration)
             .chartScrollPosition(x: $scrollPosition)
             .addChartGestures(
-                siConversionValue: 1000.0, // TODO make for real
+                siConversionValue: weightConversionValue,
                 scrollPosition: $scrollPosition,
                 onChanged: { event in
                     updateDraggedWeek(with: event)
@@ -212,6 +215,22 @@ public struct PlanComponent: View {
         .frame(maxWidth: .infinity)
         .accessibilityElement(children: .combine)
         .accessibilityLabel(title)
+        .task {
+            loadWeightUnit()
+        }
+    }
+
+    private func loadWeightUnit() {
+        guard let measurementUnitService = PlanningDependencyContext.measurementUnitService else {
+            return
+        }
+
+        do {
+            let units = try measurementUnitService.fetchWeightMeasurementUnits()
+            weightUnit = units.first(where: \.isDefault) ?? units.first
+        } catch {
+            weightUnit = nil
+        }
     }
     
     private func lockWeekValue(
@@ -463,6 +482,7 @@ private enum Constants {
     static let maximumLossSeries = "Maximum loss"
     static let maximumWeeklyWeightChangeSi = 1_000.0
     static let minimumDragWeightChangeSi = 1000.0
+    static let defaultWeightConversionValue = 1_000.0
 
     
     
