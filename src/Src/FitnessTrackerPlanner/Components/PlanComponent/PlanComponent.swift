@@ -9,8 +9,6 @@ public struct PlanComponent: View {
 
     @State private var weekValues: [Date: WeekValue]
     @State private var scrollPosition: Date
-    
-    @State private var updating = false
     @State private var draggedWeekDate: Date?
     
     public init(title: String,
@@ -24,9 +22,8 @@ public struct PlanComponent: View {
         let calendar = Calendar.current
         let dates = PlanComponentService.makeAxisDates(numberOfWeeks)
         let startDate = dates.first ?? calendar.startOfDay(for: .now)
-        let xDomain = PlanComponentService.makeXDomain(dates: dates)
         
-        _scrollPosition = State(initialValue: xDomain.lowerBound)
+        _scrollPosition = State(initialValue: PlanComponentService.makeXDomain(dates: dates).lowerBound)
 
         _weekValues = State(
             initialValue: PlanComponentService.makeWeekValues(
@@ -37,7 +34,9 @@ public struct PlanComponent: View {
         )
     }
     
-    private var axisDates: [Date] { PlanComponentService.makeAxisDates(numberOfWeeks) }
+    private var axisDates: [Date] {
+        PlanComponentService.makeAxisDates(numberOfWeeks)
+    }
     
     private var visibleDuration: TimeInterval {
         let visibleWeeks = 4
@@ -48,6 +47,7 @@ public struct PlanComponent: View {
         PlanComponentService.makeXDomain(dates: axisDates)
     }
 
+    // TODO: Move this to a static service thing
     private var yDomain: ClosedRange<Double> {
         let paddingWeightSi = 6000.0
         let maxWeeklyChangeSi = 1000.0
@@ -73,35 +73,25 @@ public struct PlanComponent: View {
                 .padding(.leading, 20)
             
             Chart {
-                if updating,
-                   let anchor = earliestFixedOrLockedWeek {
+                if let anchor = latestFixedOrLockedWeekBeforeDraggedWeek {
                     ForEach(
                         projectedWeightLimits(from: anchor),
                         id: \.date
                     ) { projection in
-                        LineMark(
-                            x: .value(
-                                Constants.weekValueLabel,
-                                projection.date
+                        LimitLineMark(
+                            date: projection.date,
+                            weight: convertWeight(
+                                weightSi: projection.maximumWeightSi
                             ),
-                            y: .value(
-                                Constants.planValueLabel,
-                                convertWeight(
-                                    weightSi: projection.maximumWeightSi
-                                )
-                            ),
-                            series: .value(
-                                Constants.weightLimitSeriesLabel,
-                                Constants.maximumGainSeries
-                            )
+                            series: Constants.maximumGainSeries
                         )
-                        .foregroundStyle(Color.red.opacity(0.7))
 
-                        ProjectionLineMark(
+                        LimitLineMark(
                             date: projection.date,
                             weight: convertWeight(
                                 weightSi: projection.minimumWeightSi
-                            )
+                            ),
+                            series: Constants.maximumLossSeries
                         )
                     }
                 }
@@ -155,24 +145,13 @@ public struct PlanComponent: View {
                                 )
                             )
 
-                        PointMark(
-                            x: .value(Constants.weekValueLabel, date),
-                            y: .value(
-                                Constants.planValueLabel,
-                                convertedWeight
-                            )
+                        WeightPointMark(
+                            date: date,
+                            weight: convertedWeight,
+                            fixed: weekValue.fixed,
+                            locked: weekValue.locked,
+                            onLongPress: lockWeekValue
                         )
-                            .symbolSize(50)
-                            .annotation(position: .overlay) {
-                                PlanMark(
-                                    date: date,
-                                    weightText: PlanComponentService.weightToString(convertedWeight),
-                                    fixed: weekValue.fixed,
-                                    locked: weekValue.locked
-                                ) { heldDate in
-                                    lockWeekValue(at: heldDate)
-                                }
-                            }
                     }
                 }
             }
@@ -215,11 +194,9 @@ public struct PlanComponent: View {
                 siConversionValue: 1000.0,
                 scrollPosition: $scrollPosition,
                 onChanged: { event in
-                    updating = true
                     updateDraggedWeek(with: event)
                 },
                 onChangeEnded: {
-                    updating = false
                     draggedWeekDate = nil
                 },
                 onLongPress: { event in
@@ -294,10 +271,13 @@ public struct PlanComponent: View {
         lockWeekValue(at: weekValue.date)
     }
 
-    private var earliestFixedOrLockedWeek: WeekValue? {
-        weekValues.values
-            .filter { $0.fixed || $0.locked }
-            .min { $0.date < $1.date }
+    private var latestFixedOrLockedWeekBeforeDraggedWeek: WeekValue? {
+        guard let draggedWeekDate,
+              let draggedWeek = weekValues[draggedWeekDate] else {
+            return nil
+        }
+
+        return previousFixedOrLockedWeek(before: draggedWeek)
     }
 
     private func projectedWeightLimits(

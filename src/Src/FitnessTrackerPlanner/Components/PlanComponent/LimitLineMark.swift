@@ -1,9 +1,10 @@
 import Charts
 import SwiftUI
 
-struct ProjectionLineMark: ChartContent {
+struct LimitLineMark: ChartContent {
     let date: Date
     let weight: Double
+    let series: String
 
     var body: some ChartContent {
         LineMark(
@@ -17,7 +18,7 @@ struct ProjectionLineMark: ChartContent {
             ),
             series: .value(
                 Constants.weightLimitSeriesLabel,
-                Constants.maximumLossSeries
+                series
             )
         )
         .foregroundStyle(Color.red.opacity(0.7))
@@ -28,5 +29,4 @@ private enum Constants {
     static let weekValueLabel = "Week"
     static let planValueLabel = "Planned weight"
     static let weightLimitSeriesLabel = "Weight limit"
-    static let maximumLossSeries = "Maximum loss"
 }
