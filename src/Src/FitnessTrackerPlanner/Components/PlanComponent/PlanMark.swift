@@ -5,6 +5,7 @@ struct PlanMark: View {
     let weightText: String
     let fixed: Bool
     let locked: Bool
+    let isLastDate: Bool
 
     var body: some View {
         ZStack {
@@ -16,24 +17,35 @@ struct PlanMark: View {
                 )
                 .frame(width: 10, height: 10)
 
-            Text(weightText)
-                .font(.caption)
-                .foregroundStyle(
-                    fixed ? Color.green : Color.accentColor
-                )
-                .offset(
-                    x: fixed ? -7 : 0,
-                    y: -18
-                )
-
-            if locked {
-                Image(systemName: "lock.fill")
+            HStack(spacing: 3) {
+                Text(weightText)
                     .font(.caption)
+                    .lineLimit(1)
+                    .foregroundStyle(
+                        fixed ? Color.green : Color.accentColor
+                    )
+
+                if locked {
+                    Image(systemName: "lock.fill")
+                        .font(.caption)
                     .foregroundStyle(.secondary)
-                    .offset(y: -34)
+                }
             }
+            .fixedSize(horizontal: true, vertical: false)
+            .offset(
+                x: labelOffsetX,
+                y: -18
+            )
         }
-        .frame(width: 44, height: 70)
+        .frame(width: 80, height: 70)
         .contentShape(Rectangle())
+    }
+
+    private var labelOffsetX: CGFloat {
+        if isLastDate {
+            return 15
+        }
+
+        return fixed ? -15 : 0
     }
 }

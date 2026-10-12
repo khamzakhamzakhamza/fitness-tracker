@@ -150,7 +150,8 @@ public struct PlanComponent: View {
                             weight: convertedWeight,
                             fixed: weekValue.fixed,
                             locked: weekValue.locked,
-                            isDragged: draggedWeekDate == date
+                            isDragged: draggedWeekDate == date,
+                            isLastDate: date == axisDates.last
                         )
                     }
                 }

@@ -7,6 +7,7 @@ struct WeightPointMark: ChartContent {
     let fixed: Bool
     let locked: Bool
     let isDragged: Bool
+    let isLastDate: Bool
 
     var body: some ChartContent {
         PointMark(
@@ -22,7 +23,8 @@ struct WeightPointMark: ChartContent {
                 date: date,
                 weightText: PlanComponentService.weightToString(weight),
                 fixed: fixed,
-                locked: locked
+                locked: locked,
+                isLastDate: isLastDate
             )
             .shadow(
                 color: isDragged
