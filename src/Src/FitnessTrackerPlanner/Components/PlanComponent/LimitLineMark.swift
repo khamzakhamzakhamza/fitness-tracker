@@ -21,7 +21,7 @@ struct LimitLineMark: ChartContent {
                 series
             )
         )
-        .foregroundStyle(Color.red.opacity(0.7))
+        .foregroundStyle(Color.red.opacity(0.4))
     }
 }
 

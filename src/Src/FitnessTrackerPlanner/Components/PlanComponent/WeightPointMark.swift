@@ -6,6 +6,7 @@ struct WeightPointMark: ChartContent {
     let weight: Double
     let fixed: Bool
     let locked: Bool
+    let isDragged: Bool
     let onLongPress: (Date) -> Void
 
     var body: some ChartContent {
@@ -24,6 +25,22 @@ struct WeightPointMark: ChartContent {
                 fixed: fixed,
                 locked: locked,
                 onLongPress: onLongPress
+            )
+            .shadow(
+                color: isDragged
+                    ? Color.accentColor
+                    : .clear,
+                radius: isDragged ? 10 : 0
+            )
+            .shadow(
+                color: isDragged
+                    ? Color.accentColor.opacity(0.9)
+                    : .clear,
+                radius: isDragged ? 22 : 0
+            )
+            .animation(
+                .easeInOut(duration: 0.15),
+                value: isDragged
             )
         }
     }

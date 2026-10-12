@@ -71,7 +71,7 @@ internal enum PlanComponentService {
     }
     
     internal static func weightToString(_ weight: Double) -> String {
-        return weight.formatted(.number.precision(.fractionLength(0...2)))
+        return weight.formatted(.number.precision(.fractionLength(0...1)))
     }
 
     internal static func makeXDomain(

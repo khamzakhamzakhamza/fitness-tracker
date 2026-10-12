@@ -49,7 +49,7 @@ public struct PlanComponent: View {
 
     // TODO: Move this to a static service thing
     private var yDomain: ClosedRange<Double> {
-        let paddingWeightSi = 6000.0
+        let paddingWeightSi = 8000.0
         let maxWeeklyChangeSi = 1000.0
         
         let maxPotentialWeightIncrease = maxWeeklyChangeSi * Double(numberOfWeeks)
@@ -150,6 +150,7 @@ public struct PlanComponent: View {
                             weight: convertedWeight,
                             fixed: weekValue.fixed,
                             locked: weekValue.locked,
+                            isDragged: draggedWeekDate == date,
                             onLongPress: lockWeekValue
                         )
                     }
@@ -183,7 +184,7 @@ public struct PlanComponent: View {
                          else {
                             AxisGridLine()
                             AxisTick()
-                             AxisValueLabel {Text(PlanComponentService.weightToString(weight))}
+                            AxisValueLabel {Text(PlanComponentService.weightToString(weight))}
                          }
                     }
                 }
@@ -191,7 +192,7 @@ public struct PlanComponent: View {
             .chartXVisibleDomain(length: visibleDuration)
             .chartScrollPosition(x: $scrollPosition)
             .addChartGestures(
-                siConversionValue: 1000.0,
+                siConversionValue: 1000.0, // TODO make for real
                 scrollPosition: $scrollPosition,
                 onChanged: { event in
                     updateDraggedWeek(with: event)
