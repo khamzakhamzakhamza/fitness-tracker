@@ -284,39 +284,54 @@ public struct PlanComponent: View {
             draggedWeek = matchedWeek
         }
 
-        let anchor = previousFixedOrLockedWeek(before: draggedWeek)
+        setWeight(event.weightSi, for: draggedWeek)
 
-        guard let anchor else {
-            setWeight(event.weightSi, for: draggedWeek)
-            return
-        }
+        var nextWeek = draggedWeek
+        var previousWeek = draggedWeek.previousWeek
 
-        var weeksToUpdate: [WeekValue] = []
-        var currentWeek = anchor.nextWeek
-
-        while let week = currentWeek {
-            weeksToUpdate.append(week)
-
-            if week === draggedWeek {
+        while let week = previousWeek {
+            guard !week.fixed && !week.locked else {
                 break
             }
 
-            currentWeek = week.nextWeek
-        }
+            let minimumAllowedWeightSi = nextWeek.weightSi
+                - Constants.maximumWeeklyWeightChangeSi
+            let maximumAllowedWeightSi = nextWeek.weightSi
+                + Constants.maximumWeeklyWeightChangeSi
 
-        guard weeksToUpdate.last === draggedWeek else {
-            return
-        }
-
-        let weightChangePerWeek = (
-            event.weightSi - anchor.weightSi
-        ) / Double(weeksToUpdate.count)
-
-        for (index, week) in weeksToUpdate.enumerated() {
-            let updatedWeightSi = anchor.weightSi
-                + weightChangePerWeek * Double(index + 1)
+            let updatedWeightSi = min(
+                max(week.weightSi, minimumAllowedWeightSi),
+                maximumAllowedWeightSi
+            )
 
             setWeight(updatedWeightSi, for: week)
+
+            nextWeek = week
+            previousWeek = week.previousWeek
+        }
+
+        var precedingWeek = draggedWeek
+        var followingWeek = draggedWeek.nextWeek
+
+        while let week = followingWeek {
+            guard !week.fixed && !week.locked else {
+                break
+            }
+
+            let minimumAllowedWeightSi = precedingWeek.weightSi
+                - Constants.maximumWeeklyWeightChangeSi
+            let maximumAllowedWeightSi = precedingWeek.weightSi
+                + Constants.maximumWeeklyWeightChangeSi
+
+            let updatedWeightSi = min(
+                max(week.weightSi, minimumAllowedWeightSi),
+                maximumAllowedWeightSi
+            )
+
+            setWeight(updatedWeightSi, for: week)
+
+            precedingWeek = week
+            followingWeek = week.nextWeek
         }
     }
 
