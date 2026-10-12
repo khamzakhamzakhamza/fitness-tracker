@@ -280,59 +280,110 @@ public struct PlanComponent: View {
                 return
             }
 
-            draggedWeekDate = matchedWeek.date
             draggedWeek = matchedWeek
         }
 
+        guard let previousUpdates = proposedPreviousWeekUpdates(
+            from: draggedWeek,
+            draggedWeightSi: event.weightSi
+        ),
+        let followingUpdates = proposedFollowingWeekUpdates(
+            from: draggedWeek,
+            draggedWeightSi: event.weightSi
+        ) else {
+            return
+        }
+
+        draggedWeekDate = draggedWeek.date
         setWeight(event.weightSi, for: draggedWeek)
 
-        var nextWeek = draggedWeek
+        for update in previousUpdates + followingUpdates {
+            setWeight(update.weightSi, for: update.week)
+        }
+    }
+
+    private func proposedPreviousWeekUpdates(
+        from draggedWeek: WeekValue,
+        draggedWeightSi: Double
+    ) -> [WeekWeightUpdate]? {
+        var updates: [WeekWeightUpdate] = []
+        var followingWeightSi = draggedWeightSi
         var previousWeek = draggedWeek.previousWeek
 
         while let week = previousWeek {
-            guard !week.fixed && !week.locked else {
-                break
+            if week.fixed || week.locked {
+                guard abs(week.weightSi - followingWeightSi)
+                        <= Constants.maximumWeeklyWeightChangeSi else {
+                    return nil
+                }
+
+                return updates
             }
 
-            let minimumAllowedWeightSi = nextWeek.weightSi
-                - Constants.maximumWeeklyWeightChangeSi
-            let maximumAllowedWeightSi = nextWeek.weightSi
-                + Constants.maximumWeeklyWeightChangeSi
-
             let updatedWeightSi = min(
-                max(week.weightSi, minimumAllowedWeightSi),
-                maximumAllowedWeightSi
+                max(
+                    week.weightSi,
+                    followingWeightSi
+                        - Constants.maximumWeeklyWeightChangeSi
+                ),
+                followingWeightSi
+                    + Constants.maximumWeeklyWeightChangeSi
             )
 
-            setWeight(updatedWeightSi, for: week)
+            updates.append(
+                WeekWeightUpdate(
+                    week: week,
+                    weightSi: updatedWeightSi
+                )
+            )
 
-            nextWeek = week
+            followingWeightSi = updatedWeightSi
             previousWeek = week.previousWeek
         }
 
-        var precedingWeek = draggedWeek
+        return updates
+    }
+
+    private func proposedFollowingWeekUpdates(
+        from draggedWeek: WeekValue,
+        draggedWeightSi: Double
+    ) -> [WeekWeightUpdate]? {
+        var updates: [WeekWeightUpdate] = []
+        var precedingWeightSi = draggedWeightSi
         var followingWeek = draggedWeek.nextWeek
 
         while let week = followingWeek {
-            guard !week.fixed && !week.locked else {
-                break
+            if week.fixed || week.locked {
+                guard abs(week.weightSi - precedingWeightSi)
+                        <= Constants.maximumWeeklyWeightChangeSi else {
+                    return nil
+                }
+
+                return updates
             }
 
-            let minimumAllowedWeightSi = precedingWeek.weightSi
-                - Constants.maximumWeeklyWeightChangeSi
-            let maximumAllowedWeightSi = precedingWeek.weightSi
-                + Constants.maximumWeeklyWeightChangeSi
-
             let updatedWeightSi = min(
-                max(week.weightSi, minimumAllowedWeightSi),
-                maximumAllowedWeightSi
+                max(
+                    week.weightSi,
+                    precedingWeightSi
+                        - Constants.maximumWeeklyWeightChangeSi
+                ),
+                precedingWeightSi
+                    + Constants.maximumWeeklyWeightChangeSi
             )
 
-            setWeight(updatedWeightSi, for: week)
+            updates.append(
+                WeekWeightUpdate(
+                    week: week,
+                    weightSi: updatedWeightSi
+                )
+            )
 
-            precedingWeek = week
+            precedingWeightSi = updatedWeightSi
             followingWeek = week.nextWeek
         }
+
+        return updates
     }
 
     private func weekValue(near date: Date) -> WeekValue? {
@@ -394,6 +445,11 @@ private struct ProjectedWeightLimit {
     let date: Date
     let maximumWeightSi: Double
     let minimumWeightSi: Double
+}
+
+private struct WeekWeightUpdate {
+    let week: WeekValue
+    let weightSi: Double
 }
 
 private enum Constants {
