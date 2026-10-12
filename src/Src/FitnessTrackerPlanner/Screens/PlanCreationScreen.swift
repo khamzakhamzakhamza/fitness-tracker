@@ -282,8 +282,8 @@ private enum Constants {
     static let weightComparisonToleranceSI = 50.0
     static let planTimeLabel = "Plan time"
     static let weeksUnit = "weeks"
-    static let planLengthRange = 1.0...520.0
-    static let planLengthOptions = ["12 weeks", "24 weeks", "52 weeks"]
+    static let planLengthRange = 4.0...480.0
+    static let planLengthOptions = ["12 weeks", "24 weeks", "48 weeks"]
     static let defaultPlanLengthOption = "24 weeks"
     static let activatePlanButtonTitle = "ACTIVATE PLAN"
     static let unsavedChangesTitle = "Discard plan changes?"
