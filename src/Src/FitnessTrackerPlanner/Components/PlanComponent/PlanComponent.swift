@@ -7,6 +7,7 @@ public struct PlanComponent: View {
     public let title: String
     public let numberOfWeeks: Int
     public let latestMeasurement: UserMeasurement
+    public let planDefinition: PlanDefinition
 
     @State private var weekValues: [Date: WeekValue]
     @State private var scrollPosition: Date
@@ -15,11 +16,13 @@ public struct PlanComponent: View {
     
     public init(title: String,
                 numberOfWeeks: Int,
-                latestMeasurement: UserMeasurement)
+                latestMeasurement: UserMeasurement,
+                planDefinition: PlanDefinition)
     {
         self.title = title
         self.numberOfWeeks = numberOfWeeks
         self.latestMeasurement = latestMeasurement
+        self.planDefinition = planDefinition
         
         let calendar = Calendar.current
         let dates = PlanComponentService.makeAxisDates(numberOfWeeks)
@@ -496,6 +499,7 @@ private enum Constants {
                     heightSI: 181,
                     leanMass: 77,
                     activityLevelID: 3
-                  )
+                  ),
+                  planDefinition: .maintenance24Weeks
     ).padding()
 }

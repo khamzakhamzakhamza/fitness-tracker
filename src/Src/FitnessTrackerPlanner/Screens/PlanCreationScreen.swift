@@ -55,7 +55,8 @@ public struct PlanCreationScreen: View {
                         PlanComponent(
                             title: selectedPlanName,
                             numberOfWeeks: Int(planLength) ?? 0,
-                            latestMeasurement: currentMeasurement
+                            latestMeasurement: currentMeasurement,
+                            planDefinition: .maintenance24Weeks
                         )
                     }
                 }
