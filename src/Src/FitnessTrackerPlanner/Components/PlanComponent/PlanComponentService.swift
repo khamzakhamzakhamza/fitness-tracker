@@ -44,7 +44,6 @@ internal enum PlanComponentService {
             return WeekValue(
                 date: date,
                 weightSi: startingWeightSI + deltaSI,
-                deltaSi: deltaSI,
                 fixed: index == 0,
                 locked: false
             )

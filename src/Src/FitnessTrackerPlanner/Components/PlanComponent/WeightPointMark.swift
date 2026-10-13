@@ -20,7 +20,6 @@ struct WeightPointMark: ChartContent {
         .symbolSize(50)
         .annotation(position: .overlay) {
             PlanMark(
-                date: date,
                 weightText: PlanComponentService.weightToString(weight),
                 fixed: fixed,
                 locked: locked,

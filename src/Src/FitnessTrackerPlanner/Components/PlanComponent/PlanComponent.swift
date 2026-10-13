@@ -454,7 +454,6 @@ public struct PlanComponent: View {
         for week: WeekValue
     ) {
         week.weightSi = weightSi
-        week.deltaSi = weightSi - latestMeasurement.weightSI
         weekValues[week.date] = week
     }
 }
@@ -472,31 +471,19 @@ private struct WeekWeightUpdate {
 
 private enum Constants {
     static let planValueLabel = "Planned weight"
-    static let planLineYPosition = 0
     static let planLineColor = "SearchBoxSecondary"
     static let planLineOpacity = 0.3
     
     static let weekValueLabel = "Week"
-    static let weightLimitSeriesLabel = "Weight limit"
     static let maximumGainSeries = "Maximum gain"
     static let maximumLossSeries = "Maximum loss"
     static let maximumWeeklyWeightChangeSi = 1_000.0
-    static let minimumDragWeightChangeSi = 1000.0
+    static let minimumDragWeightChangeSi = 100.0
     static let defaultWeightConversionValue = 1_000.0
-
-    
     
     static let weekLineOpacity = 0.2
-    static let dateLabelOffset = -10.0
     static let secondsPerDay = 86_400
-    static let minimumPointValue = -0.82
-    static let maximumPointValue = 0.82
-    static let pointSize = 55.0
-    static let pointHitDateInterval = 3.0 * Double(secondsPerDay)
     static let pointHitValueRange = 1.0
-    
-    static let maxWeeklyGainSi = 0.5
-    static let maxWeeklyLossSi = 1
 }
 
 #Preview {

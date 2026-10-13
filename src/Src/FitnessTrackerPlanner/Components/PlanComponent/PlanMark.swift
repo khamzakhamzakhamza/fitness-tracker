@@ -1,7 +1,6 @@
 import SwiftUI
 
 struct PlanMark: View {
-    let date: Date
     let weightText: String
     let fixed: Bool
     let locked: Bool
