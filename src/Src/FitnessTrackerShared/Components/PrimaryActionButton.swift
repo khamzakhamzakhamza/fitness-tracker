@@ -2,10 +2,10 @@ import SwiftUI
 
 public struct PrimaryActionButton: View {
     public let title: String
-    public var minimumHeight: CGFloat = 56
+    public var minimumHeight: CGFloat = 46
     public let action: () -> Void
 
-    public init(title: String, minimumHeight: CGFloat = 56, action: @escaping () -> Void) { self.title = title; self.minimumHeight = minimumHeight; self.action = action }
+    public init(title: String, minimumHeight: CGFloat = 46, action: @escaping () -> Void) { self.title = title; self.minimumHeight = minimumHeight; self.action = action }
 
     public var body: some View {
         Button(action: action) {

@@ -17,58 +17,56 @@ public struct MeasurementInputScreen: View {
 
     public var body: some View {
         VStack(spacing: 0) {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 12) {
-                    Text(Constants.title)
-                        .font(.system(size: 28, weight: .black))
+            VStack(alignment: .leading, spacing: 12) {
+                Text(Constants.title)
+                    .font(.system(size: 28, weight: .black))
 
-                    InfoLabel(text: Constants.infoMessage)
+                InfoLabel(text: Constants.infoMessage)
 
-                    VStack(spacing: 16) {
-                        InputNumberRow(
-                            value: $weight,
-                            label: Constants.weightLabel,
-                            placeholder: weightPlaceholder,
-                            allowedRange: weightInputRange,
-                            unitOptions: weightUnits.map(\.shortName),
-                            selectedUnit: $weightUnit,
-                            showValidationError: shouldShowValidationErrors && !isWeightValid
-                        )
+                VStack(spacing: 16) {
+                    InputNumberRow(
+                        value: $weight,
+                        label: Constants.weightLabel,
+                        placeholder: weightPlaceholder,
+                        allowedRange: weightInputRange,
+                        unitOptions: weightUnits.map(\.shortName),
+                        selectedUnit: $weightUnit,
+                        showValidationError: shouldShowValidationErrors && !isWeightValid
+                    )
 
-                        InputNumberRow(
-                            value: $height,
-                            label: Constants.heightLabel,
-                            placeholder: heightPlaceholder,
-                            allowedRange: heightInputRange,
-                            unitOptions: heightUnits.map(\.shortName),
-                            selectedUnit: $heightUnit,
-                            showValidationError: shouldShowValidationErrors && !isHeightValid
-                        )
+                    InputNumberRow(
+                        value: $height,
+                        label: Constants.heightLabel,
+                        placeholder: heightPlaceholder,
+                        allowedRange: heightInputRange,
+                        unitOptions: heightUnits.map(\.shortName),
+                        selectedUnit: $heightUnit,
+                        showValidationError: shouldShowValidationErrors && !isHeightValid
+                    )
 
-                        InputNumberRow(
-                            value: $leanMass,
-                            label: Constants.leanMassLabel,
-                            placeholder: Constants.leanMassPlaceholder,
-                            allowedRange: Constants.leanMassRange,
-                            unit: Constants.percentageUnit,
-                            inlineOptions: Constants.leanMassOptions,
-                            selectedInlineOption: $leanMassPreset,
-                            showValidationError: shouldShowValidationErrors && !isLeanMassValid
-                        )
+                    InputNumberRow(
+                        value: $leanMass,
+                        label: Constants.leanMassLabel,
+                        placeholder: Constants.leanMassPlaceholder,
+                        allowedRange: Constants.leanMassRange,
+                        unit: Constants.percentageUnit,
+                        inlineOptions: Constants.leanMassOptions,
+                        selectedInlineOption: $leanMassPreset,
+                        showValidationError: shouldShowValidationErrors && !isLeanMassValid
+                    )
 
-                        InputDropdownRow(
-                            selection: $activity,
-                            label: Constants.activityLabel,
-                            options: Constants.activityOptions.map(\.description)
-                        )
-                    }
-                    .padding(.top, 4)
-
+                    InputDropdownRow(
+                        selection: $activity,
+                        label: Constants.activityLabel,
+                        options: Constants.activityOptions.map(\.description)
+                    )
                 }
-                .padding(20)
-                .padding(.top, 15)
+                .padding(.top, 4)
             }
-            .scrollDismissesKeyboard(.interactively)
+            .padding(20)
+            .padding(.top, 15)
+
+            Spacer(minLength: 0)
 
             VStack(spacing: 0) {
                 CalorieBreakdown(

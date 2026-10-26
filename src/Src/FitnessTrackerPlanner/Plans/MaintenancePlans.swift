@@ -31,7 +31,8 @@ public extension PlanDefinition {
             weeks: (1...lengthInWeeks).map {
                 PlanWeekValue(
                     week: $0,
-                    weightDeltaSI: 0
+                    weightDeltaSI: 0,
+                    locked: false
                 )
             }
         )

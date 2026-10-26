@@ -2,6 +2,7 @@ import Foundation
 
 @MainActor
 public protocol PlanningServiceProtocol {
+    func createPlan(_ plan: PlanCreationRequest) -> Bool
     func fetchUser() throws -> User?
     func fetchMeasurements(amount: Int) throws -> [UserMeasurement]
 }
@@ -52,5 +53,15 @@ public final class PlanningService: PlanningServiceProtocol {
 
     public func fetchMeasurements(amount: Int) throws -> [UserMeasurement] {
         try repository.fetchMeasurements(amount: amount)
+    }
+
+    @discardableResult
+    public func createPlan(_ plan: PlanCreationRequest) -> Bool {
+        do {
+            try repository.createPlan(plan)
+            return true
+        } catch {
+            return false
+        }
     }
 }

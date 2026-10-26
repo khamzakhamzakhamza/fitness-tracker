@@ -20,12 +20,15 @@ public struct PlanDefinition {
 public struct PlanWeekValue {
     public let week: Int
     public let weightDeltaSI: Double
+    public let locked: Bool
 
     public init(
         week: Int,
-        weightDeltaSI: Double
+        weightDeltaSI: Double,
+        locked: Bool
     ) {
         self.week = week
         self.weightDeltaSI = weightDeltaSI
+        self.locked = locked
     }
 }

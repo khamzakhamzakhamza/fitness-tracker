@@ -29,6 +29,7 @@ internal enum PlanComponentService {
         dates: [Date],
         startDate: Date,
         startingWeightSI: Double,
+        planDefinition: PlanDefinition,
         calendar: Calendar = .current
     ) -> [Date: WeekValue] {
         let values = dates.enumerated().map { index, date in
@@ -38,14 +39,19 @@ internal enum PlanComponentService {
                 to: date
             ).day ?? 0
 
-            let elapsedWeeks = Double(elapsedDays) / 7.0
-            let deltaSI = elapsedWeeks * 1_000.0
+            let weekNumber = Int(
+                ceil(Double(elapsedDays) / 7.0)
+            )
+            let planWeek = planDefinition.weeks.first {
+                $0.week == weekNumber
+            }
 
             return WeekValue(
                 date: date,
-                weightSi: startingWeightSI + deltaSI,
+                weightSi: startingWeightSI
+                    + (planWeek?.weightDeltaSI ?? 0),
                 fixed: index == 0,
-                locked: false
+                locked: planWeek?.locked ?? false
             )
         }
 

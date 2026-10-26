@@ -8,6 +8,7 @@ public struct PlanComponent: View {
     public let numberOfWeeks: Int
     public let latestMeasurement: UserMeasurement
     public let planDefinition: PlanDefinition
+    public let onDragEnded: ([PlanMilestoneValue]) -> Void
 
     @State private var weekValues: [Date: WeekValue]
     @State private var scrollPosition: Date
@@ -17,12 +18,14 @@ public struct PlanComponent: View {
     public init(title: String,
                 numberOfWeeks: Int,
                 latestMeasurement: UserMeasurement,
-                planDefinition: PlanDefinition)
+                planDefinition: PlanDefinition,
+                onDragEnded: @escaping ([PlanMilestoneValue]) -> Void)
     {
         self.title = title
         self.numberOfWeeks = numberOfWeeks
         self.latestMeasurement = latestMeasurement
         self.planDefinition = planDefinition
+        self.onDragEnded = onDragEnded
         
         let calendar = Calendar.current
         let dates = PlanComponentService.makeAxisDates(numberOfWeeks)
@@ -34,7 +37,8 @@ public struct PlanComponent: View {
             initialValue: PlanComponentService.makeWeekValues(
                 dates: dates,
                 startDate: startDate,
-                startingWeightSI: latestMeasurement.weightSI
+                startingWeightSI: latestMeasurement.weightSI,
+                planDefinition: planDefinition
             )
         )
     }
@@ -206,6 +210,7 @@ public struct PlanComponent: View {
                     updateDraggedWeek(with: event)
                 },
                 onChangeEnded: {
+                    onDragEnded(planMilestones)
                     draggedWeekDate = nil
                 },
                 onTap: { event in
@@ -220,7 +225,19 @@ public struct PlanComponent: View {
         .accessibilityLabel(title)
         .task {
             loadWeightUnit()
+            onDragEnded(planMilestones)
         }
+    }
+
+    private var planMilestones: [PlanMilestoneValue] {
+        weekValues.values
+            .sorted { $0.date < $1.date }
+            .map {
+                PlanMilestoneValue(
+                    date: $0.date,
+                    targetWeightSI: $0.weightSi
+                )
+            }
     }
 
     private func loadWeightUnit() {
@@ -500,6 +517,7 @@ private enum Constants {
                     leanMass: 77,
                     activityLevelID: 3
                   ),
-                  planDefinition: .maintenance24Weeks
+                  planDefinition: .maintenance24Weeks,
+                  onDragEnded: { _ in }
     ).padding()
 }

@@ -18,6 +18,7 @@ struct WeightPointMark: ChartContent {
             )
         )
         .symbolSize(50)
+        .foregroundStyle(Color.accentColor)
         .annotation(position: .overlay) {
             PlanMark(
                 weightText: PlanComponentService.weightToString(weight),

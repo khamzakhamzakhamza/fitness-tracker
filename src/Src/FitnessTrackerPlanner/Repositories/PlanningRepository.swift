@@ -2,6 +2,7 @@ import Foundation
 import SQLite3
 
 public protocol PlanningRepositoryProtocol {
+    func createPlan(_ plan: PlanCreationRequest) throws
     func createUser(name: String, birthday: Date) throws
     func createMeasurement(
         weightSI: Double,
@@ -17,6 +18,74 @@ public final class PlanningRepository: PlanningRepositoryProtocol {
     public static let shared = PlanningRepository()
 
     public init() {}
+
+    public func createPlan(_ plan: PlanCreationRequest) throws {
+        guard let targetWeightSI = plan.milestones
+            .max(by: { $0.date < $1.date })?
+            .targetWeightSI else {
+            throw PlanningRepositoryError.databaseOperationFailed
+        }
+
+        try withDatabase(readOnly: false) { database in
+            guard sqlite3_exec(
+                database,
+                Constants.beginTransactionQuery,
+                nil,
+                nil,
+                nil
+            ) == SQLITE_OK else {
+                throw PlanningRepositoryError.databaseOperationFailed
+            }
+
+            do {
+                let planID = UUID().uuidString.lowercased()
+
+                try withStatement(Constants.createPlanQuery, in: database) { statement in
+                    guard sqlite3_bind_text(statement, 1, planID, -1, sqliteTransient) == SQLITE_OK,
+                          sqlite3_bind_text(statement, 2, plan.name, -1, sqliteTransient) == SQLITE_OK,
+                          sqlite3_bind_double(statement, 3, targetWeightSI) == SQLITE_OK,
+                          sqlite3_step(statement) == SQLITE_DONE else {
+                        throw PlanningRepositoryError.databaseOperationFailed
+                    }
+                }
+
+                for milestone in plan.milestones {
+                    try withStatement(Constants.createPlanMilestoneQuery, in: database) { statement in
+                        let milestoneID = UUID().uuidString.lowercased()
+                        let date = Int64(milestone.date.timeIntervalSince1970)
+
+                        guard sqlite3_bind_text(statement, 1, milestoneID, -1, sqliteTransient) == SQLITE_OK,
+                              sqlite3_bind_text(statement, 2, planID, -1, sqliteTransient) == SQLITE_OK,
+                              sqlite3_bind_int64(statement, 3, date) == SQLITE_OK,
+                              sqlite3_bind_double(statement, 4, milestone.targetWeightSI) == SQLITE_OK,
+                              sqlite3_bind_int(statement, 5, 1) == SQLITE_OK,
+                              sqlite3_step(statement) == SQLITE_DONE else {
+                            throw PlanningRepositoryError.databaseOperationFailed
+                        }
+                    }
+                }
+
+                guard sqlite3_exec(
+                    database,
+                    Constants.commitTransactionQuery,
+                    nil,
+                    nil,
+                    nil
+                ) == SQLITE_OK else {
+                    throw PlanningRepositoryError.databaseOperationFailed
+                }
+            } catch {
+                sqlite3_exec(
+                    database,
+                    Constants.rollbackTransactionQuery,
+                    nil,
+                    nil,
+                    nil
+                )
+                throw error
+            }
+        }
+    }
 
     public func createUser(name: String, birthday: Date) throws {
         try withDatabase(readOnly: false) { database in
@@ -183,11 +252,28 @@ public enum PlanningRepositoryError: Error {
 private let sqliteTransient = unsafeBitCast(-1, to: sqlite3_destructor_type.self)
 
 private enum Constants {
+    static let beginTransactionQuery = "BEGIN IMMEDIATE TRANSACTION;"
+    static let commitTransactionQuery = "COMMIT;"
+    static let rollbackTransactionQuery = "ROLLBACK;"
     static let databaseDirectory = "FitnessTracker"
     static let databaseFileName = "local.sqlite"
     static let createUserQuery = """
         INSERT INTO \"User\" (id, name, birthday, dateAdded)
         VALUES (?, ?, ?, ?);
+        """
+    static let createPlanQuery = """
+        INSERT INTO Plans (id, name, targetWeightSI)
+        VALUES (?, ?, ?);
+        """
+    static let createPlanMilestoneQuery = """
+        INSERT INTO ActivePlanMilestones (
+            id,
+            planId,
+            date,
+            targetWeightSI,
+            isActive
+        )
+        VALUES (?, ?, ?, ?, ?);
         """
     static let fetchMeasurementsQuery = """
         SELECT id, userId, weightSI, heightSI, leanMass, activityLevelId

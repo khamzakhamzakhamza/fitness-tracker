@@ -56,6 +56,8 @@ private final class PlanningRepositoryStub: PlanningRepositoryProtocol {
         measurementResult = hasMeasurements
     }
 
+    func createPlan(_ plan: PlanCreationRequest) throws {}
+
     func createUser(name: String, birthday: Date) throws {}
 
     func createMeasurement(

@@ -9,20 +9,14 @@ struct PlanMark: View {
     var body: some View {
         ZStack {
             Circle()
-                .fill(
-                    fixed
-                        ? Color.green.opacity(0.5)
-                        : Color.accentColor
-                )
+                .fill(Color.accentColor)
                 .frame(width: 10, height: 10)
 
             HStack(spacing: 3) {
                 Text(weightText)
                     .font(.caption)
                     .lineLimit(1)
-                    .foregroundStyle(
-                        fixed ? Color.green : Color.accentColor
-                    )
+                    .foregroundStyle(Color.accentColor)
 
                 if locked {
                     Image(systemName: "lock.fill")
