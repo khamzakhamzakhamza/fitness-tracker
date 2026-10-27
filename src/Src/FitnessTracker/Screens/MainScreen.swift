@@ -1,7 +1,15 @@
 import SwiftUI
 
 struct MainScreen: View {
+    @State private var selectedRibbonItem = RibbonItem.plan
+
     var body: some View {
-        Text("Main screen")
+        VStack(spacing: 0) {
+            Text("Main screen")
+
+            Spacer()
+
+            Ribbon(selectedItem: $selectedRibbonItem)
+        }
     }
 }
