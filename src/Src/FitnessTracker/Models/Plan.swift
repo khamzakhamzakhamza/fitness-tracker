@@ -4,4 +4,5 @@ struct Plan {
     let id: String
     let name: String
     let targetWeightSI: Double
+    let isActive: Bool
 }

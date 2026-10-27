@@ -44,6 +44,7 @@ public final class PlanningRepository: PlanningRepositoryProtocol {
                     guard sqlite3_bind_text(statement, 1, planID, -1, sqliteTransient) == SQLITE_OK,
                           sqlite3_bind_text(statement, 2, plan.name, -1, sqliteTransient) == SQLITE_OK,
                           sqlite3_bind_double(statement, 3, targetWeightSI) == SQLITE_OK,
+                          sqlite3_bind_int(statement, 4, 1) == SQLITE_OK,
                           sqlite3_step(statement) == SQLITE_DONE else {
                         throw PlanningRepositoryError.databaseOperationFailed
                     }
@@ -58,7 +59,6 @@ public final class PlanningRepository: PlanningRepositoryProtocol {
                               sqlite3_bind_text(statement, 2, planID, -1, sqliteTransient) == SQLITE_OK,
                               sqlite3_bind_int64(statement, 3, date) == SQLITE_OK,
                               sqlite3_bind_double(statement, 4, milestone.targetWeightSI) == SQLITE_OK,
-                              sqlite3_bind_int(statement, 5, 1) == SQLITE_OK,
                               sqlite3_step(statement) == SQLITE_DONE else {
                             throw PlanningRepositoryError.databaseOperationFailed
                         }
@@ -262,18 +262,17 @@ private enum Constants {
         VALUES (?, ?, ?, ?);
         """
     static let createPlanQuery = """
-        INSERT INTO Plans (id, name, targetWeightSI)
-        VALUES (?, ?, ?);
+        INSERT INTO Plans (id, name, targetWeightSI, isActive)
+        VALUES (?, ?, ?, ?);
         """
     static let createPlanMilestoneQuery = """
-        INSERT INTO ActivePlanMilestones (
+        INSERT INTO PlanMilestones (
             id,
             planId,
             date,
-            targetWeightSI,
-            isActive
+            targetWeightSI
         )
-        VALUES (?, ?, ?, ?, ?);
+        VALUES (?, ?, ?, ?);
         """
     static let fetchMeasurementsQuery = """
         SELECT id, userId, weightSI, heightSI, leanMass, activityLevelId

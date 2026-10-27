@@ -6,7 +6,7 @@
 Foods (foods database)    1 ──── * NutritionLogs
 User                    1 ──── * UserMeasurements
 ActivityLevels          1 ──── * UserMeasurements
-Plans                   1 ──── * ActivePlanMilestones
+Plans                   1 ──── * PlanMilestones
 ```
 
 `NutritionLogs.foodId` is an application-level reference to `Foods.id` in the
@@ -116,8 +116,9 @@ The planning units are:
 | `id` | `TEXT` | Primary key, UUID |
 | `name` | `TEXT` | Not null |
 | `targetWeightSI` | `REAL` | Not null |
+| `isActive` | `INTEGER` | Not null, boolean (`0` or `1`) |
 
-## ActivePlanMilestones
+## PlanMilestones
 
 | Column | SQLite type | Rules |
 |---|---|---|
@@ -125,13 +126,12 @@ The planning units are:
 | `planId` | `TEXT` | Not null, foreign key to `Plans.id` |
 | `date` | `INTEGER` | Not null, Unix timestamp |
 | `targetWeightSI` | `REAL` | Not null |
-| `isActive` | `INTEGER` | Not null, boolean (`0` or `1`) |
 
 ### Indexes
 
 ```sql
-CREATE INDEX active_plan_milestones_date_idx
-    ON ActivePlanMilestones (date);
+CREATE INDEX plan_milestones_date_idx
+    ON PlanMilestones (date);
 ```
 
 ## Database rules

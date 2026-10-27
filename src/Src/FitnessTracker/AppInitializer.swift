@@ -130,107 +130,25 @@ private struct LocalDatabaseInitializer {
             CREATE TABLE IF NOT EXISTS \(Plan.tableName) (
                 id TEXT PRIMARY KEY,
                 name TEXT NOT NULL,
-                targetWeightSI REAL NOT NULL
+                targetWeightSI REAL NOT NULL,
+                isActive INTEGER NOT NULL CHECK (isActive IN (0, 1))
             );
 
-            CREATE TABLE IF NOT EXISTS \(ActivePlanMilestone.tableName) (
+            CREATE TABLE IF NOT EXISTS \(PlanMilestone.tableName) (
                 id TEXT PRIMARY KEY,
                 planId TEXT NOT NULL,
                 date INTEGER NOT NULL,
                 targetWeightSI REAL NOT NULL,
-                isActive INTEGER NOT NULL CHECK (isActive IN (0, 1)),
                 FOREIGN KEY (planId) REFERENCES \(Plan.tableName) (id)
             );
-            CREATE INDEX IF NOT EXISTS active_plan_milestones_date_idx ON \(ActivePlanMilestone.tableName) (date);
+            CREATE INDEX IF NOT EXISTS plan_milestones_date_idx ON \(PlanMilestone.tableName) (date);
             """
 
         guard sqlite3_exec(database, schema, nil, nil, nil) == SQLITE_OK else {
             throw LocalDatabaseInitializationError.schemaCreationFailed
         }
 
-        try migrateUserMeasurementsIfNeeded(in: database)
-        try removeLegacyMeasurementUnits(in: database)
         try seedLookupTables(in: database)
-    }
-
-    private func removeLegacyMeasurementUnits(in database: OpaquePointer) throws {
-        guard sqlite3_exec(database, "DROP TABLE IF EXISTS MeasurementUnits;", nil, nil, nil) == SQLITE_OK else {
-            throw LocalDatabaseInitializationError.schemaMigrationFailed
-        }
-    }
-
-    private func migrateUserMeasurementsIfNeeded(in database: OpaquePointer) throws {
-        guard try tableHasColumn("weight", in: UserMeasurement.tableName, database: database),
-              !(try tableHasColumn("weightSI", in: UserMeasurement.tableName, database: database)) else {
-            return
-        }
-
-        let migration = """
-            PRAGMA foreign_keys = OFF;
-            BEGIN TRANSACTION;
-            CREATE TABLE UserMeasurementsReplacement (
-                id TEXT PRIMARY KEY,
-                userId TEXT NOT NULL,
-                weightSI REAL NOT NULL,
-                heightSI REAL,
-                leanMass REAL NOT NULL,
-                activityLevelId INTEGER NOT NULL,
-                FOREIGN KEY (userId) REFERENCES "\(User.tableName)" (id),
-                FOREIGN KEY (activityLevelId) REFERENCES \(ActivityLevel.tableName) (id)
-            );
-            INSERT INTO UserMeasurementsReplacement (
-                id,
-                userId,
-                weightSI,
-                heightSI,
-                leanMass,
-                activityLevelId
-            )
-            SELECT
-                id,
-                userId,
-                COALESCE(weight, 0),
-                height,
-                COALESCE(leanMass, 0),
-                COALESCE(activityLevelId, 1)
-            FROM \(UserMeasurement.tableName);
-            DROP TABLE \(UserMeasurement.tableName);
-            ALTER TABLE UserMeasurementsReplacement RENAME TO \(UserMeasurement.tableName);
-            CREATE INDEX user_measurements_user_id_idx ON \(UserMeasurement.tableName) (userId);
-            COMMIT;
-            PRAGMA foreign_keys = ON;
-            """
-
-        guard sqlite3_exec(database, migration, nil, nil, nil) == SQLITE_OK else {
-            throw LocalDatabaseInitializationError.schemaMigrationFailed
-        }
-    }
-
-    private func tableHasColumn(
-        _ columnName: String,
-        in tableName: String,
-        database: OpaquePointer
-    ) throws -> Bool {
-        var statement: OpaquePointer?
-        let query = """
-            SELECT EXISTS(
-                SELECT 1 FROM pragma_table_info('\(tableName)')
-                WHERE name = '\(columnName.replacingOccurrences(of: "'", with: "''"))'
-                LIMIT 1
-            );
-            """
-
-        guard sqlite3_prepare_v2(database, query, -1, &statement, nil) == SQLITE_OK,
-              let statement else {
-            throw LocalDatabaseInitializationError.schemaMigrationFailed
-        }
-        defer { sqlite3_finalize(statement) }
-
-        guard sqlite3_step(statement) == SQLITE_ROW else {
-            throw LocalDatabaseInitializationError.schemaMigrationFailed
-        }
-
-        return sqlite3_column_int(statement, 0) == 1
     }
 
     private func seedLookupTables(in database: OpaquePointer) throws {
@@ -308,6 +226,5 @@ private enum LocalDatabaseInitializationError: Error {
     case applicationSupportUnavailable
     case openFailed
     case schemaCreationFailed
-    case schemaMigrationFailed
     case lookupTableSeedingFailed
 }
