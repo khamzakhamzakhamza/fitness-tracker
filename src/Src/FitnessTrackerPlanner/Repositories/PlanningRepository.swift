@@ -4,6 +4,8 @@ import SQLite3
 public protocol PlanningRepositoryProtocol {
     func createPlan(_ plan: PlanCreationRequest) throws
     func hasActivePlan() throws -> Bool
+    func fetchActivePlan() throws -> PlanValue?
+    func fetchPlanMilestones(planID: String) throws -> [PlanMilestoneValue]
     func createUser(name: String, birthday: Date) throws
     func createMeasurement(
         weightSI: Double,
@@ -104,6 +106,63 @@ public final class PlanningRepository: PlanningRepositoryProtocol {
                     return false
                 default:
                     throw PlanningRepositoryError.databaseOperationFailed
+                }
+            }
+        }
+    }
+
+    public func fetchActivePlan() throws -> PlanValue? {
+        try withDatabase(readOnly: true) { database in
+            try withStatement(Constants.fetchActivePlanDetailsQuery, in: database) { statement in
+                switch sqlite3_step(statement) {
+                case SQLITE_ROW:
+                    guard let idText = sqlite3_column_text(statement, 0),
+                          let nameText = sqlite3_column_text(statement, 1) else {
+                        throw PlanningRepositoryError.databaseOperationFailed
+                    }
+
+                    return PlanValue(
+                        id: String(cString: idText),
+                        name: String(cString: nameText),
+                        targetWeightSI: sqlite3_column_double(statement, 2),
+                        isActive: sqlite3_column_int(statement, 3) == 1
+                    )
+                case SQLITE_DONE:
+                    return nil
+                default:
+                    throw PlanningRepositoryError.databaseOperationFailed
+                }
+            }
+        }
+    }
+
+    public func fetchPlanMilestones(planID: String) throws -> [PlanMilestoneValue] {
+        try withDatabase(readOnly: true) { database in
+            try withStatement(Constants.fetchPlanMilestonesQuery, in: database) { statement in
+                guard sqlite3_bind_text(statement, 1, planID, -1, sqliteTransient) == SQLITE_OK else {
+                    throw PlanningRepositoryError.databaseOperationFailed
+                }
+
+                var milestones: [PlanMilestoneValue] = []
+
+                while true {
+                    switch sqlite3_step(statement) {
+                    case SQLITE_ROW:
+                        milestones.append(
+                            PlanMilestoneValue(
+                                date: Date(
+                                    timeIntervalSince1970: Double(
+                                        sqlite3_column_int64(statement, 0)
+                                    )
+                                ),
+                                targetWeightSI: sqlite3_column_double(statement, 1)
+                            )
+                        )
+                    case SQLITE_DONE:
+                        return milestones
+                    default:
+                        throw PlanningRepositoryError.databaseOperationFailed
+                    }
                 }
             }
         }
@@ -297,6 +356,18 @@ private enum Constants {
         FROM Plans
         WHERE isActive = 1
         LIMIT 1;
+        """
+    static let fetchActivePlanDetailsQuery = """
+        SELECT id, name, targetWeightSI, isActive
+        FROM Plans
+        WHERE isActive = 1
+        LIMIT 1;
+        """
+    static let fetchPlanMilestonesQuery = """
+        SELECT date, targetWeightSI
+        FROM PlanMilestones
+        WHERE planId = ?
+        ORDER BY date;
         """
     static let createPlanMilestoneQuery = """
         INSERT INTO PlanMilestones (

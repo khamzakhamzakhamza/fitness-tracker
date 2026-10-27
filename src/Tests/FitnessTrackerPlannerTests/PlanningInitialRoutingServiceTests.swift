@@ -84,6 +84,14 @@ private final class PlanningRepositoryStub: PlanningRepositoryProtocol {
         activePlanResult
     }
 
+    func fetchActivePlan() throws -> PlanValue? {
+        nil
+    }
+
+    func fetchPlanMilestones(planID: String) throws -> [PlanMilestoneValue] {
+        []
+    }
+
     func createUser(name: String, birthday: Date) throws {}
 
     func createMeasurement(
