@@ -33,8 +33,6 @@ public struct PlanCreationScreen: View {
             .padding(20)
             .padding(.top, 15)
 
-            Spacer(minLength: 0)
-
             VStack(alignment: .leading, spacing: 18) {
                 InputTextRow(
                     text: $planName,
@@ -68,6 +66,8 @@ public struct PlanCreationScreen: View {
                 )
                 .id(selectedPlanDefinition.id)
             }
+
+            Spacer(minLength: 0)
 
             PrimaryActionButton(
                 title: Constants.createPlanButtonTitle,
