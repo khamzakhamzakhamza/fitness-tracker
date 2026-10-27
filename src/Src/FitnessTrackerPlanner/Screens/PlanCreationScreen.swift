@@ -64,10 +64,9 @@ public struct PlanCreationScreen: View {
                         planMilestones = milestones
                     }
                 )
+                .frame(maxHeight: .infinity)
                 .id(selectedPlanDefinition.id)
             }
-
-            Spacer(minLength: 0)
 
             PrimaryActionButton(
                 title: Constants.createPlanButtonTitle,

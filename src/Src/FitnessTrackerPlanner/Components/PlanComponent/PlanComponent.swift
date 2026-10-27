@@ -218,9 +218,9 @@ public struct PlanComponent: View {
                 }
             )
             .chartScrollableAxes(.horizontal)
-            .frame(height: 250)
+            .frame(maxHeight: .infinity)
         }
-        .frame(maxWidth: .infinity)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .accessibilityElement(children: .combine)
         .accessibilityLabel(title)
         .task {
