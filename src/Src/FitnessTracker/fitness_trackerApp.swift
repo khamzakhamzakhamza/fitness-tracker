@@ -5,8 +5,7 @@ import FitnessTrackerPlanner
 @main
 struct fitness_trackerApp: App {
     @State private var appInitializer = AppInitializer()
-    @State private var isInitialized = false
-    @State private var isOnboardingFinished = false
+    @State private var shouldShowOnboarding: Bool?
 
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([])
@@ -22,22 +21,26 @@ struct fitness_trackerApp: App {
     var body: some Scene {
         WindowGroup {
             Group {
-                if isInitialized {
-                    if isOnboardingFinished {
-                        MainScreen()
-                    } else {
+                if let shouldShowOnboarding {
+                    if shouldShowOnboarding {
                         PlanningRootView {
-                            isOnboardingFinished = true
+                            self.shouldShowOnboarding = false
                         }
+                    } else {
+                        MainScreen()
                     }
                 } else {
                     ProgressView()
                 }
             }
             .task {
+                guard shouldShowOnboarding == nil else {
+                    return
+                }
+
                 PlanningDependencyContext.measurementUnitService = MeasurementService.shared
                 appInitializer.initialize()
-                isInitialized = true
+                shouldShowOnboarding = OnboardingRoutingService.shared.shouldShowOnboarding()
             }
         }
         .modelContainer(sharedModelContainer)
