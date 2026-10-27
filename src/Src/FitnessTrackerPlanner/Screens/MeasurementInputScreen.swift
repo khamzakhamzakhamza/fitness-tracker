@@ -14,6 +14,11 @@ public struct MeasurementInputScreen: View {
     @State private var birthday: Date?
     @State private var shouldShowValidationErrors = false
     @State private var isShowingPlanCreation = false
+    private let onOnboardingFinished: () -> Void
+
+    public init(onOnboardingFinished: @escaping () -> Void) {
+        self.onOnboardingFinished = onOnboardingFinished
+    }
 
     public var body: some View {
         VStack(spacing: 0) {
@@ -92,7 +97,7 @@ public struct MeasurementInputScreen: View {
         .dismissesKeyboardOnDownwardSwipe()
         .navigationBarBackButtonHidden(true)
         .navigationDestination(isPresented: $isShowingPlanCreation) {
-            PlanCreationScreen()
+            PlanCreationScreen(onOnboardingFinished: onOnboardingFinished)
         }
         .task {
             loadMeasurementUnits()

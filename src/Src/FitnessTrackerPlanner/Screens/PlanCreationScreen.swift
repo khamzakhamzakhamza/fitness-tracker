@@ -12,8 +12,11 @@ public struct PlanCreationScreen: View {
     @State private var selectedPlanLength: String? = Constants.defaultPlanLengthOption
     @State private var pendingPlanName: String?
     @State private var isShowingUnsavedChangesWarning = false
+    private let onOnboardingFinished: () -> Void
 
-    public init() {}
+    public init(onOnboardingFinished: @escaping () -> Void) {
+        self.onOnboardingFinished = onOnboardingFinished
+    }
 
     public var body: some View {
         VStack(spacing: 0) {
@@ -200,12 +203,16 @@ public struct PlanCreationScreen: View {
             return
         }
 
-        PlanningService.shared.createPlan(
+        let wasCreated = PlanningService.shared.createPlan(
             PlanCreationRequest(
                 name: trimmedPlanName,
                 milestones: planMilestones
             )
         )
+
+        if wasCreated {
+            onOnboardingFinished()
+        }
     }
 }
 

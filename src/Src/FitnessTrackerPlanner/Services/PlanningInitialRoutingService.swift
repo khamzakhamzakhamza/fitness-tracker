@@ -4,6 +4,7 @@ public enum PlanningInitialRoute: Equatable {
     case introduction
     case firstMeasurement
     case planCreation
+    case main
 }
 
 @MainActor
@@ -26,7 +27,11 @@ public final class PlanningInitialRoutingService {
                 return .firstMeasurement
             }
 
-            return .planCreation
+            guard !(try planningService.hasActivePlan()) else {
+                return .planCreation
+            }
+
+            return .main
         } catch {
             return .introduction
         }

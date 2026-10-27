@@ -3,11 +3,13 @@ import FitnessTrackerShared
 
 public struct IntroductionScreen: View {
     private let welcomeMessageLabel = "Hi!\n\nThanks for downloading FitnessTracker!\n\nThe goal here is to help you keep track of your nutrition and exercise in one place, as efficiently as possible.\n\nThe app is open source, free, works offline, and does not store any data.\n\nEnjoy!"
-    
     private let btnLabel = "LET'S START"
+    private let onOnboardingFinished: () -> Void
     @State private var isShowingUserInput = false
-    
-    public init() {}
+
+    public init(onOnboardingFinished: @escaping () -> Void) {
+        self.onOnboardingFinished = onOnboardingFinished
+    }
 
     public var body: some View {
         NavigationStack {
@@ -23,7 +25,7 @@ public struct IntroductionScreen: View {
                 }
             }
             .navigationDestination(isPresented: $isShowingUserInput) {
-                UserInputScreen()
+                UserInputScreen(onOnboardingFinished: onOnboardingFinished)
             }
         }
     }

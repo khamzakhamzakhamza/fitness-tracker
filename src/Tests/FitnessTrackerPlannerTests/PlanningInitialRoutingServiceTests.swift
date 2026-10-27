@@ -8,7 +8,8 @@ struct PlanningInitialRoutingServiceTests {
     func routesToIntroductionWhenThereIsNoUser() {
         let routingService = makeRoutingService(
             hasUsers: false,
-            hasMeasurements: false
+            hasMeasurements: false,
+            hasActivePlan: false
         )
 
         #expect(routingService.initialRoute() == .introduction)
@@ -18,7 +19,8 @@ struct PlanningInitialRoutingServiceTests {
     func routesToFirstMeasurementWhenUserHasNoMeasurements() {
         let routingService = makeRoutingService(
             hasUsers: true,
-            hasMeasurements: false
+            hasMeasurements: false,
+            hasActivePlan: false
         )
 
         #expect(routingService.initialRoute() == .firstMeasurement)
@@ -28,19 +30,33 @@ struct PlanningInitialRoutingServiceTests {
     func routesToPlanCreationWhenUserHasMeasurements() {
         let routingService = makeRoutingService(
             hasUsers: true,
-            hasMeasurements: true
+            hasMeasurements: true,
+            hasActivePlan: false
         )
 
         #expect(routingService.initialRoute() == .planCreation)
     }
 
+    @Test
+    func routesToMainWhenUserHasMeasurementsAndAnActivePlan() {
+        let routingService = makeRoutingService(
+            hasUsers: true,
+            hasMeasurements: true,
+            hasActivePlan: true
+        )
+
+        #expect(routingService.initialRoute() == .main)
+    }
+
     private func makeRoutingService(
         hasUsers: Bool,
-        hasMeasurements: Bool
+        hasMeasurements: Bool,
+        hasActivePlan: Bool
     ) -> PlanningInitialRoutingService {
         let repository = PlanningRepositoryStub(
             hasUsers: hasUsers,
-            hasMeasurements: hasMeasurements
+            hasMeasurements: hasMeasurements,
+            hasActivePlan: hasActivePlan
         )
         let planningService = PlanningService(repository: repository)
         return PlanningInitialRoutingService(planningService: planningService)
@@ -50,13 +66,23 @@ struct PlanningInitialRoutingServiceTests {
 private final class PlanningRepositoryStub: PlanningRepositoryProtocol {
     private let userResult: Bool
     private let measurementResult: Bool
+    private let activePlanResult: Bool
 
-    init(hasUsers: Bool, hasMeasurements: Bool) {
+    init(
+        hasUsers: Bool,
+        hasMeasurements: Bool,
+        hasActivePlan: Bool
+    ) {
         userResult = hasUsers
         measurementResult = hasMeasurements
+        activePlanResult = hasActivePlan
     }
 
     func createPlan(_ plan: PlanCreationRequest) throws {}
+
+    func hasActivePlan() throws -> Bool {
+        activePlanResult
+    }
 
     func createUser(name: String, birthday: Date) throws {}
 

@@ -8,6 +8,11 @@ public struct UserInputScreen: View {
     @State private var isDatePickerShowing = false
     @State private var isShowingMeasurementInput = false
     @FocusState private var isNameFieldFocused: Bool
+    private let onOnboardingFinished: () -> Void
+
+    public init(onOnboardingFinished: @escaping () -> Void) {
+        self.onOnboardingFinished = onOnboardingFinished
+    }
 
     public var body: some View {
         VStack(spacing: 0) {
@@ -49,7 +54,7 @@ public struct UserInputScreen: View {
         .background(Color(Constants.backgroundColor).ignoresSafeArea())
         .navigationBarBackButtonHidden(true)
         .navigationDestination(isPresented: $isShowingMeasurementInput) {
-            MeasurementInputScreen()
+            MeasurementInputScreen(onOnboardingFinished: onOnboardingFinished)
         }
         .dismissesKeyboardOnDownwardSwipe()
         .onChange(of: isNameFieldFocused) { _, isFocused in

@@ -6,6 +6,7 @@ import FitnessTrackerPlanner
 struct fitness_trackerApp: App {
     @State private var appInitializer = AppInitializer()
     @State private var isInitialized = false
+    @State private var isOnboardingFinished = false
 
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([])
@@ -22,7 +23,13 @@ struct fitness_trackerApp: App {
         WindowGroup {
             Group {
                 if isInitialized {
-                    PlanningRootView()
+                    if isOnboardingFinished {
+                        MainScreen()
+                    } else {
+                        PlanningRootView {
+                            isOnboardingFinished = true
+                        }
+                    }
                 } else {
                     ProgressView()
                 }

@@ -3,6 +3,7 @@ import SQLite3
 
 public protocol PlanningRepositoryProtocol {
     func createPlan(_ plan: PlanCreationRequest) throws
+    func hasActivePlan() throws -> Bool
     func createUser(name: String, birthday: Date) throws
     func createMeasurement(
         weightSI: Double,
@@ -39,6 +40,12 @@ public final class PlanningRepository: PlanningRepositoryProtocol {
 
             do {
                 let planID = UUID().uuidString.lowercased()
+
+                try withStatement(Constants.deactivatePlansQuery, in: database) { statement in
+                    guard sqlite3_step(statement) == SQLITE_DONE else {
+                        throw PlanningRepositoryError.databaseOperationFailed
+                    }
+                }
 
                 try withStatement(Constants.createPlanQuery, in: database) { statement in
                     guard sqlite3_bind_text(statement, 1, planID, -1, sqliteTransient) == SQLITE_OK,
@@ -83,6 +90,21 @@ public final class PlanningRepository: PlanningRepositoryProtocol {
                     nil
                 )
                 throw error
+            }
+        }
+    }
+
+    public func hasActivePlan() throws -> Bool {
+        try withDatabase(readOnly: true) { database in
+            try withStatement(Constants.fetchActivePlanQuery, in: database) { statement in
+                switch sqlite3_step(statement) {
+                case SQLITE_ROW:
+                    return true
+                case SQLITE_DONE:
+                    return false
+                default:
+                    throw PlanningRepositoryError.databaseOperationFailed
+                }
             }
         }
     }
@@ -264,6 +286,17 @@ private enum Constants {
     static let createPlanQuery = """
         INSERT INTO Plans (id, name, targetWeightSI, isActive)
         VALUES (?, ?, ?, ?);
+        """
+    static let deactivatePlansQuery = """
+        UPDATE Plans
+        SET isActive = 0
+        WHERE isActive = 1;
+        """
+    static let fetchActivePlanQuery = """
+        SELECT 1
+        FROM Plans
+        WHERE isActive = 1
+        LIMIT 1;
         """
     static let createPlanMilestoneQuery = """
         INSERT INTO PlanMilestones (
