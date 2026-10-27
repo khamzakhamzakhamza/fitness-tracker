@@ -1,13 +1,15 @@
 import SwiftUI
+import FitnessTrackerPlanner
 
 struct MainScreen: View {
     @State private var selectedRibbonItem = RibbonItem.plan
 
     var body: some View {
         VStack(spacing: 0) {
-            Text("Main screen")
-
-            Spacer()
+            switch selectedRibbonItem {
+            case .plan:
+                PlanScreen()
+            }
 
             Ribbon(selectedItem: $selectedRibbonItem)
         }
