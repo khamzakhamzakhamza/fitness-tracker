@@ -11,13 +11,19 @@ final class NutritionService {
 
     private let repository: any NutritionRepositoryProtocol
     private let foodRepository: any FoodDatabaseRepositoryProtocol
+    private let calorieCalculationService: CalorieCalculationService
+    private let cache: UserDefaults
 
     init(
         repository: any NutritionRepositoryProtocol = NutritionRepository(),
-        foodRepository: any FoodDatabaseRepositoryProtocol = FoodDatabaseRepository()
+        foodRepository: any FoodDatabaseRepositoryProtocol = FoodDatabaseRepository(),
+        calorieCalculationService: CalorieCalculationService = CalorieCalculationService(),
+        cache: UserDefaults = .standard
     ) {
         self.repository = repository
         self.foodRepository = foodRepository
+        self.calorieCalculationService = calorieCalculationService
+        self.cache = cache
     }
 
     func addNutritionLog(
@@ -109,10 +115,14 @@ final class NutritionService {
         let values = try await repository.fetchDailyNutrition(
             date: formattedDate(date, timeZone: timeZone)
         )
+        let calorieGoal = await dailyCalorieTarget(
+            at: date,
+            timeZone: timeZone
+        )
 
         return DailyNutritionSummary(
             caloriesConsumed: values.caloriesConsumed,
-            calorieGoal: Constants.calorieGoal,
+            calorieGoal: calorieGoal,
             nutrients: Constants.trackedNutrients.map { nutrient in
                 DailyNutrientProgress(
                     name: nutrient.name,
@@ -125,6 +135,75 @@ final class NutritionService {
                 )
             }
         )
+    }
+
+    private func dailyCalorieTarget(
+        at date: Date,
+        timeZone: TimeZone
+    ) async -> Double {
+        let cacheDate = formattedDate(date, timeZone: timeZone)
+        if cache.string(forKey: Constants.calorieTargetCacheDateKey) == cacheDate {
+            let cachedTarget = cache.double(
+                forKey: Constants.calorieTargetCacheValueKey
+            )
+            if cachedTarget > 0 {
+                return cachedTarget
+            }
+        }
+
+        var calendar = Calendar.current
+        calendar.timeZone = timeZone
+
+        guard let week = calendar.dateInterval(of: .weekOfYear, for: date),
+              let inputs = try? await repository.fetchDailyCalorieTargetInputs(
+                  milestoneStartDate: week.start,
+                  milestoneEndDate: week.end
+              ) else {
+            return Constants.fallbackCalorieGoal
+        }
+
+        do {
+            let restingCalories = try calorieCalculationService
+                .calculateRestingCalories(
+                    weightKilograms: inputs.weightSI / Constants.gramsPerKilogram,
+                    heightCentimetres: inputs.heightCentimetres,
+                    birthday: inputs.birthday,
+                    leanMassPercentage: inputs.leanMassPercentage,
+                    referenceDate: date
+                )
+            let maintenanceCalories = try calorieCalculationService
+                .calculateFullDailyCalories(
+                    restingCalories: restingCalories,
+                    activityMultiplier: inputs.activityMultiplier
+                )
+
+            let today = calendar.startOfDay(for: date)
+            let milestoneDate = calendar.startOfDay(for: inputs.milestoneDate)
+            let remainingDays = max(
+                calendar.dateComponents(
+                    [.day],
+                    from: today,
+                    to: milestoneDate
+                ).day ?? 0,
+                1
+            )
+            let requiredWeightChangeKilograms = (
+                inputs.milestoneTargetWeightSI - inputs.weightSI
+            ) / Constants.gramsPerKilogram
+            let dailyCalorieAdjustment = requiredWeightChangeKilograms
+                * Constants.caloriesPerKilogram
+                / Double(remainingDays)
+            let target = max(
+                maintenanceCalories + dailyCalorieAdjustment,
+                0
+            ).rounded()
+
+            cache.set(cacheDate, forKey: Constants.calorieTargetCacheDateKey)
+            cache.set(target, forKey: Constants.calorieTargetCacheValueKey)
+            return target
+        } catch {
+            return Constants.fallbackCalorieGoal
+        }
     }
 
     private func formattedDate(
@@ -141,9 +220,13 @@ final class NutritionService {
 }
 
 private enum Constants {
-    static let calorieGoal = 3_000.0
+    static let fallbackCalorieGoal = 3_000.0
     static let nutrientGoal = 500.0
     static let gramsUnit = "g"
+    static let gramsPerKilogram = 1_000.0
+    static let caloriesPerKilogram = 7_700.0
+    static let calorieTargetCacheDateKey = "nutrition.calorieTarget.date"
+    static let calorieTargetCacheValueKey = "nutrition.calorieTarget.value"
     static let trackedNutrients = [
         (name: "Protein", shortName: "protein"),
         (name: "Carbs", shortName: "carbs"),

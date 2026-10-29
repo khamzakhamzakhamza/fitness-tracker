@@ -6,7 +6,6 @@ struct AddFoodScreen: View {
     let foodID: String
     var onLogCreated: () -> Void = {}
 
-    @Environment(\.dismiss) private var dismiss
     @State private var food: AddFoodModel?
     @State private var errorMessage: String?
     @State private var logErrorMessage: String?
@@ -16,19 +15,13 @@ struct AddFoodScreen: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            HStack(alignment: .top, spacing: 16) {
-                VStack(alignment: .leading, spacing: 6) {
-                    ScreenTitle(food?.title ?? "Add food")
+            VStack(alignment: .leading, spacing: 6) {
+                ScreenTitle(food?.title ?? "Add food")
 
-                    if let subtitle = food?.subtitle, !subtitle.isEmpty {
-                        Text(subtitle)
-                            .font(.system(size: 15, weight: .bold))
-                            .foregroundStyle(Color("SearchBoxSecondary"))
-                    }
-                }
-
-                CloseButton {
-                    dismiss()
+                if let subtitle = food?.subtitle, !subtitle.isEmpty {
+                    Text(subtitle)
+                        .font(.system(size: 15, weight: .bold))
+                        .foregroundStyle(Color("SearchBoxSecondary"))
                 }
             }
             .padding(.horizontal, 20)
@@ -91,7 +84,6 @@ struct AddFoodScreen: View {
                     }
                 }
         )
-        .toolbar(.hidden, for: .navigationBar)
         .safeAreaInset(edge: .bottom, spacing: 0) {
             PrimaryActionButton(
                 title: isSavingLog ? "ADDING..." : "ADD TO TODAY",

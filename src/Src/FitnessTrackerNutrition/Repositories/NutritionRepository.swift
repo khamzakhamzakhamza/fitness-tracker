@@ -6,6 +6,16 @@ struct DailyNutritionValues: Sendable {
     let nutrientsByShortName: [String: Double]
 }
 
+struct DailyCalorieTargetInputs: Sendable {
+    let weightSI: Double
+    let heightCentimetres: Double
+    let leanMassPercentage: Double
+    let birthday: Date
+    let activityMultiplier: Double
+    let milestoneDate: Date
+    let milestoneTargetWeightSI: Double
+}
+
 protocol NutritionRepositoryProtocol: Sendable {
     func fetchDailyNutrition(date: String) async throws -> DailyNutritionValues
     func addNutritionLog(
@@ -13,9 +23,94 @@ protocol NutritionRepositoryProtocol: Sendable {
         date: String,
         time: String
     ) async throws
+    func fetchDailyCalorieTargetInputs(
+        milestoneStartDate: Date,
+        milestoneEndDate: Date
+    ) async throws -> DailyCalorieTargetInputs?
 }
 
 actor NutritionRepository: NutritionRepositoryProtocol {
+    func fetchDailyCalorieTargetInputs(
+        milestoneStartDate: Date,
+        milestoneEndDate: Date
+    ) throws -> DailyCalorieTargetInputs? {
+        let database = try openLocalDatabase()
+        defer { sqlite3_close(database) }
+
+        var measurementStatement: OpaquePointer?
+        guard sqlite3_prepare_v2(
+            database,
+            Constants.fetchLatestMeasurementQuery,
+            -1,
+            &measurementStatement,
+            nil
+        ) == SQLITE_OK, let measurementStatement else {
+            throw NutritionRepositoryError.queryFailed
+        }
+        defer { sqlite3_finalize(measurementStatement) }
+
+        guard sqlite3_step(measurementStatement) == SQLITE_ROW,
+              sqlite3_column_type(measurementStatement, 1) != SQLITE_NULL else {
+            return nil
+        }
+
+        let weightSI = sqlite3_column_double(measurementStatement, 0)
+        let heightCentimetres = sqlite3_column_double(measurementStatement, 1)
+        let leanMassPercentage = sqlite3_column_double(measurementStatement, 2)
+        let birthday = Date(
+            timeIntervalSince1970: Double(
+                sqlite3_column_int64(measurementStatement, 3)
+            )
+        )
+        let activityMultiplier = sqlite3_column_double(measurementStatement, 4)
+
+        var milestoneStatement: OpaquePointer?
+        guard sqlite3_prepare_v2(
+            database,
+            Constants.fetchCurrentWeekMilestoneQuery,
+            -1,
+            &milestoneStatement,
+            nil
+        ) == SQLITE_OK, let milestoneStatement else {
+            throw NutritionRepositoryError.queryFailed
+        }
+        defer { sqlite3_finalize(milestoneStatement) }
+
+        guard sqlite3_bind_int64(
+            milestoneStatement,
+            1,
+            Int64(milestoneStartDate.timeIntervalSince1970)
+        ) == SQLITE_OK,
+        sqlite3_bind_int64(
+            milestoneStatement,
+            2,
+            Int64(milestoneEndDate.timeIntervalSince1970)
+        ) == SQLITE_OK else {
+            throw NutritionRepositoryError.queryFailed
+        }
+
+        guard sqlite3_step(milestoneStatement) == SQLITE_ROW else {
+            return nil
+        }
+
+        return DailyCalorieTargetInputs(
+            weightSI: weightSI,
+            heightCentimetres: heightCentimetres,
+            leanMassPercentage: leanMassPercentage,
+            birthday: birthday,
+            activityMultiplier: activityMultiplier,
+            milestoneDate: Date(
+                timeIntervalSince1970: Double(
+                    sqlite3_column_int64(milestoneStatement, 0)
+                )
+            ),
+            milestoneTargetWeightSI: sqlite3_column_double(
+                milestoneStatement,
+                1
+            )
+        )
+    }
+
     func addNutritionLog(
         foodID: String,
         date: String,
@@ -278,6 +373,31 @@ private enum Constants {
     static let addNutritionLogQuery = """
         INSERT INTO NutritionLogs (foodId, date, time)
         VALUES (?, ?, ?);
+        """
+    static let fetchLatestMeasurementQuery = """
+        SELECT
+            UserMeasurements.weightSI,
+            UserMeasurements.heightSI,
+            UserMeasurements.leanMass,
+            "User".birthday,
+            ActivityLevels.calorieMultiplier
+        FROM UserMeasurements
+        JOIN "User"
+            ON "User".id = UserMeasurements.userId
+        JOIN ActivityLevels
+            ON ActivityLevels.id = UserMeasurements.activityLevelId
+        ORDER BY UserMeasurements.dateAdded DESC, UserMeasurements.rowid DESC
+        LIMIT 1;
+        """
+    static let fetchCurrentWeekMilestoneQuery = """
+        SELECT PlanMilestones.date, PlanMilestones.targetWeightSI
+        FROM PlanMilestones
+        JOIN Plans ON Plans.id = PlanMilestones.planId
+        WHERE Plans.isActive = 1
+          AND PlanMilestones.date >= ?
+          AND PlanMilestones.date < ?
+        ORDER BY PlanMilestones.date ASC
+        LIMIT 1;
         """
     static let fetchFoodCaloriesQuery = """
         SELECT
