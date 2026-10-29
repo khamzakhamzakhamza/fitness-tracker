@@ -5,13 +5,15 @@ struct MainScreen: View {
     @State private var selectedRibbonItem = RibbonItem.plan
 
     var body: some View {
-        VStack(spacing: 0) {
-            switch selectedRibbonItem {
-            case .plan:
-                PlanScreen()
-            }
+        NavigationStack {
+            VStack(spacing: 0) {
+                switch selectedRibbonItem {
+                case .plan:
+                    PlanScreen()
+                }
 
-            Ribbon(selectedItem: $selectedRibbonItem)
+                Ribbon(selectedItem: $selectedRibbonItem)
+            }
         }
     }
 }

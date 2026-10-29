@@ -4,6 +4,7 @@ import FitnessTrackerShared
 public struct PlanScreen: View {
     @State private var planProgress: PlanProgressValue?
     @State private var measurements: [UserMeasurement] = []
+    @State private var isShowingLogMeasurement = false
 
     public init() {}
 
@@ -30,11 +31,16 @@ public struct PlanScreen: View {
 
                 PrimaryActionButton(
                     title: Constants.logMeasurementButtonTitle,
-                    action: {}
+                    action: {
+                        isShowingLogMeasurement = true
+                    }
                 )
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .navigationDestination(isPresented: $isShowingLogMeasurement) {
+            LogMeasurementScreen()
+        }
         .task {
             planProgress = try? PlanningService.shared.fetchActivePlanProgress()
             measurements = (try? PlanningService.shared.fetchMeasurements(
