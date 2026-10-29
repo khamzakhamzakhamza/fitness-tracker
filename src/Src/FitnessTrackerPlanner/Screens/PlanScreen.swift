@@ -41,12 +41,16 @@ public struct PlanScreen: View {
         .navigationDestination(isPresented: $isShowingLogMeasurement) {
             LogMeasurementScreen()
         }
-        .task {
-            planProgress = try? PlanningService.shared.fetchActivePlanProgress()
-            measurements = (try? PlanningService.shared.fetchMeasurements(
-                amount: Constants.measurementFetchLimit
-            )) ?? []
+        .onAppear {
+            loadPlanData()
         }
+    }
+
+    private func loadPlanData() {
+        planProgress = try? PlanningService.shared.fetchActivePlanProgress()
+        measurements = (try? PlanningService.shared.fetchMeasurements(
+            amount: Constants.measurementFetchLimit
+        )) ?? []
     }
 }
 

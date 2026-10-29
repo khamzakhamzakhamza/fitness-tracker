@@ -388,7 +388,7 @@ private enum Constants {
     static let fetchMeasurementsQuery = """
         SELECT id, userId, weightSI, heightSI, leanMass, activityLevelId, dateAdded
         FROM UserMeasurements
-        ORDER BY dateAdded DESC
+        ORDER BY dateAdded DESC, rowid DESC
         LIMIT ?;
         """
     static let createMeasurementQuery = """

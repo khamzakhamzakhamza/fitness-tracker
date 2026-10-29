@@ -178,13 +178,6 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		7A2AD9163057519E005E1921 /* Frameworks */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			name = Frameworks;
-			sourceTree = "<group>";
-		};
 		7A2AD9DE30575A1C005E1921 /* Tests */ = {
 			isa = PBXGroup;
 			children = (
@@ -210,7 +203,6 @@
 				7A2AD9DF30575A33005E1921 /* Src */,
 				7A2AD9DE30575A1C005E1921 /* Tests */,
 				D4A100000000000000000002 /* uk_foods.sqlite */,
-				7A2AD9163057519E005E1921 /* Frameworks */,
 				7AA33E98304B230600506EDA /* Products */,
 			);
 			sourceTree = "<group>";
