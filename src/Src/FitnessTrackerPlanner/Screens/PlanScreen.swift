@@ -52,6 +52,6 @@ public struct PlanScreen: View {
 
 private enum Constants {
     static let title = "Plan"
-    static let logMeasurementButtonTitle = "LOG MEASUREMENT"
+    static let logMeasurementButtonTitle = "LOG WEIGHT"
     static let measurementFetchLimit = 100
 }
