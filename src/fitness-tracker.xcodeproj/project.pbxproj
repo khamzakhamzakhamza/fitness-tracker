@@ -15,6 +15,8 @@
 		7A2ADA2F30576431005E1921 /* FitnessTrackerPlanner.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 7A2ADA1B30576431005E1921 /* FitnessTrackerPlanner.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		D4A100000000000000000001 /* uk_foods.sqlite in Resources */ = {isa = PBXBuildFile; fileRef = D4A100000000000000000002 /* uk_foods.sqlite */; };
 		D4A100000000000000000003 /* FitnessTrackerShared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7A2AD9C2305759A8005E1921 /* FitnessTrackerShared.framework */; };
+		D4B200000000000000000001 /* FitnessTrackerNutrition.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D4B200000000000000000004 /* FitnessTrackerNutrition.framework */; };
+		D4B200000000000000000002 /* FitnessTrackerNutrition.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = D4B200000000000000000004 /* FitnessTrackerNutrition.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -67,6 +69,13 @@
 			remoteGlobalIDString = 7A2AD9C1305759A8005E1921;
 			remoteInfo = FitnessTrackerShared;
 		};
+		D4B200000000000000000003 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 7AA33E8F304B230600506EDA /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D4B20000000000000000000A;
+			remoteInfo = FitnessTrackerNutrition;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -78,6 +87,7 @@
 			files = (
 				7A2AD9D6305759A8005E1921 /* FitnessTrackerShared.framework in Embed Frameworks */,
 				7A2ADA2F30576431005E1921 /* FitnessTrackerPlanner.framework in Embed Frameworks */,
+				D4B200000000000000000002 /* FitnessTrackerNutrition.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -91,6 +101,7 @@
 		7A2ADA2330576431005E1921 /* FitnessTrackerPlannerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FitnessTrackerPlannerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		7AA33E97304B230600506EDA /* FitnessTracker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FitnessTracker.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D4A100000000000000000002 /* uk_foods.sqlite */ = {isa = PBXFileReference; lastKnownFileType = file; name = uk_foods.sqlite; path = ../data/uk_foods.sqlite; sourceTree = SOURCE_ROOT; };
+		D4B200000000000000000004 /* FitnessTrackerNutrition.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = FitnessTrackerNutrition.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -130,6 +141,11 @@
 		7AA33E99304B230600506EDA /* FitnessTracker */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = FitnessTracker;
+			sourceTree = "<group>";
+		};
+		D4B200000000000000000005 /* FitnessTrackerNutrition */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = FitnessTrackerNutrition;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -172,6 +188,14 @@
 			files = (
 				7A2AD9D5305759A8005E1921 /* FitnessTrackerShared.framework in Frameworks */,
 				7A2ADA2E30576431005E1921 /* FitnessTrackerPlanner.framework in Frameworks */,
+				D4B200000000000000000001 /* FitnessTrackerNutrition.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D4B200000000000000000008 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -190,6 +214,7 @@
 		7A2AD9DF30575A33005E1921 /* Src */ = {
 			isa = PBXGroup;
 			children = (
+				D4B200000000000000000005 /* FitnessTrackerNutrition */,
 				7A2ADA1C30576431005E1921 /* FitnessTrackerPlanner */,
 				7A2AD9C3305759A8005E1921 /* FitnessTrackerShared */,
 				7AA33E99304B230600506EDA /* FitnessTracker */,
@@ -211,6 +236,7 @@
 			isa = PBXGroup;
 			children = (
 				7AA33E97304B230600506EDA /* FitnessTracker.app */,
+				D4B200000000000000000004 /* FitnessTrackerNutrition.framework */,
 				7A2AD9C2305759A8005E1921 /* FitnessTrackerShared.framework */,
 				7A2AD9CA305759A8005E1921 /* FitnessTrackerSharedTests.xctest */,
 				7A2ADA1B30576431005E1921 /* FitnessTrackerPlanner.framework */,
@@ -230,6 +256,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		7A2ADA1630576431005E1921 /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D4B200000000000000000006 /* Headers */ = {
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -348,6 +381,7 @@
 			dependencies = (
 				7A2AD9D4305759A8005E1921 /* PBXTargetDependency */,
 				7A2ADA2D30576431005E1921 /* PBXTargetDependency */,
+				D4B20000000000000000000B /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				7AA33E99304B230600506EDA /* FitnessTracker */,
@@ -358,6 +392,29 @@
 			productName = "fitness-tracker";
 			productReference = 7AA33E97304B230600506EDA /* FitnessTracker.app */;
 			productType = "com.apple.product-type.application";
+		};
+		D4B20000000000000000000A /* FitnessTrackerNutrition */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = D4B20000000000000000000E /* Build configuration list for PBXNativeTarget "FitnessTrackerNutrition" */;
+			buildPhases = (
+				D4B200000000000000000006 /* Headers */,
+				D4B200000000000000000007 /* Sources */,
+				D4B200000000000000000008 /* Frameworks */,
+				D4B200000000000000000009 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				D4B200000000000000000005 /* FitnessTrackerNutrition */,
+			);
+			name = FitnessTrackerNutrition;
+			packageProductDependencies = (
+			);
+			productName = FitnessTrackerNutrition;
+			productReference = D4B200000000000000000004 /* FitnessTrackerNutrition.framework */;
+			productType = "com.apple.product-type.framework";
 		};
 /* End PBXNativeTarget section */
 
@@ -387,6 +444,9 @@
 					7AA33E96304B230600506EDA = {
 						CreatedOnToolsVersion = 26.6;
 					};
+					D4B20000000000000000000A = {
+						CreatedOnToolsVersion = 26.6;
+					};
 				};
 			};
 			buildConfigurationList = 7AA33E92304B230600506EDA /* Build configuration list for PBXProject "fitness-tracker" */;
@@ -410,6 +470,7 @@
 				7A2AD9C9305759A8005E1921 /* FitnessTrackerSharedTests */,
 				7A2ADA1A30576431005E1921 /* FitnessTrackerPlanner */,
 				7A2ADA2230576431005E1921 /* FitnessTrackerPlannerTests */,
+				D4B20000000000000000000A /* FitnessTrackerNutrition */,
 			);
 		};
 /* End PBXProject section */
@@ -451,6 +512,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		D4B200000000000000000009 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
@@ -483,6 +551,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		7AA33E93304B230600506EDA /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D4B200000000000000000007 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -526,6 +601,11 @@
 			isa = PBXTargetDependency;
 			target = 7A2AD9C1305759A8005E1921 /* FitnessTrackerShared */;
 			targetProxy = D4A100000000000000000004 /* PBXContainerItemProxy */;
+		};
+		D4B20000000000000000000B /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D4B20000000000000000000A /* FitnessTrackerNutrition */;
+			targetProxy = D4B200000000000000000003 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -1013,6 +1093,87 @@
 			};
 			name = Release;
 		};
+		D4B20000000000000000000C /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUILD_LIBRARY_FOR_DISTRIBUTION = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = LCB47XDP2J;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				ENABLE_MODULE_VERIFIER = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.5;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
+				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu17 gnu++20";
+				PRODUCT_BUNDLE_IDENTIFIER = khamzakhamzakhamza.FitnessTrackerNutrition;
+				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_INSTALL_MODULE = YES;
+				SWIFT_INSTALL_OBJC_HEADER = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+			};
+			name = Debug;
+		};
+		D4B20000000000000000000D /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUILD_LIBRARY_FOR_DISTRIBUTION = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = LCB47XDP2J;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				ENABLE_MODULE_VERIFIER = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.5;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
+				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu17 gnu++20";
+				PRODUCT_BUNDLE_IDENTIFIER = khamzakhamzakhamza.FitnessTrackerNutrition;
+				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_INSTALL_MODULE = YES;
+				SWIFT_INSTALL_OBJC_HEADER = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -1066,6 +1227,15 @@
 			buildConfigurations = (
 				7AA33EBB304B230800506EDA /* Debug */,
 				7AA33EBC304B230800506EDA /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		D4B20000000000000000000E /* Build configuration list for PBXNativeTarget "FitnessTrackerNutrition" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D4B20000000000000000000C /* Debug */,
+				D4B20000000000000000000D /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

@@ -9,7 +9,15 @@ struct Ribbon: View {
                 selectedItem = .plan
             }
 
+            NutritionRibbonButton(isSelected: selectedItem == .nutrition) {
+                selectedItem = .nutrition
+            }
+
             Spacer()
+
+            SettingsRibbonButton(isSelected: selectedItem == .settings) {
+                selectedItem = .settings
+            }
         }
         .padding(.horizontal, 12)
         .padding(.top, 8)

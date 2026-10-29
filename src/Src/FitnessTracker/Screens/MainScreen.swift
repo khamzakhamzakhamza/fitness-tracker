@@ -1,4 +1,5 @@
 import SwiftUI
+import FitnessTrackerNutrition
 import FitnessTrackerPlanner
 
 struct MainScreen: View {
@@ -10,6 +11,10 @@ struct MainScreen: View {
                 switch selectedRibbonItem {
                 case .plan:
                     PlanScreen()
+                case .nutrition:
+                    NutritionScreen()
+                case .settings:
+                    SettingsScreen()
                 }
 
                 Ribbon(selectedItem: $selectedRibbonItem)
