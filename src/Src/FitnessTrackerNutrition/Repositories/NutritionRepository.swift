@@ -8,9 +8,42 @@ struct DailyNutritionValues: Sendable {
 
 protocol NutritionRepositoryProtocol: Sendable {
     func fetchDailyNutrition(date: String) async throws -> DailyNutritionValues
+    func addNutritionLog(
+        foodID: String,
+        date: String,
+        time: String
+    ) async throws
 }
 
 actor NutritionRepository: NutritionRepositoryProtocol {
+    func addNutritionLog(
+        foodID: String,
+        date: String,
+        time: String
+    ) throws {
+        let database = try openLocalDatabase(readOnly: false)
+        defer { sqlite3_close(database) }
+
+        var statement: OpaquePointer?
+        guard sqlite3_prepare_v2(
+            database,
+            Constants.addNutritionLogQuery,
+            -1,
+            &statement,
+            nil
+        ) == SQLITE_OK, let statement else {
+            throw NutritionRepositoryError.queryFailed
+        }
+        defer { sqlite3_finalize(statement) }
+
+        guard sqlite3_bind_text(statement, 1, foodID, -1, sqliteTransient) == SQLITE_OK,
+              sqlite3_bind_text(statement, 2, date, -1, sqliteTransient) == SQLITE_OK,
+              sqlite3_bind_text(statement, 3, time, -1, sqliteTransient) == SQLITE_OK,
+              sqlite3_step(statement) == SQLITE_DONE else {
+            throw NutritionRepositoryError.queryFailed
+        }
+    }
+
     func fetchDailyNutrition(date: String) throws -> DailyNutritionValues {
         let foodIDs = try fetchLoggedFoodIDs(date: date)
 
@@ -178,7 +211,7 @@ actor NutritionRepository: NutritionRepositoryProtocol {
         }
     }
 
-    private func openLocalDatabase() throws -> OpaquePointer {
+    private func openLocalDatabase(readOnly: Bool = true) throws -> OpaquePointer {
         guard let applicationSupportURL = FileManager.default.urls(
             for: .applicationSupportDirectory,
             in: .userDomainMask
@@ -190,7 +223,7 @@ actor NutritionRepository: NutritionRepositoryProtocol {
             .appendingPathComponent(Constants.databaseDirectory, isDirectory: true)
             .appendingPathComponent(Constants.localDatabaseFileName)
 
-        return try openDatabase(at: databaseURL)
+        return try openDatabase(at: databaseURL, readOnly: readOnly)
     }
 
     private func openFoodsDatabase() throws -> OpaquePointer {
@@ -204,12 +237,16 @@ actor NutritionRepository: NutritionRepositoryProtocol {
         return try openDatabase(at: databaseURL)
     }
 
-    private func openDatabase(at url: URL) throws -> OpaquePointer {
+    private func openDatabase(
+        at url: URL,
+        readOnly: Bool = true
+    ) throws -> OpaquePointer {
         var database: OpaquePointer?
+        let accessMode = readOnly ? SQLITE_OPEN_READONLY : SQLITE_OPEN_READWRITE
         guard sqlite3_open_v2(
             url.path,
             &database,
-            SQLITE_OPEN_READONLY | SQLITE_OPEN_FULLMUTEX,
+            accessMode | SQLITE_OPEN_FULLMUTEX,
             nil
         ) == SQLITE_OK, let database else {
             throw NutritionRepositoryError.databaseOpenFailed
@@ -237,6 +274,10 @@ private enum Constants {
         FROM NutritionLogs
         WHERE date = ?
         ORDER BY time, id;
+        """
+    static let addNutritionLogQuery = """
+        INSERT INTO NutritionLogs (foodId, date, time)
+        VALUES (?, ?, ?);
         """
     static let fetchFoodCaloriesQuery = """
         SELECT

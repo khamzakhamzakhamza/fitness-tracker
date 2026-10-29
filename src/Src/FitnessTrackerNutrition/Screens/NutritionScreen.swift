@@ -1,7 +1,9 @@
 import SwiftUI
+import FitnessTrackerShared
 
 public struct NutritionScreen: View {
     @State private var dailySummary = DailyNutritionSummary.empty
+    @State private var isShowingLogFood = false
 
     public init() {}
 
@@ -16,12 +18,28 @@ public struct NutritionScreen: View {
                 .padding(.top, 28)
 
             Spacer()
+
+            PrimaryActionButton(title: "LOG MEAL") {
+                isShowingLogFood = true
+            }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .background(Color("AppBackground"))
-        .task {
-            dailySummary = (try? await NutritionService.shared
-                .fetchDailyNutritionSummary()) ?? .empty
+        .navigationDestination(isPresented: $isShowingLogFood) {
+            LogFoodScreen {
+                isShowingLogFood = false
+                Task {
+                    await loadDailySummary()
+                }
+            }
         }
+        .task {
+            await loadDailySummary()
+        }
+    }
+
+    private func loadDailySummary() async {
+        dailySummary = (try? await NutritionService.shared
+            .fetchDailyNutritionSummary()) ?? .empty
     }
 }

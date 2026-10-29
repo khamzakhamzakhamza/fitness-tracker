@@ -17,6 +17,7 @@
 		D4A100000000000000000003 /* FitnessTrackerShared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7A2AD9C2305759A8005E1921 /* FitnessTrackerShared.framework */; };
 		D4B200000000000000000001 /* FitnessTrackerNutrition.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D4B200000000000000000004 /* FitnessTrackerNutrition.framework */; };
 		D4B200000000000000000002 /* FitnessTrackerNutrition.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = D4B200000000000000000004 /* FitnessTrackerNutrition.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		D4B300000000000000000001 /* FitnessTrackerShared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7A2AD9C2305759A8005E1921 /* FitnessTrackerShared.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -75,6 +76,13 @@
 			proxyType = 1;
 			remoteGlobalIDString = D4B20000000000000000000A;
 			remoteInfo = FitnessTrackerNutrition;
+		};
+		D4B300000000000000000002 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 7AA33E8F304B230600506EDA /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 7A2AD9C1305759A8005E1921;
+			remoteInfo = FitnessTrackerShared;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -196,6 +204,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D4B300000000000000000001 /* FitnessTrackerShared.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -405,6 +414,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				D4B300000000000000000003 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				D4B200000000000000000005 /* FitnessTrackerNutrition */,
@@ -606,6 +616,11 @@
 			isa = PBXTargetDependency;
 			target = D4B20000000000000000000A /* FitnessTrackerNutrition */;
 			targetProxy = D4B200000000000000000003 /* PBXContainerItemProxy */;
+		};
+		D4B300000000000000000003 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 7A2AD9C1305759A8005E1921 /* FitnessTrackerShared */;
+			targetProxy = D4B300000000000000000002 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
