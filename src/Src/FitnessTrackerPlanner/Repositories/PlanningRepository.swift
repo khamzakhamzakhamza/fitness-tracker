@@ -15,6 +15,7 @@ public protocol PlanningRepositoryProtocol {
     ) throws
     func fetchUser() throws -> User?
     func fetchMeasurements(amount: Int) throws -> [UserMeasurement]
+    func fetchLatestMeasurement(from startDate: Date, to endDate: Date) throws -> UserMeasurement?
 }
 
 public final class PlanningRepository: PlanningRepositoryProtocol {
@@ -281,6 +282,58 @@ public final class PlanningRepository: PlanningRepositoryProtocol {
         }
     }
 
+    public func fetchLatestMeasurement(
+        from startDate: Date,
+        to endDate: Date
+    ) throws -> UserMeasurement? {
+        try withDatabase(readOnly: true) { database in
+            try withStatement(Constants.fetchLatestMeasurementQuery, in: database) { statement in
+                guard sqlite3_bind_int64(
+                    statement,
+                    1,
+                    Int64(startDate.timeIntervalSince1970)
+                ) == SQLITE_OK,
+                sqlite3_bind_int64(
+                    statement,
+                    2,
+                    Int64(endDate.timeIntervalSince1970)
+                ) == SQLITE_OK else {
+                    throw PlanningRepositoryError.databaseOperationFailed
+                }
+
+                switch sqlite3_step(statement) {
+                case SQLITE_ROW:
+                    guard let idText = sqlite3_column_text(statement, 0),
+                          let userIDText = sqlite3_column_text(statement, 1) else {
+                        throw PlanningRepositoryError.databaseOperationFailed
+                    }
+
+                    let heightSI = sqlite3_column_type(statement, 3) == SQLITE_NULL
+                        ? nil
+                        : sqlite3_column_double(statement, 3)
+
+                    return UserMeasurement(
+                        id: String(cString: idText),
+                        userID: String(cString: userIDText),
+                        weightSI: sqlite3_column_double(statement, 2),
+                        heightSI: heightSI,
+                        leanMass: sqlite3_column_double(statement, 4),
+                        activityLevelID: Int(sqlite3_column_int(statement, 5)),
+                        dateAdded: Date(
+                            timeIntervalSince1970: Double(
+                                sqlite3_column_int64(statement, 6)
+                            )
+                        )
+                    )
+                case SQLITE_DONE:
+                    return nil
+                default:
+                    throw PlanningRepositoryError.databaseOperationFailed
+                }
+            }
+        }
+    }
+
     private func withDatabase<Result>(
         readOnly: Bool,
         operation: (OpaquePointer) throws -> Result
@@ -390,6 +443,13 @@ private enum Constants {
         FROM UserMeasurements
         ORDER BY dateAdded DESC, rowid DESC
         LIMIT ?;
+        """
+    static let fetchLatestMeasurementQuery = """
+        SELECT id, userId, weightSI, heightSI, leanMass, activityLevelId, dateAdded
+        FROM UserMeasurements
+        WHERE dateAdded >= ? AND dateAdded < ?
+        ORDER BY dateAdded DESC, rowid DESC
+        LIMIT 1;
         """
     static let createMeasurementQuery = """
         INSERT INTO UserMeasurements (

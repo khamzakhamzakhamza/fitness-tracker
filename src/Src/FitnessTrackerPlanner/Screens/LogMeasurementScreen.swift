@@ -4,9 +4,10 @@ import FitnessTrackerShared
 public struct LogMeasurementScreen: View {
     @Environment(\.dismiss) private var dismiss
     private let measurementDate: Date
-    @State private var selectedWeight = 0.0
+    @State private var selectedWeightSI = 0.0
     @State private var weightUnit: MeasurementUnitOption?
     @State private var latestMeasurement: UserMeasurement?
+    @State private var lastWeekMeasurement: UserMeasurement?
 
     public init(measurementDate: Date = .now) {
         self.measurementDate = measurementDate
@@ -24,13 +25,28 @@ public struct LogMeasurementScreen: View {
             }
             .padding(20)
 
+            InfoLabel(text: Constants.accuracyMessage)
+                .padding(.horizontal, 20)
+                .padding(.bottom, 20)
+
             if let weightUnit {
-                WeightSelector(
-                    selectedWeight: $selectedWeight,
+                WeightInput(
+                    selectedWeightSI: $selectedWeightSI,
                     unit: weightUnit.shortName,
-                    allowedRange: weightRange(for: weightUnit)
+                    siConversionValue: weightUnit.siConversionValue,
+                    allowedRangeSI: Constants.minimumWeightSI...Constants.maximumWeightSI
                 )
                 .padding(.horizontal, 20)
+
+                if let lastWeekMeasurement {
+                    WeeklyWeightChange(
+                        currentWeightSI: selectedWeightSI,
+                        previousMeasurement: lastWeekMeasurement,
+                        unit: weightUnit
+                    )
+                    .padding(.horizontal, 20)
+                    .padding(.top, 20)
+                }
             }
 
             Spacer()
@@ -81,11 +97,16 @@ public struct LogMeasurementScreen: View {
                 return
             }
 
-            selectedWeight = latestMeasurement.weightSI / preferredUnit.siConversionValue
+            selectedWeightSI = latestMeasurement.weightSI
             self.latestMeasurement = latestMeasurement
+            lastWeekMeasurement = try PlanningService.shared
+                .fetchLatestMeasurementFromLastWeek(
+                    referenceDate: measurementDate
+                )
             weightUnit = preferredUnit
         } catch {
             latestMeasurement = nil
+            lastWeekMeasurement = nil
             weightUnit = nil
         }
     }
@@ -93,12 +114,12 @@ public struct LogMeasurementScreen: View {
     private func saveMeasurement() {
         guard let latestMeasurement,
               let heightSI = latestMeasurement.heightSI,
-              let weightUnit else {
+              weightUnit != nil else {
             return
         }
 
         let wasCreated = PlanningService.shared.createMeasurement(
-            weightSI: selectedWeight * weightUnit.siConversionValue,
+            weightSI: selectedWeightSI,
             heightSI: heightSI,
             leanMass: latestMeasurement.leanMass,
             activityLevelID: latestMeasurement.activityLevelID
@@ -109,18 +130,11 @@ public struct LogMeasurementScreen: View {
         }
     }
 
-    private func weightRange(
-        for unit: MeasurementUnitOption
-    ) -> ClosedRange<Double> {
-        let minimumWeight = Constants.minimumWeightSI / unit.siConversionValue
-        let maximumWeight = Constants.maximumWeightSI / unit.siConversionValue
-
-        return minimumWeight...maximumWeight
-    }
 }
 
 private enum Constants {
     static let title = "What's your current weight"
+    static let accuracyMessage = "For the best accuracy, please try to take measurements at the same time each day while wearing the same clothes."
     static let saveButtonTitle = "Save weight-in"
     static let minimumWeightSI = 20_000.0
     static let maximumWeightSI = 500_000.0

@@ -7,6 +7,7 @@ public protocol PlanningServiceProtocol {
     func fetchActivePlanProgress() throws -> PlanProgressValue?
     func fetchUser() throws -> User?
     func fetchMeasurements(amount: Int) throws -> [UserMeasurement]
+    func fetchLatestMeasurementFromLastWeek(referenceDate: Date) throws -> UserMeasurement?
 }
 
 @MainActor
@@ -55,6 +56,29 @@ public final class PlanningService: PlanningServiceProtocol {
 
     public func fetchMeasurements(amount: Int) throws -> [UserMeasurement] {
         try repository.fetchMeasurements(amount: amount)
+    }
+
+    public func fetchLatestMeasurementFromLastWeek(
+        referenceDate: Date = .now
+    ) throws -> UserMeasurement? {
+        let calendar = Calendar.current
+
+        guard let currentWeek = calendar.dateInterval(
+            of: .weekOfYear,
+            for: referenceDate
+        ),
+        let previousWeekStart = calendar.date(
+            byAdding: .weekOfYear,
+            value: -1,
+            to: currentWeek.start
+        ) else {
+            return nil
+        }
+
+        return try repository.fetchLatestMeasurement(
+            from: previousWeekStart,
+            to: currentWeek.start
+        )
     }
 
     public func hasActivePlan() throws -> Bool {

@@ -92,6 +92,13 @@ private final class PlanningRepositoryStub: PlanningRepositoryProtocol {
         []
     }
 
+    func fetchLatestMeasurement(
+        from startDate: Date,
+        to endDate: Date
+    ) throws -> UserMeasurement? {
+        nil
+    }
+
     func createUser(name: String, birthday: Date) throws {}
 
     func createMeasurement(
