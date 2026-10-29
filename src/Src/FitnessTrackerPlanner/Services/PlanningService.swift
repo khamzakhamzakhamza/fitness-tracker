@@ -7,7 +7,9 @@ public protocol PlanningServiceProtocol {
     func fetchActivePlanProgress() throws -> PlanProgressValue?
     func fetchUser() throws -> User?
     func fetchMeasurements(amount: Int) throws -> [UserMeasurement]
+    func fetchLatestDailyMeasurements(from startDate: Date) throws -> [UserMeasurement]
     func fetchLatestMeasurementFromLastWeek(referenceDate: Date) throws -> UserMeasurement?
+    func deleteMeasurement(id: String) -> Bool
 }
 
 @MainActor
@@ -58,6 +60,27 @@ public final class PlanningService: PlanningServiceProtocol {
         try repository.fetchMeasurements(amount: amount)
     }
 
+    public func fetchLatestDailyMeasurements(from startDate: Date) throws -> [UserMeasurement] {
+        let calendar = Calendar.current
+        let measurements = try repository.fetchMeasurements(from: startDate)
+        var latestMeasurementByDay: [Date: UserMeasurement] = [:]
+
+        for measurement in measurements {
+            let day = calendar.startOfDay(for: measurement.dateAdded)
+
+            if let currentLatest = latestMeasurementByDay[day],
+               currentLatest.dateAdded >= measurement.dateAdded {
+                continue
+            }
+
+            latestMeasurementByDay[day] = measurement
+        }
+
+        return latestMeasurementByDay.values.sorted {
+            $0.dateAdded < $1.dateAdded
+        }
+    }
+
     public func fetchLatestMeasurementFromLastWeek(
         referenceDate: Date = .now
     ) throws -> UserMeasurement? {
@@ -79,6 +102,16 @@ public final class PlanningService: PlanningServiceProtocol {
             from: previousWeekStart,
             to: currentWeek.start
         )
+    }
+
+    @discardableResult
+    public func deleteMeasurement(id: String) -> Bool {
+        do {
+            try repository.deleteMeasurement(id: id)
+            return true
+        } catch {
+            return false
+        }
     }
 
     public func hasActivePlan() throws -> Bool {

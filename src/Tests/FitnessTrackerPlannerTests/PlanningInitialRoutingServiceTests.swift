@@ -99,6 +99,8 @@ private final class PlanningRepositoryStub: PlanningRepositoryProtocol {
         nil
     }
 
+    func deleteMeasurement(id: String) throws {}
+
     func createUser(name: String, birthday: Date) throws {}
 
     func createMeasurement(
@@ -137,5 +139,9 @@ private final class PlanningRepositoryStub: PlanningRepositoryProtocol {
                 dateAdded: Date(timeIntervalSince1970: 0)
             )
         ]
+    }
+
+    func fetchMeasurements(from startDate: Date) throws -> [UserMeasurement] {
+        []
     }
 }

@@ -15,7 +15,9 @@ public protocol PlanningRepositoryProtocol {
     ) throws
     func fetchUser() throws -> User?
     func fetchMeasurements(amount: Int) throws -> [UserMeasurement]
+    func fetchMeasurements(from startDate: Date) throws -> [UserMeasurement]
     func fetchLatestMeasurement(from startDate: Date, to endDate: Date) throws -> UserMeasurement?
+    func deleteMeasurement(id: String) throws
 }
 
 public final class PlanningRepository: PlanningRepositoryProtocol {
@@ -282,6 +284,56 @@ public final class PlanningRepository: PlanningRepositoryProtocol {
         }
     }
 
+    public func fetchMeasurements(from startDate: Date) throws -> [UserMeasurement] {
+        try withDatabase(readOnly: true) { database in
+            try withStatement(Constants.fetchMeasurementsFromDateQuery, in: database) { statement in
+                guard sqlite3_bind_int64(
+                    statement,
+                    1,
+                    Int64(startDate.timeIntervalSince1970)
+                ) == SQLITE_OK else {
+                    throw PlanningRepositoryError.databaseOperationFailed
+                }
+
+                var measurements: [UserMeasurement] = []
+
+                while true {
+                    switch sqlite3_step(statement) {
+                    case SQLITE_ROW:
+                        guard let idText = sqlite3_column_text(statement, 0),
+                              let userIDText = sqlite3_column_text(statement, 1) else {
+                            throw PlanningRepositoryError.databaseOperationFailed
+                        }
+
+                        let heightSI = sqlite3_column_type(statement, 3) == SQLITE_NULL
+                            ? nil
+                            : sqlite3_column_double(statement, 3)
+
+                        measurements.append(
+                            UserMeasurement(
+                                id: String(cString: idText),
+                                userID: String(cString: userIDText),
+                                weightSI: sqlite3_column_double(statement, 2),
+                                heightSI: heightSI,
+                                leanMass: sqlite3_column_double(statement, 4),
+                                activityLevelID: Int(sqlite3_column_int(statement, 5)),
+                                dateAdded: Date(
+                                    timeIntervalSince1970: Double(
+                                        sqlite3_column_int64(statement, 6)
+                                    )
+                                )
+                            )
+                        )
+                    case SQLITE_DONE:
+                        return measurements
+                    default:
+                        throw PlanningRepositoryError.databaseOperationFailed
+                    }
+                }
+            }
+        }
+    }
+
     public func fetchLatestMeasurement(
         from startDate: Date,
         to endDate: Date
@@ -328,6 +380,18 @@ public final class PlanningRepository: PlanningRepositoryProtocol {
                 case SQLITE_DONE:
                     return nil
                 default:
+                    throw PlanningRepositoryError.databaseOperationFailed
+                }
+            }
+        }
+    }
+
+    public func deleteMeasurement(id: String) throws {
+        try withDatabase(readOnly: false) { database in
+            try withStatement(Constants.deleteMeasurementQuery, in: database) { statement in
+                guard sqlite3_bind_text(statement, 1, id, -1, sqliteTransient) == SQLITE_OK,
+                      sqlite3_step(statement) == SQLITE_DONE,
+                      sqlite3_changes(database) == 1 else {
                     throw PlanningRepositoryError.databaseOperationFailed
                 }
             }
@@ -450,6 +514,16 @@ private enum Constants {
         WHERE dateAdded >= ? AND dateAdded < ?
         ORDER BY dateAdded DESC, rowid DESC
         LIMIT 1;
+        """
+    static let fetchMeasurementsFromDateQuery = """
+        SELECT id, userId, weightSI, heightSI, leanMass, activityLevelId, dateAdded
+        FROM UserMeasurements
+        WHERE dateAdded >= ?
+        ORDER BY dateAdded ASC, rowid ASC;
+        """
+    static let deleteMeasurementQuery = """
+        DELETE FROM UserMeasurements
+        WHERE id = ?;
         """
     static let createMeasurementQuery = """
         INSERT INTO UserMeasurements (
