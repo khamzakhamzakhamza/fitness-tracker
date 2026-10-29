@@ -1,3 +1,5 @@
+import Foundation
+
 public struct UserMeasurement: Equatable {
     public let id: String
     public let userID: String
@@ -5,6 +7,7 @@ public struct UserMeasurement: Equatable {
     public let heightSI: Double?
     public let leanMass: Double
     public let activityLevelID: Int
+    public let dateAdded: Date
 
     public init(
         id: String,
@@ -12,7 +15,8 @@ public struct UserMeasurement: Equatable {
         weightSI: Double,
         heightSI: Double?,
         leanMass: Double,
-        activityLevelID: Int
+        activityLevelID: Int,
+        dateAdded: Date
     ) {
         self.id = id
         self.userID = userID
@@ -20,5 +24,6 @@ public struct UserMeasurement: Equatable {
         self.heightSI = heightSI
         self.leanMass = leanMass
         self.activityLevelID = activityLevelID
+        self.dateAdded = dateAdded
     }
 }

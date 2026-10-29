@@ -46,6 +46,7 @@ CREATE INDEX nutrition_logs_date_idx ON NutritionLogs (date);
 | `heightSI` | `REAL` | Nullable, stored in centimetres |
 | `leanMass` | `REAL` | Not null, percentage |
 | `activityLevelId` | `INTEGER` | Not null, foreign key to `ActivityLevels.id` |
+| `dateAdded` | `INTEGER` | Not null, Unix timestamp |
 
 ### Indexes
 

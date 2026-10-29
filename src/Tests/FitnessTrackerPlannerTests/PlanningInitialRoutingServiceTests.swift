@@ -126,7 +126,8 @@ private final class PlanningRepositoryStub: PlanningRepositoryProtocol {
                 weightSI: 77_000,
                 heightSI: 180,
                 leanMass: 79,
-                activityLevelID: 1
+                activityLevelID: 1,
+                dateAdded: Date(timeIntervalSince1970: 0)
             )
         ]
     }

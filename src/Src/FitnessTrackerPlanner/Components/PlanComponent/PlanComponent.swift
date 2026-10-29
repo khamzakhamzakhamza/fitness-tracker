@@ -515,7 +515,8 @@ private enum Constants {
                     weightSI: 85_000,
                     heightSI: 181,
                     leanMass: 77,
-                    activityLevelID: 3
+                    activityLevelID: 3,
+                    dateAdded: .now
                   ),
                   planDefinition: .maintenance24Weeks,
                   onDragEnded: { _ in }

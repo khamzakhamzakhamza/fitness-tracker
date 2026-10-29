@@ -122,6 +122,7 @@ private struct LocalDatabaseInitializer {
                 heightSI REAL,
                 leanMass REAL NOT NULL,
                 activityLevelId INTEGER NOT NULL,
+                dateAdded INTEGER NOT NULL,
                 FOREIGN KEY (userId) REFERENCES "\(User.tableName)" (id),
                 FOREIGN KEY (activityLevelId) REFERENCES \(ActivityLevel.tableName) (id)
             );

@@ -195,12 +195,14 @@ public final class PlanningRepository: PlanningRepositoryProtocol {
         try withDatabase(readOnly: false) { database in
             try withStatement(Constants.createMeasurementQuery, in: database) { statement in
                 let measurementID = UUID().uuidString.lowercased()
+                let dateAdded = Int64(Date().timeIntervalSince1970)
 
                 guard sqlite3_bind_text(statement, 1, measurementID, -1, sqliteTransient) == SQLITE_OK,
                       sqlite3_bind_double(statement, 2, weightSI) == SQLITE_OK,
                       sqlite3_bind_double(statement, 3, heightSI) == SQLITE_OK,
                       sqlite3_bind_double(statement, 4, leanMass) == SQLITE_OK,
                       sqlite3_bind_int(statement, 5, Int32(activityLevelID)) == SQLITE_OK,
+                      sqlite3_bind_int64(statement, 6, dateAdded) == SQLITE_OK,
                       sqlite3_step(statement) == SQLITE_DONE,
                       sqlite3_changes(database) == 1 else {
                     throw PlanningRepositoryError.databaseOperationFailed
@@ -261,7 +263,12 @@ public final class PlanningRepository: PlanningRepositoryProtocol {
                                 weightSI: sqlite3_column_double(statement, 2),
                                 heightSI: heightSI,
                                 leanMass: sqlite3_column_double(statement, 4),
-                                activityLevelID: Int(sqlite3_column_int(statement, 5))
+                                activityLevelID: Int(sqlite3_column_int(statement, 5)),
+                                dateAdded: Date(
+                                    timeIntervalSince1970: Double(
+                                        sqlite3_column_int64(statement, 6)
+                                    )
+                                )
                             )
                         )
                     case SQLITE_DONE:
@@ -379,9 +386,9 @@ private enum Constants {
         VALUES (?, ?, ?, ?);
         """
     static let fetchMeasurementsQuery = """
-        SELECT id, userId, weightSI, heightSI, leanMass, activityLevelId
+        SELECT id, userId, weightSI, heightSI, leanMass, activityLevelId, dateAdded
         FROM UserMeasurements
-        ORDER BY rowid DESC
+        ORDER BY dateAdded DESC
         LIMIT ?;
         """
     static let createMeasurementQuery = """
@@ -391,9 +398,10 @@ private enum Constants {
             weightSI,
             heightSI,
             leanMass,
-            activityLevelId
+            activityLevelId,
+            dateAdded
         )
-        SELECT ?, id, ?, ?, ?, ?
+        SELECT ?, id, ?, ?, ?, ?, ?
         FROM "User"
         ORDER BY dateAdded DESC
         LIMIT 1;
