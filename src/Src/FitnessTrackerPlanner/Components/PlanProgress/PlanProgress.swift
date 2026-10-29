@@ -5,6 +5,7 @@ public struct PlanProgress: View {
     public let plan: PlanValue
     public let milestones: [PlanMilestoneValue]
     public let measurements: [UserMeasurement]
+    @State private var scrollPosition: Date
 
     public init(
         plan: PlanValue,
@@ -14,6 +15,15 @@ public struct PlanProgress: View {
         self.plan = plan
         self.milestones = milestones.sorted { $0.date < $1.date }
         self.measurements = measurements.sorted { $0.dateAdded < $1.dateAdded }
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: .now)
+        _scrollPosition = State(
+            initialValue: calendar.date(
+                byAdding: .day,
+                value: -Constants.leadingPaddingDays,
+                to: today
+            ) ?? today
+        )
     }
 
     public var body: some View {
@@ -36,8 +46,8 @@ public struct PlanProgress: View {
                 }
 
                 RuleMark(x: .value(Constants.todayLabel, today))
-                    .foregroundStyle(Color.primary)
-                    .lineStyle(StrokeStyle(lineWidth: 1, dash: [5, 5]))
+                    .foregroundStyle(Color.green.opacity(0.5))
+                    .lineStyle(StrokeStyle(lineWidth: 1))
 
                 if let endDate = milestones.last?.date {
                     RuleMark(x: .value(Constants.endLabel, endDate))
@@ -45,7 +55,7 @@ public struct PlanProgress: View {
                         .lineStyle(StrokeStyle(lineWidth: 1, dash: [5, 5]))
                 }
 
-                ForEach(Array(milestones.enumerated()), id: \.element.date) { index, milestone in
+                ForEach(milestones, id: \.date) { milestone in
                     let weight = convertedWeight(milestone.targetWeightSI)
 
                     RuleMark(x: .value(Constants.weekValueLabel, milestone.date))
@@ -82,36 +92,44 @@ public struct PlanProgress: View {
                         Text(PlanComponentService.weightToString(weight))
                             .font(.caption)
                             .foregroundStyle(Color.secondary)
-                            .offset(
-                                x: pointLabelOffset(for: index),
-                                y: -4
-                            )
+                            .offset(y: -4)
                     }
                 }
 
                 ForEach(measurements, id: \.id) { measurement in
                     let weight = convertedWeight(measurement.weightSI)
+                    let date = Calendar.current.startOfDay(for: measurement.dateAdded)
 
                     LineMark(
-                        x: .value(Constants.measurementDateLabel, measurement.dateAdded),
+                        x: .value(Constants.measurementDateLabel, date),
                         y: .value(Constants.measurementWeightLabel, weight),
                         series: .value(Constants.seriesLabel, Constants.measurementSeries)
                     )
-                    .foregroundStyle(Color.primary)
+                    .foregroundStyle(Color.accentColor)
                     .lineStyle(
                         StrokeStyle(
-                            lineWidth: 2,
+                            lineWidth: 1,
                             lineCap: .round,
                             lineJoin: .round
                         )
                     )
 
                     PointMark(
-                        x: .value(Constants.measurementDateLabel, measurement.dateAdded),
+                        x: .value(Constants.measurementDateLabel, date),
                         y: .value(Constants.measurementWeightLabel, weight)
                     )
-                    .foregroundStyle(Color.primary)
-                    .symbolSize(35)
+                    .foregroundStyle(Color.accentColor)
+                    .symbol {
+                        Circle()
+                            .fill(Color.accentColor)
+                            .frame(width: 10, height: 10)
+                    }
+                    .annotation(position: .top) {
+                        Text(PlanComponentService.weightToString(weight))
+                            .font(.caption)
+                            .foregroundStyle(Color.accentColor)
+                            .offset(y: -4)
+                    }
                 }
             }
             .background(Color.primary.opacity(0.03))
@@ -145,6 +163,7 @@ public struct PlanProgress: View {
                 }
             }
             .chartXVisibleDomain(length: Constants.visibleDuration)
+            .chartScrollPosition(x: $scrollPosition)
             .chartScrollableAxes(.horizontal)
             .padding(.horizontal, -Constants.screenHorizontalPadding)
         }
@@ -155,7 +174,9 @@ public struct PlanProgress: View {
 
     private var xDomain: ClosedRange<Date> {
         PlanComponentService.makeXDomain(
-            dates: milestones.map(\.date) + measurements.map(\.dateAdded)
+            dates: milestones.map(\.date) + measurements.map {
+                Calendar.current.startOfDay(for: $0.dateAdded)
+            }
         )
     }
 
@@ -186,17 +207,6 @@ public struct PlanProgress: View {
         weightSI / Constants.gramsPerKilogram
     }
 
-    private func pointLabelOffset(for index: Int) -> CGFloat {
-        if index == milestones.startIndex {
-            return -15
-        }
-
-        if index == milestones.index(before: milestones.endIndex) {
-            return 15
-        }
-
-        return 0
-    }
 }
 
 private enum Constants {
@@ -214,6 +224,7 @@ private enum Constants {
     static let weekLineOpacity = 0.16
     static let gramsPerKilogram = 1_000.0
     static let weightPadding = 2.0
+    static let leadingPaddingDays = 3
     static let screenHorizontalPadding: CGFloat = 20
-    static let visibleDuration = TimeInterval(4 * 7 * 86_400)
+    static let visibleDuration = TimeInterval(2 * 7 * 86_400)
 }

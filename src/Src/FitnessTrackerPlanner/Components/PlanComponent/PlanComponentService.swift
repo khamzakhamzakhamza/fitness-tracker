@@ -83,8 +83,8 @@ internal enum PlanComponentService {
         dates: [Date],
         calendar: Calendar = .current
     ) -> ClosedRange<Date> {
-        guard let first = dates.first,
-              let last = dates.last else {
+        guard let first = dates.min(),
+              let last = dates.max() else {
             let today = calendar.startOfDay(for: .now)
             return today...today
         }
