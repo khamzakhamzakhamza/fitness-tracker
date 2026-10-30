@@ -9,8 +9,7 @@ public struct NutritionScreen: View {
 
     public var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            Text("Nutrition")
-                .font(.system(size: 28, weight: .black))
+            ScreenTitle("Nutrition")
                 .padding(.horizontal, 20)
                 .padding(.top, 20)
 

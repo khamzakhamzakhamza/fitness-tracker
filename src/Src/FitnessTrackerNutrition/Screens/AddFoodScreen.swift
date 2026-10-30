@@ -16,8 +16,6 @@ struct AddFoodScreen: View {
     var body: some View {
         VStack(spacing: 0) {
             VStack(alignment: .leading, spacing: 6) {
-                ScreenTitle(food?.title ?? "Add food")
-
                 if let subtitle = food?.subtitle, !subtitle.isEmpty {
                     Text(subtitle)
                         .font(.system(size: 15, weight: .bold))
@@ -71,6 +69,8 @@ struct AddFoodScreen: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color("AppBackground"))
+        .navigationTitle(food?.title ?? "Add food")
+        .navigationBarTitleDisplayMode(.inline)
         .contentShape(Rectangle())
         .simultaneousGesture(
             DragGesture(minimumDistance: 16)

@@ -17,8 +17,7 @@ public struct UserInputScreen: View {
     public var body: some View {
         VStack(spacing: 0) {
             VStack(alignment: .leading, spacing: 12) {
-                Text(Constants.title)
-                    .font(.system(size: 28, weight: .black))
+                ScreenTitle(Constants.title)
 
                 InfoLabel(text: Constants.privacyMessage)
 

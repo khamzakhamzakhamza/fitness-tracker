@@ -15,8 +15,7 @@ public struct PlanScreen: View {
         GeometryReader { geometry in
             VStack(alignment: .leading, spacing: 0) {
                 VStack(alignment: .leading, spacing: 20) {
-                    Text(Constants.title)
-                        .font(.system(size: 28, weight: .black))
+                    ScreenTitle(Constants.title)
 
                     if let planProgress {
                         PlanProgress(

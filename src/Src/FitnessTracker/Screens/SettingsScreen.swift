@@ -1,10 +1,10 @@
 import SwiftUI
+import FitnessTrackerShared
 
 struct SettingsScreen: View {
     var body: some View {
         VStack(alignment: .leading) {
-            Text("Settings")
-                .font(.system(size: 28, weight: .black))
+            ScreenTitle("Settings")
 
             Spacer()
         }

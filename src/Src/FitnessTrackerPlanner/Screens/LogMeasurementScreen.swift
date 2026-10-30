@@ -16,9 +16,6 @@ public struct LogMeasurementScreen: View {
     public var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             VStack(alignment: .leading, spacing: 8) {
-                Text(Constants.title)
-                    .font(.system(size: 28, weight: .black))
-
                 Text("\(dateText) · \(timeText)")
                     .font(.system(size: 12, weight: .bold))
                     .foregroundStyle(.secondary)
@@ -57,6 +54,8 @@ public struct LogMeasurementScreen: View {
             )
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .navigationTitle(Constants.title)
+        .navigationBarTitleDisplayMode(.inline)
         .task {
             loadWeight()
         }

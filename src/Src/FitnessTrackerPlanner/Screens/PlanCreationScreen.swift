@@ -21,8 +21,7 @@ public struct PlanCreationScreen: View {
     public var body: some View {
         VStack(spacing: 0) {
             VStack(alignment: .leading, spacing: 20) {
-                Text(Constants.title)
-                    .font(.system(size: 28, weight: .black))
+                ScreenTitle(Constants.title)
 
                 InputDropdownRow(
                     selection: planSelection,
