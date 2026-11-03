@@ -53,7 +53,7 @@
   /* ---------- greeting ---------- */
   .greeting main { gap: 0; padding: 20px 0 0; }
   .greeting-copy { padding: 0 20px; text-align: center; font-family: 'Archivo', 'Segoe UI', sans-serif;
-                   font-size: 20px; line-height: 1.55; font-weight: 700; color: #4A4A52; }
+                   font-size: 16px; line-height: 1.55; font-weight: 700; color: #4A4A52; }
   .greeting-copy p + p { margin-top: 16px; }
   .greeting .cta { margin-top: auto; }
 
@@ -522,6 +522,107 @@
 <body>
 
 <div class="canvas">
+
+  <div class="column">
+
+  <!-- ============================================================
+       SCREEN 0 — GREETING
+       ============================================================ -->
+  <div class="frame planning-greeting">
+    <span class="name">Onboarding → Greeting</span>
+    <div class="phone greeting">
+      <div class="status">
+        <div class="time">9:41</div>
+        <div class="icons">
+          <svg width="18" height="12" viewBox="0 0 18 12" fill="none">
+            <rect y="8" width="3" height="4" rx="1" fill="#1A1A1A"/>
+            <rect x="5" y="5.5" width="3" height="6.5" rx="1" fill="#1A1A1A"/>
+            <rect x="10" y="3" width="3" height="9" rx="1" fill="#1A1A1A"/>
+            <rect x="15" width="3" height="12" rx="1" fill="#1A1A1A"/>
+          </svg>
+          <svg width="16" height="12" viewBox="0 0 16 12" fill="none">
+            <path d="M1.2 4.1C3 2.5 5.4 1.5 8 1.5C10.6 1.5 13 2.5 14.8 4.1" stroke="#1A1A1A" stroke-width="2" stroke-linecap="round"/>
+            <path d="M4 7C5.1 6 6.5 5.4 8 5.4C9.5 5.4 10.9 6 12 7" stroke="#1A1A1A" stroke-width="2" stroke-linecap="round"/>
+            <path d="M6.7 9.9C7.1 9.6 7.5 9.4 8 9.4C8.5 9.4 8.9 9.6 9.3 9.9" stroke="#1A1A1A" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          <svg width="25" height="12" viewBox="0 0 25 12" fill="none">
+            <rect x="0.5" y="0.5" width="21" height="11" rx="3" stroke="#1A1A1A" stroke-opacity="0.4"/>
+            <rect x="2" y="2" width="18" height="8" rx="1.5" fill="#1A1A1A"/>
+            <path d="M23 4.4V7.6C23.9 7.3 24.5 6.7 24.5 6C24.5 5.3 23.9 4.7 23 4.4Z" fill="#1A1A1A" fill-opacity="0.4"/>
+          </svg>
+        </div>
+      </div>
+      <main>
+        <section class="greeting-copy">
+          <p>Hi!</p>
+          <p>Thanks for downloading FitnessTracker!</p>
+          <p>App's purpose is to help you keep track of your nutrition and exercise in one place, as efficiently as possible.</p>
+          <p>The app is open source, free, works offline, and does not store any data.</p>
+          <p>Enjoy!</p>
+        </section>
+        <div class="cta"><button class="btn display">Let's start</button></div>
+      </main>
+      <div class="safe"><i></i></div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       SCREEN 1 — USER CREATION
+       ============================================================ -->
+  <div class="frame planning-user-creation">
+    <span class="name">Greeting → User creation</span>
+    <div class="phone user-creation">
+      <div class="status">
+        <div class="time">9:41</div>
+        <div class="icons">
+          <svg width="18" height="12" viewBox="0 0 18 12" fill="none">
+            <rect y="8" width="3" height="4" rx="1" fill="#1A1A1A"/>
+            <rect x="5" y="5.5" width="3" height="6.5" rx="1" fill="#1A1A1A"/>
+            <rect x="10" y="3" width="3" height="9" rx="1" fill="#1A1A1A"/>
+            <rect x="15" width="3" height="12" rx="1" fill="#1A1A1A"/>
+          </svg>
+          <svg width="16" height="12" viewBox="0 0 16 12" fill="none">
+            <path d="M1.2 4.1C3 2.5 5.4 1.5 8 1.5C10.6 1.5 13 2.5 14.8 4.1" stroke="#1A1A1A" stroke-width="2" stroke-linecap="round"/>
+            <path d="M4 7C5.1 6 6.5 5.4 8 5.4C9.5 5.4 10.9 6 12 7" stroke="#1A1A1A" stroke-width="2" stroke-linecap="round"/>
+            <path d="M6.7 9.9C7.1 9.6 7.5 9.4 8 9.4C8.5 9.4 8.9 9.6 9.3 9.9" stroke="#1A1A1A" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          <svg width="25" height="12" viewBox="0 0 25 12" fill="none">
+            <rect x="0.5" y="0.5" width="21" height="11" rx="3" stroke="#1A1A1A" stroke-opacity="0.4"/>
+            <rect x="2" y="2" width="18" height="8" rx="1.5" fill="#1A1A1A"/>
+            <path d="M23 4.4V7.6C23.9 7.3 24.5 6.7 24.5 6C24.5 5.3 23.9 4.7 23 4.4Z" fill="#1A1A1A" fill-opacity="0.4"/>
+          </svg>
+        </div>
+      </div>
+
+      <main>
+        <section class="title-block">
+          <h1 class="display">Pls set your user data</h1>
+        </section>
+
+        <div class="note">
+          <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="7" cy="7" r="6"/><path d="M7 6.3v4"/><path d="M7 3.9v.1"/>
+          </svg>
+          <p>Your data is stored on device only</p>
+        </div>
+
+        <section class="user-fields">
+          <label class="user-field">
+            <span class="ilabel">Name</span>
+            <input type="text" placeholder="Bob for example" aria-label="Name">
+          </label>
+          <label class="user-field">
+            <span class="ilabel">Date of birth</span>
+            <input type="text" placeholder="DD / MM / YYYY" aria-label="Date of birth">
+          </label>
+        </section>
+      </main>
+      <div class="cta"><button class="btn display">Next</button></div>
+      <div class="safe"><i></i></div>
+    </div>
+  </div>
+
+  </div>
 
   <!-- ============================================================
        SCREEN 1 — DASHBOARD
@@ -1217,103 +1318,6 @@
   <div class="column">
 
   <!-- ============================================================
-       SCREEN 0 — GREETING
-       ============================================================ -->
-  <div class="frame planning-greeting">
-    <span class="name">Greeting</span>
-    <div class="phone greeting">
-      <div class="status">
-        <div class="time">9:41</div>
-        <div class="icons">
-          <svg width="18" height="12" viewBox="0 0 18 12" fill="none">
-            <rect y="8" width="3" height="4" rx="1" fill="#1A1A1A"/>
-            <rect x="5" y="5.5" width="3" height="6.5" rx="1" fill="#1A1A1A"/>
-            <rect x="10" y="3" width="3" height="9" rx="1" fill="#1A1A1A"/>
-            <rect x="15" width="3" height="12" rx="1" fill="#1A1A1A"/>
-          </svg>
-          <svg width="16" height="12" viewBox="0 0 16 12" fill="none">
-            <path d="M1.2 4.1C3 2.5 5.4 1.5 8 1.5C10.6 1.5 13 2.5 14.8 4.1" stroke="#1A1A1A" stroke-width="2" stroke-linecap="round"/>
-            <path d="M4 7C5.1 6 6.5 5.4 8 5.4C9.5 5.4 10.9 6 12 7" stroke="#1A1A1A" stroke-width="2" stroke-linecap="round"/>
-            <path d="M6.7 9.9C7.1 9.6 7.5 9.4 8 9.4C8.5 9.4 8.9 9.6 9.3 9.9" stroke="#1A1A1A" stroke-width="2" stroke-linecap="round"/>
-          </svg>
-          <svg width="25" height="12" viewBox="0 0 25 12" fill="none">
-            <rect x="0.5" y="0.5" width="21" height="11" rx="3" stroke="#1A1A1A" stroke-opacity="0.4"/>
-            <rect x="2" y="2" width="18" height="8" rx="1.5" fill="#1A1A1A"/>
-            <path d="M23 4.4V7.6C23.9 7.3 24.5 6.7 24.5 6C24.5 5.3 23.9 4.7 23 4.4Z" fill="#1A1A1A" fill-opacity="0.4"/>
-          </svg>
-        </div>
-      </div>
-      <main>
-        <section class="greeting-copy">
-          <p>Hi!</p>
-          <p>Thanks for downloading FitnessTracker!</p>
-          <p>The mission is to help you keep track of your nutrition and exercise in one place, as efficiently as possible.</p>
-          <p>The app is open source, free, works offline, and does not store any data.</p>
-          <p>Enjoy!</p>
-        </section>
-        <div class="cta"><button class="btn display">Let's start</button></div>
-      </main>
-      <div class="safe"><i></i></div>
-    </div>
-  </div>
-
-  <!-- ============================================================
-       SCREEN 1 — USER CREATION
-       ============================================================ -->
-  <div class="frame planning-user-creation">
-    <span class="name">Greeting → User creation</span>
-    <div class="phone user-creation">
-      <div class="status">
-        <div class="time">9:41</div>
-        <div class="icons">
-          <svg width="18" height="12" viewBox="0 0 18 12" fill="none">
-            <rect y="8" width="3" height="4" rx="1" fill="#1A1A1A"/>
-            <rect x="5" y="5.5" width="3" height="6.5" rx="1" fill="#1A1A1A"/>
-            <rect x="10" y="3" width="3" height="9" rx="1" fill="#1A1A1A"/>
-            <rect x="15" width="3" height="12" rx="1" fill="#1A1A1A"/>
-          </svg>
-          <svg width="16" height="12" viewBox="0 0 16 12" fill="none">
-            <path d="M1.2 4.1C3 2.5 5.4 1.5 8 1.5C10.6 1.5 13 2.5 14.8 4.1" stroke="#1A1A1A" stroke-width="2" stroke-linecap="round"/>
-            <path d="M4 7C5.1 6 6.5 5.4 8 5.4C9.5 5.4 10.9 6 12 7" stroke="#1A1A1A" stroke-width="2" stroke-linecap="round"/>
-            <path d="M6.7 9.9C7.1 9.6 7.5 9.4 8 9.4C8.5 9.4 8.9 9.6 9.3 9.9" stroke="#1A1A1A" stroke-width="2" stroke-linecap="round"/>
-          </svg>
-          <svg width="25" height="12" viewBox="0 0 25 12" fill="none">
-            <rect x="0.5" y="0.5" width="21" height="11" rx="3" stroke="#1A1A1A" stroke-opacity="0.4"/>
-            <rect x="2" y="2" width="18" height="8" rx="1.5" fill="#1A1A1A"/>
-            <path d="M23 4.4V7.6C23.9 7.3 24.5 6.7 24.5 6C24.5 5.3 23.9 4.7 23 4.4Z" fill="#1A1A1A" fill-opacity="0.4"/>
-          </svg>
-        </div>
-      </div>
-
-      <main>
-        <section class="title-block">
-          <h1 class="display">Pls set your user data</h1>
-        </section>
-
-        <div class="note">
-          <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="7" cy="7" r="6"/><path d="M7 6.3v4"/><path d="M7 3.9v.1"/>
-          </svg>
-          <p>Your data is stored on device only</p>
-        </div>
-
-        <section class="user-fields">
-          <label class="user-field">
-            <span class="ilabel">Name</span>
-            <input type="text" placeholder="Bob for example" aria-label="Name">
-          </label>
-          <label class="user-field">
-            <span class="ilabel">Date of birth</span>
-            <input type="text" placeholder="DD / MM / YYYY" aria-label="Date of birth">
-          </label>
-        </section>
-      </main>
-      <div class="cta"><button class="btn display">Next</button></div>
-      <div class="safe"><i></i></div>
-    </div>
-  </div>
-
-  <!-- ============================================================
        SCREEN 9 — PLAN
        The only screen that produces a number rather than recording one.
        Every other screen measures a day against the calorie goal; this is
@@ -1346,10 +1350,6 @@
       </div>
 
       <main class="tight">
-        <section class="title-block">
-          <h1 class="display">Pls set your measurments</h1>
-        </section>
-
         <div class="note">
           <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="7" cy="7" r="6"/><path d="M7 6.3v4"/><path d="M7 3.9v.1"/>
